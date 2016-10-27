@@ -1,0 +1,10 @@
+{
+    "slack": {
+        "post_hook_url": "incoming webhook endpoint",
+        "params": {
+            "channel": "#your favorite channel",
+            "username": "botname",
+            "icon_emoji": ":emoji"
+        }
+    }
+}
