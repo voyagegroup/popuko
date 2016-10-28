@@ -10,7 +10,7 @@ def post(message):
     Args:
         <string> message
     """
-    params = dict(settings['slack']['params'])  # copy
+    params = dict(settings['slack']['post_params'])  # copy
     params['text'] = message
     return requests.post(
         settings['slack']['post_hook_url'],
