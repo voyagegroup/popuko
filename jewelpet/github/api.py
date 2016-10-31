@@ -166,7 +166,12 @@ def get_pr(owner, repo_name, pr_number):
     if res is None:
         return None
     res['links'] = res.pop('_links')  # namedtuple doesn't allow field name starts with a underscore
-    return PullRequest(**res)
+    pr = PullRequest(**res)
+    pr_ = pr._replace(
+        user=_parse_user(pr.user),
+        assignee=_parse_user(pr.assignee),
+        assignees=[_parse_user(x) for x in pr.assignees])
+    return pr_
 
 
 def get_issue(owner, repo_name, issue_number):
@@ -182,7 +187,12 @@ def get_issue(owner, repo_name, issue_number):
     if res is None:
         return None
     _fill(res, ('pull_request',))
-    return Issue(**res)
+    issue = Issue(**res)
+    issue_ = issue._replace(
+        user=_parse_user(issue.user),
+        assignee=_parse_user(issue.assignee),
+        assignees=[_parse_user(x) for x in issue.assignees])
+    return issue_
 
 
 def set_labels(owner, repo_name, issue_number, labels):
@@ -196,6 +206,20 @@ def set_labels(owner, repo_name, issue_number, labels):
         <bool> success or not
     """
     res = _patch('/repos/%s/%s/issues/%d' % (owner, repo_name, issue_number), {'labels': labels})
+    return bool(res)
+
+
+def assign(owner, repo_name, issue_number, assignees):
+    """
+    Args:
+        <string> owner
+        <string> repository name
+        <int> issue number
+        <iterable[string]> assignees
+    Returns:
+        <bool> success or not
+    """
+    res = _patch('/repos/%s/%s/issues/%d' % (owner, repo_name, issue_number), {'assignees': assignees})
     return bool(res)
 
 
