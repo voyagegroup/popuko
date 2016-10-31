@@ -2,13 +2,15 @@ import requests
 
 from jewelpet.conf import settings
 
-from .types import Repository, User, PullRequest, Issue
+from .types import Repository, User, PullRequest, Issue, Branch
 
 GITHUB_API = 'https://api.github.com'
 
 
 def _get(path):
     """
+    Request GET method
+
     Args:
         <string> request path
     Returns:
@@ -26,8 +28,32 @@ def _get(path):
     return res.json()
 
 
+def _patch(path, data):
+    """
+    Request PATCH method
+
+    Args:
+        <string> request path
+        <dict> request parameters
+    Returns:
+        <dict|None> response JSON
+    """
+    res = requests.patch(
+        '%s%s' % (GITHUB_API, path), json=data,
+        headers={
+            'Accept': 'application/vnd.github.v3+json',
+            'Authorization': 'token %s' % settings['github']['token']
+        },
+        timeout=10)
+    if res.status_code != 200:
+        return None
+    return res.json()
+
+
 def _fill(params, keys):
     """
+    Fill the dict keys
+
     Args:
         <dict> target dict
         <iterable> keys
@@ -43,9 +69,11 @@ def get_repo(owner, repo_name):
         <string> owner
         <string> repository name
     Returns:
-        <Repository>
+        <Repository|None>
     """
     res = _get('/repos/%s/%s' % (owner, repo_name))
+    if res is None:
+        return None
     _fill(res, ('parent', 'source', 'organization'))
     res['owner'] = _parse_user(res['owner'])
     return Repository(**res)
@@ -76,9 +104,11 @@ def get_user(name):
     Args:
         <string> name
     Returns:
-        <User>
+        <User|None>
     """
     res = _get('/users/%s' % name)
+    if res is None:
+        return None
     return User(**res)
 
 
@@ -88,8 +118,12 @@ def get_pr(owner, repo_name, pr_number):
         <string> owner
         <string> repository name
         <int> pr number
+    Returns:
+        <PullRequest|None>
     """
     res = _get('/repos/%s/%s/pulls/%d' % (owner, repo_name, pr_number))
+    if res is None:
+        return None
     res['links'] = res.pop('_links')  # namedtuple doesn't allow field name starts with a underscore
     return PullRequest(**res)
 
@@ -100,7 +134,41 @@ def get_issue(owner, repo_name, issue_number):
         <string> owner
         <string> repository name
         <int> issue number
+    Returns:
+        <Issue|None>
     """
     res = _get('/repos/%s/%s/issues/%d' % (owner, repo_name, issue_number))
+    if res is None:
+        return None
     _fill(res, ('pull_request',))
     return Issue(**res)
+
+
+def set_labels(owner, repo_name, issue_number, labels):
+    """
+    Args:
+        <string> owner
+        <string> repository name
+        <int> issue number
+        <iterable[string]> labels
+    Returns:
+        <bool> success or not
+    """
+    res = _patch('/repos/%s/%s/issues/%d' % (owner, repo_name, issue_number), {'labels': labels})
+    return bool(res)
+
+
+def get_branch(owner, repo_name, branch_name):
+    """
+    Args:
+        <string> owner
+        <string> repository name
+        <string> branch name
+    Returns:
+        <Branch|None>
+    """
+    res = _get('/repos/%s/%s/branches/%s' % (owner, repo_name, branch_name))
+    if res is None:
+        return None
+    res['links'] = res.pop('_links')  # namedtuple doesn't allow field name starts with a underscore
+    return Branch(**res)

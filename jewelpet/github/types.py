@@ -176,3 +176,9 @@ Issue = namedtuple('Issue', (
     'updated_at',
     'closed_by',
 ))
+
+Branch = namedtuple('Branch', (
+    'name',
+    'commit',
+    'links',
+))
