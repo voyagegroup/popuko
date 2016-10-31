@@ -3,6 +3,7 @@ import hmac
 import github
 
 from jewelpet.conf import settings
+from jewelpet.exceptions import BranchConflictException
 
 
 def is_valid_signature(body, api_signature):
@@ -68,12 +69,24 @@ class Session(object):
 
 
 def build_auto(repo, pr_number, mode):
-    assert not is_auto_branch_exists(repo)
+    """
+    Args:
+        <Repository>
+        <number> number of PR
+        <string> 'try' or 'r+'
+    """
+    if is_auto_branch_exists(repo):
+        raise BranchConflictException('"auto" branch is already exists')
+
+    pr = repo.get_issue(pr_number)
+    pr.remove_from_labels('S-awaiting-review')
+    pr.add_to_labels('S-awaiting-merge')
+
     head = repo.get_commit('HEAD')
     repo.create_git_ref('refs/heads/auto', head.sha)  # create auto branch
 
-    pr = repo.get_pull(pr_number)
-    repo.merge('auto', pr.head.sha, '%s: auto merge branch "%s"' % (mode, pr.head.ref))
+    repo.merge('auto', pr.head.sha, '%s %d' % (command, pr_number))
+    # repo.merge('auto', pr.head.sha, '%s: auto merge branch "%s"' % (mode, pr.head.ref))
 
 
 def is_auto_branch_exists(repo):
