@@ -28,6 +28,28 @@ def _get(path):
     return res.json()
 
 
+def _post(path, data):
+    """
+    Request POST method
+
+    Args:
+        <string> request path
+        <dict> request parameters
+    Returns:
+        <dict|None> response JSON
+    """
+    res = requests.post(
+        '%s%s' % (GITHUB_API, path), json=data,
+        headers={
+            'Accept': 'application/vnd.github.v3+json',
+            'Authorization': 'token %s' % settings['github']['token']
+        },
+        timeout=10)
+    if res.status_code != 201:
+        return None
+    return res.json()
+
+
 def _patch(path, data):
     """
     Request PATCH method
@@ -48,6 +70,25 @@ def _patch(path, data):
     if res.status_code != 200:
         return None
     return res.json()
+
+
+def _delete(path):
+    """
+    Request DELETE method
+
+    Args:
+        <string> request path
+    Returns:
+        <bool> success or not
+    """
+    res = requests.delete(
+        '%s%s' % (GITHUB_API, path),
+        headers={
+            'Accept': 'application/vnd.github.v3+json',
+            'Authorization': 'token %s' % settings['github']['token']
+        },
+        timeout=10)
+    return res.status_code == 204
 
 
 def _fill(params, keys):
@@ -172,3 +213,11 @@ def get_branch(owner, repo_name, branch_name):
         return None
     res['links'] = res.pop('_links')  # namedtuple doesn't allow field name starts with a underscore
     return Branch(**res)
+
+
+def create_branch(owner, repo_name, branch_name, base_sha):
+    return _post('/repos/%s/%s/git/refs' % (owner, repo_name), {'ref': 'refs/heads/%s' % branch_name, 'sha': base_sha})
+
+
+def delete_branch(owner, repo_name, branch_name):
+    return _delete('/repos/%s/%s/git/refs/heads/%s' % (owner, repo_name, branch_name))
