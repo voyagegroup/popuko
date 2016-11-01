@@ -2,7 +2,7 @@ import requests
 
 from jewelpet.conf import settings
 
-from .types import Repository, User, PullRequest, Issue, Branch
+from .types import Repository, User, PullRequest, Issue, IssueComment, Branch
 
 GITHUB_API = 'https://api.github.com'
 
@@ -245,3 +245,12 @@ def create_branch(owner, repo_name, branch_name, base_sha):
 
 def delete_branch(owner, repo_name, branch_name):
     return _delete('/repos/%s/%s/git/refs/heads/%s' % (owner, repo_name, branch_name))
+
+
+def issue_comment(owner, repo_name, issue_number, comment):
+    res = _post(
+        '/repos/%s/%s/issues/%d/comments' % (owner, repo_name, issue_number),
+        {'body': comment})
+    if res is None:
+        return None
+    return IssueComment(**res)

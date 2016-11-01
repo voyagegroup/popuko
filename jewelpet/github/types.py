@@ -177,6 +177,17 @@ Issue = namedtuple('Issue', (
     'closed_by',
 ))
 
+IssueComment = namedtuple('IssueComment', (
+    'id',
+    'url',
+    'html_url',
+    'issue_url',
+    'body',
+    'user',
+    'created_at',
+    'updated_at',
+))
+
 Branch = namedtuple('Branch', (
     'name',
     'commit',
