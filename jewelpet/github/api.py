@@ -205,8 +205,7 @@ def set_labels(owner, repo_name, issue_number, labels):
     Returns:
         <bool> success or not
     """
-    res = _patch('/repos/%s/%s/issues/%d' % (owner, repo_name, issue_number), {'labels': labels})
-    return bool(res)
+    return edit_issue(labels=labels)
 
 
 def assign(owner, repo_name, issue_number, assignees):
@@ -219,7 +218,11 @@ def assign(owner, repo_name, issue_number, assignees):
     Returns:
         <bool> success or not
     """
-    res = _patch('/repos/%s/%s/issues/%d' % (owner, repo_name, issue_number), {'assignees': assignees})
+    return edit_issue(assignees=assignees)
+
+
+def edit_issue(owner, repo_name, issue_number, **kwargs):
+    res = _patch('/repos/%s/%s/issues/%d' % (owner, repo_name, issue_number), kwargs)
     return bool(res)
 
 
