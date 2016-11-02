@@ -233,3 +233,7 @@ def issue_comment(owner, repo_name, issue_number, comment):
     if res.status_code != 201:
         return None
     return IssueComment(**res)
+
+
+def merge_pr(owner, repo_name, pr_number):
+    _request('put', '/repos/%s/%s/pulls/%d/merge' % (owner, repo_name, pr_number), {})
