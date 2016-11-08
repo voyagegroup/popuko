@@ -1,9 +1,10 @@
 import hmac
 
-import github
-
 from jewelpet.conf import settings
 from jewelpet.exceptions import BranchConflictException
+
+from jewelpet.github import api
+from jewelpet.github.types import Repository, User, PullRequest, Issue, IssueComment, Branch
 
 
 def is_valid_signature(body, api_signature):
@@ -22,81 +23,142 @@ def is_valid_signature(body, api_signature):
     return 'sha1=%s' % generated == api_signature
 
 
-class Session(object):
-    def __init__(self):
-        """
-        """
-        self._g = github.Github(settings['github']['token'])
-        self.user = self._g.get_user()
-
-    def get_user(self, name):
-        """
-        Args:
-            <string>
-        Returns:
-            <NamedUser>
-        """
-        return self._g.get_user(name)
-
-    def get_organization(self, name):
-        """
-        Args:
-            <string>
-        Returns:
-            <Organization>
-        """
-        return self._g.get_organization(name)
-
-    def find_repo(self, req):
-        """
-        Args:
-            <dict> request parameter of repository from GitHub API
-                    {
-                        "name": "repository name",
-                        "owner": {
-                            "login": "owner login",
-                            "type": "User or Organization"
-                        }
-                    }
-        Returns:
-            <Repository>
-        """
-        owner_type = req['owner']['type']
-        if owner_type not in ('User', 'Organization'):
-            raise Exception('Unknown owner type "%s"' % owner_type)
-        owner = getattr(self._g, 'get_%s' % owner_type.lower())(req['owner']['login'])
-        return owner.get_repo(req['name'])
-
-
-def build_auto(repo, pr_number, mode):
+def get_repo(owner, repo_name):
     """
     Args:
-        <Repository>
-        <number> number of PR
-        <string> 'try' or 'r+'
-    """
-    if is_auto_branch_exists(repo):
-        raise BranchConflictException('"auto" branch is already exists')
-
-    pr = repo.get_issue(pr_number)
-    pr.remove_from_labels('S-awaiting-review')
-    pr.add_to_labels('S-awaiting-merge')
-
-    head = repo.get_commit('HEAD')
-    repo.create_git_ref('refs/heads/auto', head.sha)  # create auto branch
-
-    repo.merge('auto', pr.head.sha, '%s %d' % (command, pr_number))
-    # repo.merge('auto', pr.head.sha, '%s: auto merge branch "%s"' % (mode, pr.head.ref))
-
-
-def is_auto_branch_exists(repo):
-    """
+        <string> owner
+        <string> repository name
     Returns:
-        <bool>
+        <Repository|None>
     """
-    try:
-        if repo.get_branch('auto'):
-            return True
-    except github.GithubException as e:
-        assert e.status == 404
-        return False
+    res = api._request('get', '/repos/%s/%s' % (owner, repo_name))
+    if res.status_code != 200:
+        return None
+    params = res.json()
+    api._fill(params, ('parent', 'source', 'organization'))
+    params['owner'] = api._parse_user(params['owner'])
+    return Repository(**params)
+
+
+def get_user(name):
+    """
+    Args:
+        <string> name
+    Returns:
+        <User|None>
+    """
+    res = api._request('get', '/users/%s' % name)
+    if res.status_code != 200:
+        return None
+    return User(**res.json())
+
+
+def get_pr(owner, repo_name, pr_number):
+    """
+    Args:
+        <string> owner
+        <string> repository name
+        <int> pr number
+    Returns:
+        <PullRequest|None>
+    """
+    res = api._request('get', '/repos/%s/%s/pulls/%d' % (owner, repo_name, pr_number))
+    if res.status_code != 200:
+        return None
+    params = res.json()
+    params['links'] = params.pop('_links')  # namedtuple doesn't allow field name starts with a underscore
+    api._parse_issue(params)
+    return PullRequest(**params)
+
+
+def get_issue(owner, repo_name, issue_number):
+    """
+    Args:
+        <string> owner
+        <string> repository name
+        <int> issue number
+    Returns:
+        <Issue|None>
+    """
+    res = api._request('get', '/repos/%s/%s/issues/%d' % (owner, repo_name, issue_number))
+    if res.status_code != 200:
+        return None
+    params = res.json()
+    api._fill(params, ('pull_request',))
+    api._parse_issue(params)
+    return Issue(**params)
+
+
+def set_labels(owner, repo_name, issue_number, labels):
+    """
+    Args:
+        <string> owner
+        <string> repository name
+        <int> issue number
+        <iterable[string]> labels
+    Returns:
+        <bool> success or not
+    """
+    return edit_issue(labels=labels)
+
+
+def assign(owner, repo_name, issue_number, assignees):
+    """
+    Args:
+        <string> owner
+        <string> repository name
+        <int> issue number
+        <iterable[string]> assignees
+    Returns:
+        <bool> success or not
+    """
+    return edit_issue(assignees=assignees)
+
+
+def edit_issue(owner, repo_name, issue_number, **kwargs):
+    res = api._request('patch', '/repos/%s/%s/issues/%d' % (owner, repo_name, issue_number), kwargs)
+    return res.status_code == 204
+
+
+def get_branch(owner, repo_name, branch_name):
+    """
+    Args:
+        <string> owner
+        <string> repository name
+        <string> branch name
+    Returns:
+        <Branch|None>
+    """
+    res = api._request('get', '/repos/%s/%s/branches/%s' % (owner, repo_name, branch_name))
+    if res.status_code != 200:
+        return None
+    params = res.json()
+    params['links'] = params.pop('_links')  # namedtuple doesn't allow field name starts with a underscore
+    return Branch(**params)
+
+
+def create_branch(owner, repo_name, branch_name, base_sha):
+    res = api._request(
+        'post',
+        '/repos/%s/%s/git/refs' % (owner, repo_name),
+        {'ref': 'refs/heads/%s' % branch_name, 'sha': base_sha})
+    return res.status_code == 201
+
+
+def delete_branch(owner, repo_name, branch_name):
+    res = api._request('delete', '/repos/%s/%s/git/refs/heads/%s' % (owner, repo_name, branch_name))
+    return res.status_code == 204
+
+
+def issue_comment(owner, repo_name, issue_number, comment):
+    res = api._request(
+        'post',
+        '/repos/%s/%s/issues/%d/comments' % (owner, repo_name, issue_number),
+        {'body': comment})
+    if res.status_code != 201:
+        return None
+    return IssueComment(**res)
+
+
+def merge_pr(owner, repo_name, pr_number):
+    api._request('put', '/repos/%s/%s/pulls/%d/merge' % (owner, repo_name, pr_number), {})
