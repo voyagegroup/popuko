@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import json
-import re
 
 from flask import Flask, request
 
 import jewelpet.slack.commands
-from jewelpet import github, slack
+from jewelpet import github
 from jewelpet.conf import settings
-from jewelpet.exceptions import BranchConflictException
 
 app = Flask(__name__)
 app.debug = True
@@ -49,6 +47,7 @@ def github_app():
     print('args: %s' % args)
 
     if trigger in settings['github']['reviewers'] and command == 'r?':
+        print('assign the issue to %s' % trigger)
         owner = req['repository']['owner']['login']
         repo_name = req['repository']['name']
         issue_number = req['issue']['number']
@@ -83,38 +82,8 @@ def github_app():
 @app.route('/travis', methods=['POST'])
 def travis_app():
     req = json.loads(request.form.get('payload'))
-    # from pprint import pprint
-    # pprint(req)
-    if req.get('branch', '') != 'auto':
-        return 'PASS'
-
-    s = github.Session()
-    owner = s.get_organization(req['repository']['owner_name'])
-    repo = owner.get_repo(req['repository']['name'])
-
-    # state = (passed|failed)
-    state = req.get('state', '')
-    if state == 'passed':
-        slack.post('"auto"のビルドが成功したようだな')
-        ref = repo.get_git_ref('heads/auto')
-        ref.delete()
-        slack.post('autoブランチ消したった')
-        m = re.match(r'^r\+ (\d+)', req.get('message', ''))
-        if m:
-            slack.post('mergeするぞ')
-            pr_number = int(m.groups()[0])
-            pr = repo.get_pull(pr_number)
-            pr.merge()
-            slack.post('mergeした')
-            repo.get_git_ref('heads/%s' % pr.head.ref).delete()
-            slack.post('%sブランチ消した')
-    elif state == 'failed':
-        slack.post('"auto"のビルドは失敗したようだな')
-        ref = repo.get_git_ref('heads/auto')
-        ref.delete()
-        slack.post('autoブランチ消したった')
-    else:
-        slack.post('"auto"のビルドがよく分からん')
+    from pprint import pprint
+    pprint(req)
 
 
 if __name__ == '__main__':
