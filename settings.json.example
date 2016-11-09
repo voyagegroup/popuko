@@ -1,4 +1,14 @@
 {
+    "bot_name": "your bot name",
+    "github": {
+        "trigger": "@botname",
+        "token": "GitHub access token",
+        "hook_secret": "Webhook secret",
+        "reviewers": [
+            "@foo",
+            "@bar"
+        ]
+    },
     "slack": {
         "post_hook_url": "incoming webhook endpoint",
         "params": {

@@ -47,11 +47,17 @@ def github_app():
     print('args: %s' % args)
 
     if trigger in settings['github']['reviewers'] and command == 'r?':
-        print('assign the issue to %s' % trigger)
+        assignee = trigger[1:]
+        print('assign the issue to %s' % assignee)
         owner = req['repository']['owner']['login']
         repo_name = req['repository']['name']
         issue_number = req['issue']['number']
-        github.edit_issue(owner, repo_name, issue_number, labels=['S-awaiting-review'], assignees=args)
+
+        issue = github.get_issue(owner, repo_name, issue_number)
+        labels = [x['name'] for x in issue.labels if not x['name'].startswith('S-')]
+        labels.append('S-awaiting-review')
+
+        github.edit_issue(owner, repo_name, issue_number, labels=labels, assignees=[assignee])
         return 'ASSIGNED'
 
     if trigger != settings['github']['trigger']:
