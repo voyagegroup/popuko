@@ -6,11 +6,11 @@ help:
 clean: ## remove virtualenv
 	rm -rf venv
 
-setup: clean ## setup virtualenv
+setup: ## setup virtualenv
 	pyvenv venv
 	. ./venv/bin/activate && pip install --upgrade pip
 	. ./venv/bin/activate && pip install -r requirements.txt
 	@echo "Let's activate your venv by \". ./venv/bin/activate\" !"
 
-test:
+test: setup ## run tests
 	flake8 popuko web.py
