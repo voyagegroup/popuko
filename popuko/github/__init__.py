@@ -1,7 +1,6 @@
 import hmac
 
 from popuko.conf import settings
-from popuko.exceptions import BranchConflictException
 
 from popuko.github import api
 from popuko.github.types import Repository, User, PullRequest, Issue, IssueComment, Branch
