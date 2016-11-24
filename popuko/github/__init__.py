@@ -1,10 +1,10 @@
 import hmac
 
-from jewelpet.conf import settings
-from jewelpet.exceptions import BranchConflictException
+from popuko.conf import settings
+from popuko.exceptions import BranchConflictException
 
-from jewelpet.github import api
-from jewelpet.github.types import Repository, User, PullRequest, Issue, IssueComment, Branch
+from popuko.github import api
+from popuko.github.types import Repository, User, PullRequest, Issue, IssueComment, Branch
 
 
 def is_valid_signature(body, api_signature):

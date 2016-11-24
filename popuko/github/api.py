@@ -1,6 +1,6 @@
 import requests
 
-from jewelpet.conf import settings
+from popuko.conf import settings
 
 from .types import User
 

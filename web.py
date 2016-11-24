@@ -4,9 +4,9 @@ import json
 
 from flask import Flask, request
 
-import jewelpet.slack.commands
-from jewelpet import github
-from jewelpet.conf import settings
+import popuko.slack.commands
+from popuko import github
+from popuko.conf import settings
 
 app = Flask(__name__)
 app.debug = True
@@ -21,7 +21,7 @@ def slack_app():
     (bot_name, command, *args) = args.get('text').split(' ')
     if bot_name != settings['slack']['bot_name']:
         return '{"text": "who?"}'
-    method = getattr(jewelpet.slack.commands, command, None)
+    method = getattr(popuko.slack.commands, command, None)
     if not method:
         return '{"text":"nothing"}'
     return '{"text":"%s"}' % method(*args)
