@@ -13,4 +13,4 @@ setup: clean ## setup virtualenv
 	@echo "Let's activate your venv by \". ./venv/bin/activate\" !"
 
 test:
-	exit 0
+	flake8 popuko web.py
