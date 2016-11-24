@@ -90,6 +90,7 @@ def travis_app():
     req = json.loads(request.form.get('payload'))
     from pprint import pprint
     pprint(req)
+    return ''
 
 
 if __name__ == '__main__':
