@@ -1,0 +1,2 @@
+gom 'github.com/google/go-github'
+gom 'golang.org/x/oauth2'
