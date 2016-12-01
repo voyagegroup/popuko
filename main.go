@@ -5,10 +5,17 @@ import (
 	"net/http"
 )
 
+var (
+	revision  string
+	builddate string
+)
+
 func main() {
 	config.Init()
 
 	fmt.Println("===== popuko =====")
+	fmt.Printf("version (git revision): %s\n", revision)
+	fmt.Printf("builddate: %s\n", builddate)
 	fmt.Printf("listen http on port: %v\n", config.PortStr())
 	fmt.Printf("botname for GitHub: %v\n", config.BotNameForGithub())
 	fmt.Println("==================")
