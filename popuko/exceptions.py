@@ -1,2 +1,0 @@
-class BranchConflictException(Exception):
-    pass
