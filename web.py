@@ -66,8 +66,35 @@ def github_app():
     if command == 'r+':
         sender = '@%s' % req['comment']['user']['login']
         print('sender: %s' % sender)
-        if sender not in settings['github']['reviewers']:
+
+        if not is_reviewer(sender):
             return 'UNKNOWN_REVIEWER'
+
+        owner = req['repository']['owner']['login']
+        repo_name = req['repository']['name']
+        issue_number = req['issue']['number']
+        issue = github.get_issue(owner, repo_name, issue_number)
+        pr = github.get_pr(owner, repo_name, issue_number)
+
+        labels = [x['name'] for x in issue.labels if x['name'] != 'S-awaiting-review']
+        labels.append('S-awaiting-merge')
+        github.edit_issue(owner, repo_name, issue_number, labels=labels)
+        github.merge_pr(owner, repo_name, issue_number)
+
+        pr_head_label = pr.head['label'].split(':')
+        github.delete_branch(pr_head_label[0], repo_name, pr_head_label[1])
+        return 'MERGE'
+    if command.startswith('r='):
+        sender = '@%s' % req['comment']['user']['login']
+        print('sender: %s' % sender)
+
+        if not is_reviewer(sender):
+            return 'UNKNOWN_REVIEWER'
+
+        actual_reviewer = command.rstrip('=')
+        if not is_reviewer(actual_reviewer):
+            return 'UNKNOWN_REVIEWER'
+
         owner = req['repository']['owner']['login']
         repo_name = req['repository']['name']
         issue_number = req['issue']['number']
@@ -83,6 +110,13 @@ def github_app():
         github.delete_branch(pr_head_label[0], repo_name, pr_head_label[1])
         return 'MERGE'
     return 'WHO'
+
+
+def is_reviewer(person):
+    if person not in settings['github']['reviewers']:
+        return False
+    else:
+        return True
 
 
 @app.route('/travis', methods=['POST'])
