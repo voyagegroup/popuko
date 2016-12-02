@@ -3,11 +3,13 @@ package main
 import (
 	"log"
 	"sync"
+	"time"
 
 	"github.com/google/go-github/github"
 )
 
 func (srv *AppServer) detectUnmergeablePR(ev *github.PushEvent) {
+	// At this moment, we only care a pull request which are looking master branch.
 	if *ev.Ref != "refs/heads/master" {
 		log.Printf("info: pushed branch is not related to me: %v\n", *ev.Ref)
 		return
@@ -35,7 +37,9 @@ func (srv *AppServer) detectUnmergeablePR(ev *github.PushEvent) {
 	for _, item := range prList {
 		wg.Add(1)
 
-		go markUnmergeable(wg, client.Issues, &markUnmergeableInfo{
+		go markUnmergeable(wg, &markUnmergeableInfo{
+			client.Issues,
+			prSvc,
 			repoOwner,
 			repo,
 			*item.Number,
@@ -46,13 +50,15 @@ func (srv *AppServer) detectUnmergeablePR(ev *github.PushEvent) {
 }
 
 type markUnmergeableInfo struct {
+	issueSvc  *github.IssuesService
+	prSvc     *github.PullRequestsService
 	RepoOwner string
 	Repo      string
 	Number    int
 	Comment   string
 }
 
-func markUnmergeable(wg *sync.WaitGroup, issueSvc *github.IssuesService, info *markUnmergeableInfo) {
+func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 	var err error
 	defer wg.Done()
 	defer func() {
@@ -60,6 +66,8 @@ func markUnmergeable(wg *sync.WaitGroup, issueSvc *github.IssuesService, info *m
 			log.Printf("error: %v\n", err)
 		}
 	}()
+
+	issueSvc := info.issueSvc
 
 	repoOwner := info.RepoOwner
 	log.Printf("debug: repository owner is %v\n", repoOwner)
@@ -82,11 +90,22 @@ func markUnmergeable(wg *sync.WaitGroup, issueSvc *github.IssuesService, info *m
 		return
 	}
 
+	ok, mergeable := isMergeable(info.prSvc, repoOwner, repo, number)
+	if !ok {
+		log.Println("info: We treat it as 'mergeable' to avoid miss detection if we could not fetch the pr info,")
+		return
+	}
+
+	if mergeable {
+		log.Println("info: do not have to mark as 'unmergeable'")
+		return
+	}
+
 	_, _, err = issueSvc.CreateComment(repoOwner, repo, number, &github.IssueComment{
 		Body: &info.Comment,
 	})
 	if err != nil {
-		log.Println("could not create the comment to unmergeables")
+		log.Println("info: could not create the comment to unmergeables")
 		return
 	}
 
@@ -97,4 +116,40 @@ func markUnmergeable(wg *sync.WaitGroup, issueSvc *github.IssuesService, info *m
 		log.Println("could not change labels of the issue")
 		return
 	}
+}
+
+func isMergeable(prSvc *github.PullRequestsService, owner string, name string, issue int) (bool, bool) {
+	ok, pr := getPrInfo(prSvc, owner, name, issue)
+	if !ok || pr == nil {
+		return false, false
+	}
+
+	mergeable := pr.Mergeable
+	if mergeable == nil {
+		// By the document https://developer.github.com/v3/pulls/#get-a-single-pull-request
+		// this state is still in checking.
+
+		// sleep same time: https://github.com/barosl/homu/blob/2104e4b154d2fba15d515b478a5bd6105c1522f6/homu/main.py#L722
+		time.Sleep(5 * time.Second)
+		ok, pr := getPrInfo(prSvc, owner, name, issue)
+		if !ok || pr == nil {
+			// Conclude it is not mergeable heurístically
+			return true, true
+		}
+
+		mergeable = pr.Mergeable
+	}
+
+	return true, *mergeable
+}
+
+func getPrInfo(prSvc *github.PullRequestsService, owner string, name string, issue int) (ok bool, info *github.PullRequest) {
+	pr, _, err := prSvc.Get(owner, name, issue)
+	if err != nil {
+		log.Println("info: could not get the info for pull request")
+		log.Printf("debug: %v\n", err)
+		return false, nil
+	}
+
+	return true, pr
 }
