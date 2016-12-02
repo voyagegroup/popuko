@@ -2,17 +2,23 @@ package main
 
 var config *Settings = &Settings{
 	botName: "popuko",
-	port: 3000,
+	port:    3000,
 
 	github: GithubSetting{
 		// If your github bot name is different from global botname,
 		// please specify this. Otherwise, you should set empty string.
-		botName: "",
+		botName:    "",
 		token:      "",
 		hookSecret: "",
-		reviewerList: &[]string{
-			"bob",
-			"anne",
+		repoList: []RepositorySetting{
+			RepositorySetting{
+				owner: "take-shobo",
+				name:  "popteamepic",
+				reviewerList: []string{
+					"popuko",
+					"pipimi",
+				},
+			},
 		},
 	},
 }

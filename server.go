@@ -87,10 +87,17 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 		fmt.Printf("args: %v\n", args)
 	}
 
+	repoOwner := *ev.Repo.Owner.Login
+	repo := *ev.Repo.Name
+	repoInfo := config.Repositories().Get(repoOwner, repo)
+	if repoInfo == nil {
+		return false, fmt.Errorf("Not found registred repo config.")
+	}
+
 	// `@reviewer r?`
 	{
 		target := strings.TrimPrefix(trigger, "@")
-		if config.Reviewers().Has(target) && command == "r?" {
+		if repoInfo.Reviewers().Has(target) && command == "r?" {
 			return srv.commandAssignReviewer(ev, target)
 		}
 	}
@@ -101,11 +108,15 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 		return false, err
 	}
 
+	commander := AcceptCommand{
+		srv.githubClient,
+		repoInfo,
+	}
 	// `@botname command`
 	if command == "r+" {
-		return srv.commandAcceptChangesetByReviewer(ev)
+		return commander.commandAcceptChangesetByReviewer(ev)
 	} else if strings.Index(command, "r=") == 0 {
-		return srv.commandAcceptChangesetByOtherReviewer(ev, command)
+		return commander.commandAcceptChangesetByOtherReviewer(ev, command)
 	}
 
 	return false, fmt.Errorf("No operations which this bot should handle.")
