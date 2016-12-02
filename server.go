@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"reflect"
 	"strings"
@@ -55,15 +56,15 @@ func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request
 		return
 	default:
 		rw.WriteHeader(http.StatusOK)
-		fmt.Println(reflect.TypeOf(event))
+		log.Println(reflect.TypeOf(event))
 		io.WriteString(rw, "This event type is not supported: "+github.WebHookType(req))
 		return
 	}
 }
 
 func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bool, error) {
-	fmt.Printf("Start: processCommitCommentEvent by %v\n", *ev.Comment.ID)
-	defer fmt.Printf("End: processCommitCommentEvent by %v\n", *ev.Comment.ID)
+	log.Printf("Start: processCommitCommentEvent by %v\n", *ev.Comment.ID)
+	defer log.Printf("End: processCommitCommentEvent by %v\n", *ev.Comment.ID)
 
 	body := ev.Comment.Body
 	tmp := strings.Split(*body, " ")
@@ -78,13 +79,13 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	trigger := tmp[0]
 	command := tmp[1]
 
-	fmt.Printf("trigger: %v\n", trigger)
-	fmt.Printf("command: %v\n", command)
+	log.Printf("trigger: %v\n", trigger)
+	log.Printf("command: %v\n", command)
 
 	var args string
 	if len(tmp) > 2 {
 		args = tmp[2]
-		fmt.Printf("args: %v\n", args)
+		log.Printf("args: %v\n", args)
 	}
 
 	repoOwner := *ev.Repo.Owner.Login
@@ -123,8 +124,8 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 }
 
 func (srv *AppServer) processPushEvent(ev *github.PushEvent) {
-	fmt.Printf("Start: processPushEvent by push id: %v\n", ev.PushID)
-	defer fmt.Printf("End: processPushEvent by push id: %v\n", ev.PushID)
+	log.Printf("Start: processPushEvent by push id: %v\n", ev.PushID)
+	defer log.Printf("End: processPushEvent by push id: %v\n", ev.PushID)
 	srv.detectUnmergeablePR(ev)
 }
 
