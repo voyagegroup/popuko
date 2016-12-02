@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"reflect"
@@ -94,17 +96,35 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	}
 
 	repoOwner := *ev.Repo.Owner.Login
+	log.Printf("debug: repository owner is %v\n", repoOwner)
 	repo := *ev.Repo.Name
+	log.Printf("debug: repository name is %v\n", repo)
+
 	repoInfo := config.Repositories().Get(repoOwner, repo)
 	if repoInfo == nil {
 		log.Println("info: Not found registred repo config.")
 		return false, fmt.Errorf("Not found registred repo config.")
 	}
 
+	var reviewers *ReviewerSet
+	if repoInfo.UseOwnersFile() {
+		log.Println("info: Use `OWNERS` file.")
+		ok, owners := fetchOwnersFile(srv.githubClient.Repositories, repoOwner, repo)
+		if !ok {
+			return false, fmt.Errorf("error: could not handle OWNERS file correctly")
+		}
+		ok, reviewers = owners.Reviewers()
+		if !ok {
+			return false, fmt.Errorf("error: could not get reviewer list correctly")
+		}
+	} else {
+		reviewers = repoInfo.Reviewers()
+	}
+
 	// `@reviewer r?`
 	{
 		target := strings.TrimPrefix(trigger, "@")
-		if repoInfo.Reviewers().Has(target) && command == "r?" {
+		if reviewers.Has(target) && command == "r?" {
 			return srv.commandAssignReviewer(ev, target)
 		}
 	}
@@ -119,6 +139,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	commander := AcceptCommand{
 		srv.githubClient,
 		repoInfo,
+		reviewers,
 	}
 	// `@botname command`
 	if command == "r+" {
@@ -145,4 +166,31 @@ func createGithubClient(config *Settings) *github.Client {
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
 	client := github.NewClient(tc)
 	return client
+}
+
+func fetchOwnersFile(svc *github.RepositoriesService, owner string, reponame string) (bool, *OwnersFile) {
+	file, err := svc.DownloadContents(owner, reponame, "OWNERS.json", &github.RepositoryContentGetOptions{
+		// We always use the file in master which we regard as accepted to the project.
+		Ref: "master",
+	})
+	if err != nil {
+		log.Printf("error: could not fetch `OWNERS.json`: %v\n", err)
+		return false, nil
+	}
+
+	raw, err := ioutil.ReadAll(file)
+	defer file.Close()
+	if err != nil {
+		log.Printf("error: could not read `OWNERS.json`: %v\n", err)
+		return false, nil
+	}
+	log.Printf("debug: OWNERS.json:\n%v\n", string(raw))
+
+	var decoded OwnersFile
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		log.Printf("error: could not decode `OWNERS.json`: %v\n", err.Error())
+		return false, nil
+	}
+
+	return true, &decoded
 }

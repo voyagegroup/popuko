@@ -8,8 +8,9 @@ import (
 )
 
 type AcceptCommand struct {
-	client *github.Client
-	repo   *RepositorySetting
+	client    *github.Client
+	repo      *RepositorySetting
+	reviewers *ReviewerSet
 }
 
 func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueCommentEvent) (bool, error) {
@@ -19,7 +20,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	sender := *ev.Sender.Login
 	log.Printf("debug: command is sent from %v\n", sender)
 
-	if !c.repo.Reviewers().Has(sender) {
+	if !c.reviewers.Has(sender) {
 		log.Printf("info: %v is not an reviewer registred to this bot.\n", sender)
 		return false, nil
 	}
@@ -109,7 +110,7 @@ func (c *AcceptCommand) commandAcceptChangesetByOtherReviewer(ev *github.IssueCo
 	}
 
 	actual := tmp[1]
-	if !c.repo.Reviewers().Has(actual) {
+	if !c.reviewers.Has(actual) {
 		log.Println("info: could not find the actual reviewer in reviewer list")
 		log.Printf("debug: specified actial reviewer %v\n", actual)
 		return false, nil
