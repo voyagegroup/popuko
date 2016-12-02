@@ -11,6 +11,18 @@
 - Almost reimplementation of [homu](https://github.com/barosl/homu).
 
 
+## Motivation
+
+[homu](https://github.com/barosl/homu) is the super great operation bot for development on GitHub
+and it supports a lot of valuable features: merge pull request into the latest upstream, try to testing on TravisCI,
+and more. But its development is not in active now. And also Mozilla's servo team maintains
+[their forked version of homu](https://github.com/servo/homu). But it is developed for their specific usecase.
+Not for other projects.
+
+This project intent to re-implement homu with minimum features to support our projects for work including non-public activities,
+and to simplify to deploy this bot. This is why we have developed this project.
+
+
 ## Command
 
 You can use these command as the comment for pull request.
