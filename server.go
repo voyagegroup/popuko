@@ -131,8 +131,8 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 }
 
 func (srv *AppServer) processPushEvent(ev *github.PushEvent) {
-	log.Printf("Start: processPushEvent by push id: %v\n", *ev.PushID)
-	defer log.Printf("End: processPushEvent by push id: %v\n", *ev.PushID)
+	log.Println("info: Start: processPushEvent by push id")
+	defer log.Println("info: End: processPushEvent by push id")
 	srv.detectUnmergeablePR(ev)
 }
 
