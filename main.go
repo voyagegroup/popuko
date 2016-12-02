@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -13,24 +13,24 @@ var (
 func main() {
 	config.Init()
 
-	fmt.Println("===== popuko =====")
-	fmt.Printf("version (git revision): %s\n", revision)
-	fmt.Printf("builddate: %s\n", builddate)
-	fmt.Printf("listen http on port: %v\n", config.PortStr())
-	fmt.Printf("botname for GitHub: %v\n", config.BotNameForGithub())
+	log.Println("===== popuko =====")
+	log.Printf("version (git revision): %s\n", revision)
+	log.Printf("builddate: %s\n", builddate)
+	log.Printf("listen http on port: %v\n", config.PortStr())
+	log.Printf("botname for GitHub: %v\n", config.BotNameForGithub())
 	{
-		fmt.Println("---- popuko handling repositories -------")
+		log.Println("---- popuko handling repositories -------")
 		repomap := config.Repositories()
 		for _, v := range repomap.Entries() {
-			fmt.Printf("%v\n", v.Fullname())
-			fmt.Println("  reviewers:")
+			log.Printf("%v\n", v.Fullname())
+			log.Println("  reviewers:")
 			for _, name := range v.Reviewers().Entries() {
-				fmt.Printf("    - %v\n", name)
+				log.Printf("    - %v\n", name)
 			}
-			fmt.Println("")
+			log.Println("")
 		}
 	}
-	fmt.Println("==================")
+	log.Println("==================")
 
 	github := createGithubClient(config)
 	if github == nil {

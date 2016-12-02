@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"sync"
 
 	"github.com/google/go-github/github"
@@ -9,7 +9,7 @@ import (
 
 func (srv *AppServer) detectUnmergeablePR(ev *github.PushEvent) {
 	if *ev.Ref != "refs/heads/master" {
-		fmt.Println(*ev.Ref)
+		log.Println(*ev.Ref)
 		return
 	}
 
@@ -23,7 +23,7 @@ func (srv *AppServer) detectUnmergeablePR(ev *github.PushEvent) {
 		State: "open",
 	})
 	if err != nil {
-		fmt.Println("could not fetch opened pull requests")
+		log.Println("could not fetch opened pull requests")
 		return
 	}
 
@@ -55,7 +55,7 @@ func markUnmergeable(wg *sync.WaitGroup, issueSvc *github.IssuesService, info *m
 	defer wg.Done()
 	defer func() {
 		if err != nil {
-			fmt.Printf("error: %v\n", err)
+			log.Printf("error: %v\n", err)
 		}
 	}()
 
@@ -65,7 +65,7 @@ func markUnmergeable(wg *sync.WaitGroup, issueSvc *github.IssuesService, info *m
 
 	currentLabels, _, err := issueSvc.ListLabelsByIssue(repoOwner, repo, number, nil)
 	if err != nil {
-		fmt.Println("could not get labels by the issue")
+		log.Println("could not get labels by the issue")
 		return
 	}
 
@@ -78,14 +78,14 @@ func markUnmergeable(wg *sync.WaitGroup, issueSvc *github.IssuesService, info *m
 		Body: &info.Comment,
 	})
 	if err != nil {
-		fmt.Println("could not create the comment to unmergeables")
+		log.Println("could not create the comment to unmergeables")
 		return
 	}
 
 	labels := addNeedRebaseLabel(currentLabels)
 	_, _, err = issueSvc.ReplaceLabelsForIssue(repoOwner, repo, number, labels)
 	if err != nil {
-		fmt.Println("could not change labels of the issue")
+		log.Println("could not change labels of the issue")
 		return
 	}
 }

@@ -1,14 +1,14 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/google/go-github/github"
 )
 
 func (srv *AppServer) commandAssignReviewer(ev *github.IssueCommentEvent, target string) (bool, error) {
-	fmt.Printf("Start: assign the reviewer by %v\n", *ev.Comment.ID)
-	defer fmt.Printf("End: assign the reviewer by %v\n", *ev.Comment.ID)
+	log.Printf("Start: assign the reviewer by %v\n", *ev.Comment.ID)
+	defer log.Printf("End: assign the reviewer by %v\n", *ev.Comment.ID)
 
 	client := srv.githubClient
 	issueSvc := client.Issues
