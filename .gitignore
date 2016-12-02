@@ -1,13 +1,8 @@
-# python
-*.pyc
-__pycache__
-venv
-
-# application config
-settings.json
-
 # Golang
 vendor/
-gopuko/popuko
-gopuko/config.go
-!gopuko/config.go.example
+
+# Exec binary
+popuko
+
+# configration file
+config.go

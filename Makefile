@@ -1,16 +1,36 @@
+DIST_NAME := popuko
+CONFIGURE_FILE := ./config.go
+
+all: help
+
 help:
 	@echo "Specify the task"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@exit 1
 
-clean: ## remove virtualenv
-	rm -rf venv
+clean: ## Remove the exec binary.
+	rm -rf ./$(DIST_NAME)
 
-setup: ## setup virtualenv
-	pyvenv venv
-	. ./venv/bin/activate && pip install --upgrade pip
-	. ./venv/bin/activate && pip install -r requirements.txt
-	@echo "Let's activate your venv by \". ./venv/bin/activate\" !"
+bootstrap:
+	rm -rf vendor/
+	go get -u github.com/mattn/gom
+	gom install
 
-test: setup ## run tests
-	flake8 popuko web.py
+new_config: $(CONFIGURE_FILE) ## Create the config file from our boilerplate.
+
+build: $(DIST_NAME) ## Build the exec binary for youe machine.
+
+build_linux_x64: ## Just an alias to build for some cloud instance.
+	env GOOS=linux GOARCH=amd64 make build -C .
+
+run: $(DIST_NAME) ## Execute the binary for youe machine.
+	./$(DIST_NAME)
+
+$(CONFIGURE_FILE):
+	cp $@.example $@
+
+$(DIST_NAME): clean $(CONFIGURE_FILE)
+	go build -o $(DIST_NAME)
+
+travis: bootstrap
+	make build -C .

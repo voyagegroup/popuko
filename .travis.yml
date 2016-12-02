@@ -1,10 +1,11 @@
-language: python
+language: go
 
-python:
-    - "3.5"
+go:
+  - 1.7
+  - master
 
 script:
-    - make test
+    - make travis -j 8
 
 notifications:
     webhooks:
