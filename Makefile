@@ -1,5 +1,7 @@
 DIST_NAME := popuko
 CONFIGURE_FILE := ./config.go
+GIT_REVISION := $(shell git rev-parse --verify HEAD)
+BUILD_DATE := $(shell date '+%Y/%m/%d %H:%M:%S %z')
 
 all: help
 
@@ -30,7 +32,7 @@ $(CONFIGURE_FILE):
 	cp $@.example $@
 
 $(DIST_NAME): clean $(CONFIGURE_FILE)
-	go build -o $(DIST_NAME)
+	go build -o $(DIST_NAME) -ldflags "-X main.revision=$(GIT_REVISION) -X \"main.builddate=$(BUILD_DATE)\""
 
 travis: bootstrap
 	make build -C .
