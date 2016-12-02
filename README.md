@@ -8,6 +8,7 @@
   - GitHub
     - merge a pull request.
     - assign a pull request to a reviewer.
+    - patrol a pull request which are newly unmergeable by others.
 - Almost reimplementation of [homu](https://github.com/barosl/homu).
 
 
@@ -58,6 +59,7 @@ So you need to do these things.
 1. Start the exec binary in your server.
 2. Set `http://<your_server_with_port>/github` for the webhook to your repository with these events
   - `Issue comment`
+  - `Push`
 3. Create these labels to make the status visible.
   - `S-awaiting-review`: for a pull request assigned to some reviewer.
   - `S-awaiting-merge`: for a pull request queued to this bot.
