@@ -9,12 +9,14 @@ import (
 
 func (srv *AppServer) detectUnmergeablePR(ev *github.PushEvent) {
 	if *ev.Ref != "refs/heads/master" {
-		log.Println(*ev.Ref)
+		log.Printf("info: pushed branch is not related to me: %v\n", *ev.Ref)
 		return
 	}
 
 	repoOwner := *ev.Repo.Owner.Name
+	log.Printf("debug: repository owner is %v\n", repoOwner)
 	repo := *ev.Repo.Name
+	log.Printf("debug: repository name is %v\n", repo)
 
 	client := srv.githubClient
 	prSvc := client.PullRequests
@@ -23,7 +25,7 @@ func (srv *AppServer) detectUnmergeablePR(ev *github.PushEvent) {
 		State: "open",
 	})
 	if err != nil {
-		log.Println("could not fetch opened pull requests")
+		log.Println("warn: could not fetch opened pull requests")
 		return
 	}
 
@@ -60,17 +62,23 @@ func markUnmergeable(wg *sync.WaitGroup, issueSvc *github.IssuesService, info *m
 	}()
 
 	repoOwner := info.RepoOwner
+	log.Printf("debug: repository owner is %v\n", repoOwner)
 	repo := info.Repo
+	log.Printf("debug: repository name is %v\n", repo)
 	number := info.Number
+	log.Printf("debug: pull request number is %v\n", number)
 
 	currentLabels, _, err := issueSvc.ListLabelsByIssue(repoOwner, repo, number, nil)
 	if err != nil {
-		log.Println("could not get labels by the issue")
+		log.Println("info: could not get labels by the issue")
+		log.Printf("debug: %v\n", err)
 		return
 	}
+	log.Printf("debug: the current labels: %v\n", currentLabels)
 
 	// We don't have to warn to a pull request which have been marked as unmergeable.
 	if hasStatusLabel(currentLabels, LABEL_NEEDS_REBASE) {
+		log.Println("info: The pull request has marked as 'shold rebase on the latest master'")
 		return
 	}
 
@@ -83,6 +91,7 @@ func markUnmergeable(wg *sync.WaitGroup, issueSvc *github.IssuesService, info *m
 	}
 
 	labels := addNeedRebaseLabel(currentLabels)
+	log.Printf("debug: the changed labels: %v\n", labels)
 	_, _, err = issueSvc.ReplaceLabelsForIssue(repoOwner, repo, number, labels)
 	if err != nil {
 		log.Println("could not change labels of the issue")

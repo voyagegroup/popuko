@@ -18,6 +18,10 @@ type AppServer struct {
 }
 
 func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request) {
+	log.Println("info: Start: handle GitHub WebHook")
+	log.Printf("info: Path is %v\n", req.URL.Path)
+	defer log.Println("info End: handle GitHub WebHook")
+
 	if req.Method != "POST" {
 		rw.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -40,15 +44,15 @@ func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request
 	switch event := event.(type) {
 	case *github.IssueCommentEvent:
 		ok, err := srv.processIssueCommentEvent(event)
+		rw.WriteHeader(http.StatusOK)
 		if ok {
 			io.WriteString(rw, "result: \n")
 		}
 
 		if err != nil {
+			log.Printf("info: %v\n", err)
 			io.WriteString(rw, err.Error())
 		}
-
-		rw.WriteHeader(http.StatusOK)
 		return
 	case *github.PushEvent:
 		srv.processPushEvent(event)
@@ -56,6 +60,7 @@ func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request
 		return
 	default:
 		rw.WriteHeader(http.StatusOK)
+		log.Println("warn: Unsupported type events")
 		log.Println(reflect.TypeOf(event))
 		io.WriteString(rw, "This event type is not supported: "+github.WebHookType(req))
 		return
@@ -92,6 +97,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	repo := *ev.Repo.Name
 	repoInfo := config.Repositories().Get(repoOwner, repo)
 	if repoInfo == nil {
+		log.Println("info: Not found registred repo config.")
 		return false, fmt.Errorf("Not found registred repo config.")
 	}
 
@@ -105,6 +111,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 
 	// not for me
 	if trigger != config.BotNameForGithub() {
+		log.Println("info: Specified name is not me.")
 		err := fmt.Errorf("The trigger is not me: `%v`\n", trigger)
 		return false, err
 	}
@@ -124,8 +131,8 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 }
 
 func (srv *AppServer) processPushEvent(ev *github.PushEvent) {
-	log.Printf("Start: processPushEvent by push id: %v\n", ev.PushID)
-	defer log.Printf("End: processPushEvent by push id: %v\n", ev.PushID)
+	log.Printf("Start: processPushEvent by push id: %v\n", *ev.PushID)
+	defer log.Printf("End: processPushEvent by push id: %v\n", *ev.PushID)
 	srv.detectUnmergeablePR(ev)
 }
 
