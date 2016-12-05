@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"strconv"
 )
 
@@ -80,11 +81,14 @@ func (m *RepositoryMap) Get(owner string, repo string) *RepositorySetting {
 }
 
 type RepositorySetting struct {
-	owner              string
-	name               string
-	reviewerList       []string
-	reviewers          ReviewerSet
+	owner        string
+	name         string
+	reviewerList []string
+	reviewers    ReviewerSet
+
 	shouldDeleteMerged bool
+	// Use `OWNERS` file as reviewer list in the repository's root.
+	useOwnersFile bool
 }
 
 func (s *RepositorySetting) Init() {
@@ -113,6 +117,10 @@ func (r *RepositorySetting) ShouldDeleteMerged() bool {
 	return r.shouldDeleteMerged
 }
 
+func (r *RepositorySetting) UseOwnersFile() bool {
+	return r.useOwnersFile
+}
+
 type ReviewerSet struct {
 	set map[string]*interface{}
 }
@@ -139,4 +147,25 @@ func newReviewerSet(list []string) *ReviewerSet {
 	return &ReviewerSet{
 		s,
 	}
+}
+
+type OwnersFile struct {
+	Version      float64       `json:"version"`
+	RawReviewers []interface{} `json:"reviewers"`
+}
+
+func (o *OwnersFile) Reviewers() (ok bool, set *ReviewerSet) {
+	var list []string
+	for _, v := range o.RawReviewers {
+		n, ok := v.(string)
+		if !ok {
+			log.Printf("debug: %v\n", o.RawReviewers)
+			return false, nil
+		}
+
+		list = append(list, n)
+	}
+
+	set = newReviewerSet(list)
+	return true, set
 }

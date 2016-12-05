@@ -25,6 +25,13 @@ var config *Settings = &Settings{
 				// restriction. This only clean up only the upstream repository
 				// managed by this bot.
 				shouldDeleteMerged: false,
+
+				// Use `/OWNERS.json` in your repository's `master` branch
+				// to list reviewers.
+				// This option is prior to the value of `RepositorySetting.reviewerList`.
+				// If you don't like to manage reviewers for each `OWNERS.json` in repositories,
+				// Disable this option.
+				useOwnersFile: true,
 			},
 		},
 	},
