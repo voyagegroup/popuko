@@ -18,7 +18,13 @@ var config *Settings = &Settings{
 					"popuko",
 					"pipimi",
 				},
-				shouldDeleteMerged: true,
+
+				// Delete the branch by this bot after this bot had merged it
+				// if you enable this option.
+				// The operation may not delete contributor's branch by API
+				// restriction. This only clean up only the upstream repository
+				// managed by this bot.
+				shouldDeleteMerged: false,
 			},
 		},
 	},
