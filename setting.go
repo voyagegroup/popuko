@@ -80,10 +80,11 @@ func (m *RepositoryMap) Get(owner string, repo string) *RepositorySetting {
 }
 
 type RepositorySetting struct {
-	owner        string
-	name         string
-	reviewerList []string
-	reviewers    ReviewerSet
+	owner              string
+	name               string
+	reviewerList       []string
+	reviewers          ReviewerSet
+	shouldDeleteMerged bool
 }
 
 func (s *RepositorySetting) Init() {
@@ -106,6 +107,10 @@ func (s *RepositorySetting) Fullname() string {
 
 func (s *RepositorySetting) Reviewers() *ReviewerSet {
 	return &s.reviewers
+}
+
+func (r *RepositorySetting) ShouldDeleteMerged() bool {
+	return r.shouldDeleteMerged
 }
 
 type ReviewerSet struct {
