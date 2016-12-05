@@ -5,12 +5,15 @@ import (
 	"net/http"
 )
 
+var config *Settings
+
 var (
 	revision  string
 	builddate string
 )
 
 func main() {
+	config = createSettings()
 	config.Init()
 
 	log.Println("===== popuko =====")

@@ -1,38 +1,40 @@
 package main
 
-var config *Settings = &Settings{
-	botName: "popuko",
-	port:    3000,
+func createSettings() *Settings {
+	return &Settings{
+		botName: "popuko",
+		port:    3000,
 
-	github: GithubSetting{
-		// If your github bot name is different from global botname,
-		// please specify this. Otherwise, you should set empty string.
-		botName:    "",
-		token:      "",
-		hookSecret: "",
-		repoList: []RepositorySetting{
-			RepositorySetting{
-				owner: "take-shobo",
-				name:  "popteamepic",
-				reviewerList: []string{
-					"popuko",
-					"pipimi",
+		github: GithubSetting{
+			// If your github bot name is different from global botname,
+			// please specify this. Otherwise, you should set empty string.
+			botName:    "",
+			token:      "",
+			hookSecret: "",
+			repoList: []RepositorySetting{
+				RepositorySetting{
+					owner: "take-shobo",
+					name:  "popteamepic",
+					reviewerList: []string{
+						"popuko",
+						"pipimi",
+					},
+
+					// Delete the branch by this bot after this bot had merged it
+					// if you enable this option.
+					// The operation may not delete contributor's branch by API
+					// restriction. This only clean up only the upstream repository
+					// managed by this bot.
+					shouldDeleteMerged: false,
+
+					// Use `/OWNERS.json` in your repository's `master` branch
+					// to list reviewers.
+					// This option is prior to the value of `RepositorySetting.reviewerList`.
+					// If you don't like to manage reviewers for each `OWNERS.json` in repositories,
+					// Disable this option.
+					useOwnersFile: true,
 				},
-
-				// Delete the branch by this bot after this bot had merged it
-				// if you enable this option.
-				// The operation may not delete contributor's branch by API
-				// restriction. This only clean up only the upstream repository
-				// managed by this bot.
-				shouldDeleteMerged: false,
-
-				// Use `/OWNERS.json` in your repository's `master` branch
-				// to list reviewers.
-				// This option is prior to the value of `RepositorySetting.reviewerList`.
-				// If you don't like to manage reviewers for each `OWNERS.json` in repositories,
-				// Disable this option.
-				useOwnersFile: true,
 			},
 		},
-	},
+	}
 }
