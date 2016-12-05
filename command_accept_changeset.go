@@ -13,8 +13,8 @@ type AcceptCommand struct {
 }
 
 func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueCommentEvent) (bool, error) {
-	log.Printf("info: Start: merge the pull request by %v\n", ev.Comment.ID)
-	defer log.Printf("info: End:merge the pull request by %v\n", ev.Comment.ID)
+	log.Printf("info: Start: merge the pull request by %v\n", *ev.Comment.ID)
+	defer log.Printf("info: End: merge the pull request by %v\n", *ev.Comment.ID)
 
 	sender := *ev.Sender.Login
 	log.Printf("debug: command is sent from %v\n", sender)
@@ -59,7 +59,8 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 		}
 	}
 
-	// XXX: the commit comment should be default?
+	// XXX: By the behavior, github uses defautlt merge message
+	// if we specify `""` to `commitMessage`.
 	prSvc := client.PullRequests
 	_, _, err = prSvc.Merge(repoOwner, repoName, issue, "", nil)
 	if err != nil {
@@ -72,24 +73,28 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	}
 
 	// delete branch
-	/*
+	if c.repo.ShouldDeleteMerged() {
 		pr, _, err := prSvc.Get(repoOwner, repoName, issue)
 		if err != nil {
-			log.Println("could not fetch the pull request information.")
+			log.Println("info: could not fetch the pull request information.")
 			return false, err
 		}
 
-		log.Printf("sender: %v\n", sender)
-		log.Printf("repo: %v\n", repoName)
-		log.Printf("head ref: %v\n", *pr.Head.Ref)
+		branchOwner := *pr.Head.Repo.Owner.Login
+		log.Printf("debug: branch owner: %v\n", branchOwner)
+		branchOwnerRepo := *pr.Head.Repo.Name
+		log.Printf("debug: repo: %v\n", branchOwnerRepo)
+		branchName := *pr.Head.Ref
+		log.Printf("debug: head ref: %v\n", branchName)
 
-		_, err = client.Git.DeleteRef(repoOwner, repoName, *pr.Head.Ref)
+		_, err = client.Git.DeleteRef(branchOwner, branchOwnerRepo, "heads/"+branchName)
 		if err != nil {
-			log.Println("could not delete the merged branch.")
+			log.Println("info: could not delete the merged branch.")
 			return false, err
 		}
-	*/
+	}
 
+	log.Printf("info: complete merge the pull request %v\n", issue)
 	return true, nil
 }
 
