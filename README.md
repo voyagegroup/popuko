@@ -67,6 +67,14 @@ So you need to do these things.
 4. Done!
 
 
+## Why there is no released version?
+
+- __This project always lives in canary__.
+- We only support the latest revision.
+- All the `HEAD` of `master` branch is equal to our released version.
+- The base revision and build date are embedded to the exec binary. You can see them by checking stdout on start it.
+
+
 ## TODO
 
 - Intelligent cooperation with TravisCI.
