@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"strings"
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
@@ -73,26 +72,14 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	log.Printf("Start: processCommitCommentEvent by %v\n", *ev.Comment.ID)
 	defer log.Printf("End: processCommitCommentEvent by %v\n", *ev.Comment.ID)
 
-	body := ev.Comment.Body
-	tmp := strings.Split(*body, " ")
-
-	// If there are no possibility that the comment body is not formatted
-	// `@botname command`, stop to process.
-	if len(tmp) < 2 {
-		err := fmt.Errorf("The comment body is not expected format: `%v`\n", body)
-		return false, err
+	body := *ev.Comment.Body
+	ok, cmd := parseCommand(body)
+	if !ok {
+		return false, fmt.Errorf("No operations which this bot should handle.")
 	}
 
-	trigger := tmp[0]
-	command := tmp[1]
-
-	log.Printf("trigger: %v\n", trigger)
-	log.Printf("command: %v\n", command)
-
-	var args string
-	if len(tmp) > 2 {
-		args = tmp[2]
-		log.Printf("args: %v\n", args)
+	if cmd == nil {
+		return false, fmt.Errorf("error: unexpected result of parsing comment body")
 	}
 
 	repoOwner := *ev.Repo.Owner.Login
@@ -121,34 +108,26 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 		reviewers = repoInfo.Reviewers()
 	}
 
-	// `@reviewer r?`
-	{
-		target := strings.TrimPrefix(trigger, "@")
-		if reviewers.Has(target) && command == "r?" {
-			return srv.commandAssignReviewer(ev, target)
+	switch cmd := cmd.(type) {
+	case *AssignReviewerCommand:
+		return srv.commandAssignReviewer(ev, cmd.Reviewer)
+	case *AcceptChangeByReviewerCommand:
+		commander := AcceptCommand{
+			srv.githubClient,
+			repoInfo,
+			reviewers,
 		}
-	}
-
-	// not for me
-	if trigger != config.BotNameForGithub() {
-		log.Println("info: Specified name is not me.")
-		err := fmt.Errorf("The trigger is not me: `%v`\n", trigger)
-		return false, err
-	}
-
-	commander := AcceptCommand{
-		srv.githubClient,
-		repoInfo,
-		reviewers,
-	}
-	// `@botname command`
-	if command == "r+" {
 		return commander.commandAcceptChangesetByReviewer(ev)
-	} else if strings.Index(command, "r=") == 0 {
-		return commander.commandAcceptChangesetByOtherReviewer(ev, command)
+	case *AcceptChangeByOthersCommand:
+		commander := AcceptCommand{
+			srv.githubClient,
+			repoInfo,
+			reviewers,
+		}
+		return commander.commandAcceptChangesetByOtherReviewer(ev, cmd.Reviewer[0])
+	default:
+		return false, fmt.Errorf("error: unreachable")
 	}
-
-	return false, fmt.Errorf("No operations which this bot should handle.")
 }
 
 func (srv *AppServer) processPushEvent(ev *github.PushEvent) {

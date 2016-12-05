@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"strings"
 
 	"github.com/google/go-github/github"
 )
@@ -99,20 +98,13 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	return true, nil
 }
 
-func (c *AcceptCommand) commandAcceptChangesetByOtherReviewer(ev *github.IssueCommentEvent, command string) (bool, error) {
+func (c *AcceptCommand) commandAcceptChangesetByOtherReviewer(ev *github.IssueCommentEvent, reviewer string) (bool, error) {
 	log.Printf("info: Start: merge the pull request from other reviewer by %v\n", ev.Comment.ID)
 	defer log.Printf("info: End:merge the pull request from other reviewer by %v\n", ev.Comment.ID)
 
-	tmp := strings.Split(command, "=")
-	if len(tmp) < 2 {
-		log.Println("info: No specify who is the actual reviewer.")
-		return false, nil
-	}
-
-	actual := tmp[1]
-	if !c.reviewers.Has(actual) {
+	if !c.reviewers.Has(reviewer) {
 		log.Println("info: could not find the actual reviewer in reviewer list")
-		log.Printf("debug: specified actial reviewer %v\n", actual)
+		log.Printf("debug: specified actial reviewer %v\n", reviewer)
 		return false, nil
 	}
 
