@@ -32,7 +32,7 @@ func (srv *AppServer) detectUnmergeablePR(ev *github.PushEvent) {
 	}
 
 	compare := *ev.Compare
-	comment := ":umbrella: The latest upstream [changeset](" + compare + ") made this pull request unmergeable. Please resolve the merge conflicts."
+	comment := ":umbrella: The latest upstream change (presumably [these](" + compare + ")) made this pull request unmergeable. Please resolve the merge conflicts."
 	wg := &sync.WaitGroup{}
 	for _, item := range prList {
 		wg.Add(1)
