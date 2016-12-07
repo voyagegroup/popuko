@@ -92,7 +92,7 @@ type RepositorySetting struct {
 }
 
 func (s *RepositorySetting) Init() {
-	set := newReviewerSet(s.reviewerList)
+	set := newReviewerSet(s.reviewerList, false)
 	s.reviewerList = nil
 	s.reviewers = *set
 }
@@ -122,10 +122,15 @@ func (r *RepositorySetting) UseOwnersFile() bool {
 }
 
 type ReviewerSet struct {
-	set map[string]*interface{}
+	regardAllAsReviewer bool
+	set                 map[string]*interface{}
 }
 
 func (s *ReviewerSet) Has(person string) bool {
+	if s.regardAllAsReviewer {
+		return true
+	}
+
 	_, ok := s.set[person]
 	return ok
 }
@@ -138,13 +143,21 @@ func (s *ReviewerSet) Entries() []string {
 	return list
 }
 
-func newReviewerSet(list []string) *ReviewerSet {
+func newReviewerSet(list []string, regardAllAsReviewer bool) *ReviewerSet {
+	if regardAllAsReviewer {
+		return &ReviewerSet{
+			true,
+			nil,
+		}
+	}
+
 	s := make(map[string]*interface{})
 	for _, name := range list {
 		s[name] = nil
 	}
 
 	return &ReviewerSet{
+		false,
 		s,
 	}
 }
@@ -152,20 +165,34 @@ func newReviewerSet(list []string) *ReviewerSet {
 type OwnersFile struct {
 	Version      float64       `json:"version"`
 	RawReviewers []interface{} `json:"reviewers"`
+
+	// Provide a reviewer privilege for all users whoc can write some comment to
+	// pull request.
+	//
+	// This feature is for the internal repository in your company
+	// and there is no restrictions for non-reviewer/
+	// NOT FOR PUBLIC OPEN SOURCE PROJECT.
+	// You must not enable this option for an open source project.
+	RegardAllAsReviewer bool `json:"regard_all_as_reviewer,omitempty"`
 }
 
 func (o *OwnersFile) Reviewers() (ok bool, set *ReviewerSet) {
 	var list []string
-	for _, v := range o.RawReviewers {
-		n, ok := v.(string)
-		if !ok {
-			log.Printf("debug: %v\n", o.RawReviewers)
-			return false, nil
-		}
 
-		list = append(list, n)
+	if !o.RegardAllAsReviewer {
+		for _, v := range o.RawReviewers {
+			n, ok := v.(string)
+			if !ok {
+				log.Printf("debug: %v\n", o.RawReviewers)
+				return false, nil
+			}
+
+			list = append(list, n)
+		}
+	} else {
+		log.Println("debug: This `OwnersFile` provides reviewer privilege for all users who can comment to this repo.")
 	}
 
-	set = newReviewerSet(list)
+	set = newReviewerSet(list, o.RegardAllAsReviewer)
 	return true, set
 }
