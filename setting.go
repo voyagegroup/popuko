@@ -86,7 +86,8 @@ type RepositorySetting struct {
 	reviewerList []string
 	reviewers    ReviewerSet
 
-	shouldDeleteMerged bool
+	shouldMergeAutomatically bool
+	shouldDeleteMerged       bool
 	// Use `OWNERS` file as reviewer list in the repository's root.
 	useOwnersFile bool
 }
@@ -111,6 +112,10 @@ func (s *RepositorySetting) Fullname() string {
 
 func (s *RepositorySetting) Reviewers() *ReviewerSet {
 	return &s.reviewers
+}
+
+func (r *RepositorySetting) ShouldMergeAutomatically() bool {
+	return r.shouldMergeAutomatically
 }
 
 func (r *RepositorySetting) ShouldDeleteMerged() bool {
