@@ -59,38 +59,40 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 		}
 	}
 
-	// XXX: By the behavior, github uses defautlt merge message
-	// if we specify `""` to `commitMessage`.
-	prSvc := client.PullRequests
-	_, _, err = prSvc.Merge(repoOwner, repoName, issue, "", nil)
-	if err != nil {
-		log.Println("info: could not merge pull request")
-		comment := "Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
-		_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
-			Body: &comment,
-		})
-		return false, err
-	}
-
-	// delete branch
-	if c.repo.ShouldDeleteMerged() {
-		pr, _, err := prSvc.Get(repoOwner, repoName, issue)
+	if c.repo.ShouldMergeAutomatically() {
+		// XXX: By the behavior, github uses defautlt merge message
+		// if we specify `""` to `commitMessage`.
+		prSvc := client.PullRequests
+		_, _, err = prSvc.Merge(repoOwner, repoName, issue, "", nil)
 		if err != nil {
-			log.Println("info: could not fetch the pull request information.")
+			log.Println("info: could not merge pull request")
+			comment := "Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
+			_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
+				Body: &comment,
+			})
 			return false, err
 		}
 
-		branchOwner := *pr.Head.Repo.Owner.Login
-		log.Printf("debug: branch owner: %v\n", branchOwner)
-		branchOwnerRepo := *pr.Head.Repo.Name
-		log.Printf("debug: repo: %v\n", branchOwnerRepo)
-		branchName := *pr.Head.Ref
-		log.Printf("debug: head ref: %v\n", branchName)
+		// delete branch
+		if c.repo.ShouldDeleteMerged() {
+			pr, _, err := prSvc.Get(repoOwner, repoName, issue)
+			if err != nil {
+				log.Println("info: could not fetch the pull request information.")
+				return false, err
+			}
 
-		_, err = client.Git.DeleteRef(branchOwner, branchOwnerRepo, "heads/"+branchName)
-		if err != nil {
-			log.Println("info: could not delete the merged branch.")
-			return false, err
+			branchOwner := *pr.Head.Repo.Owner.Login
+			log.Printf("debug: branch owner: %v\n", branchOwner)
+			branchOwnerRepo := *pr.Head.Repo.Name
+			log.Printf("debug: repo: %v\n", branchOwnerRepo)
+			branchName := *pr.Head.Ref
+			log.Printf("debug: head ref: %v\n", branchName)
+
+			_, err = client.Git.DeleteRef(branchOwner, branchOwnerRepo, "heads/"+branchName)
+			if err != nil {
+				log.Println("info: could not delete the merged branch.")
+				return false, err
+			}
 		}
 	}
 
