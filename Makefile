@@ -34,5 +34,10 @@ $(CONFIGURE_FILE):
 $(DIST_NAME): clean $(CONFIGURE_FILE)
 	go build -o $(DIST_NAME) -ldflags "-X main.revision=$(GIT_REVISION) -X \"main.builddate=$(BUILD_DATE)\""
 
-travis: bootstrap
-	make build -C .
+test:
+	go test
+
+travis:
+	make bootstrap
+	make build -j 8
+	make test -j 8
