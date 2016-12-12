@@ -8,6 +8,8 @@ import (
 
 type AcceptCommand struct {
 	client    *github.Client
+	botName   string
+	cmd       AcceptChangesetCommand
 	repo      *RepositorySetting
 	reviewers *ReviewerSet
 }
@@ -15,6 +17,11 @@ type AcceptCommand struct {
 func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueCommentEvent) (bool, error) {
 	log.Printf("info: Start: merge the pull request by %v\n", *ev.Comment.ID)
 	defer log.Printf("info: End: merge the pull request by %v\n", *ev.Comment.ID)
+
+	if c.botName != c.cmd.BotName() {
+		log.Printf("info: this command works only if target user is actual our bot.")
+		return false, nil
+	}
 
 	sender := *ev.Sender.Login
 	log.Printf("debug: command is sent from %v\n", sender)

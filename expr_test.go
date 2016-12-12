@@ -15,7 +15,7 @@ func TestParseCommand1(t *testing.T) {
 		t.Fatal("should be AcceptChangeByReviewerCommand")
 	}
 
-	if name := v.BotName; name != "bot" {
+	if name := v.BotName(); name != "bot" {
 		t.Fatalf("should be the expected bot name: %v\n", name)
 	}
 }
@@ -47,7 +47,7 @@ func TestParseCommand3(t *testing.T) {
 		t.Fatal("should be AssignReviewerCommand")
 	}
 
-	if name := v.BotName; name != "bot" {
+	if name := v.BotName(); name != "bot" {
 		t.Fatalf("should be the expected bot name: %v\n", name)
 	}
 

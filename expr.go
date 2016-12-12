@@ -43,7 +43,7 @@ func parseCommand(raw string) (ok bool, cmd interface{}) {
 
 	if args == "r+" {
 		return true, &AcceptChangeByReviewerCommand{
-			BotName: strings.TrimPrefix(trigger, "@"),
+			botName: strings.TrimPrefix(trigger, "@"),
 		}
 	}
 
@@ -61,18 +61,30 @@ func parseCommand(raw string) (ok bool, cmd interface{}) {
 	}
 
 	return true, &AcceptChangeByOthersCommand{
-		BotName:  strings.TrimPrefix(trigger, "@"),
+		botName:  strings.TrimPrefix(trigger, "@"),
 		Reviewer: reviwers,
 	}
 }
 
+type AcceptChangesetCommand interface {
+	BotName() string
+}
+
 type AcceptChangeByReviewerCommand struct {
-	BotName string
+	botName string
+}
+
+func (s *AcceptChangeByReviewerCommand) BotName() string {
+	return s.botName
 }
 
 type AcceptChangeByOthersCommand struct {
-	BotName  string
+	botName  string
 	Reviewer []string
+}
+
+func (s *AcceptChangeByOthersCommand) BotName() string {
+	return s.botName
 }
 
 type AssignReviewerCommand struct {
