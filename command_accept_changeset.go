@@ -48,18 +48,18 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 		return false, err
 	}
 
-	{
-		comment := "Try to merge this pull request which has been approved by `" + sender + "`"
-		_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
-			Body: &comment,
-		})
-		if err != nil {
-			log.Println("info: could not create the comment to declare to merge this.")
-			return false, err
-		}
-	}
-
 	if c.repo.ShouldMergeAutomatically() {
+		{
+			comment := "Try to merge this pull request which has been approved by `" + sender + "`"
+			_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
+				Body: &comment,
+			})
+			if err != nil {
+				log.Println("info: could not create the comment to declare to merge this.")
+				return false, err
+			}
+		}
+
 		// XXX: By the behavior, github uses defautlt merge message
 		// if we specify `""` to `commitMessage`.
 		prSvc := client.PullRequests
