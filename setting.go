@@ -32,9 +32,9 @@ func (s *Settings) Init() {
 func (s *Settings) BotNameForGithub() string {
 	github := s.github.botName
 	if github != "" {
-		return "@" + github
+		return github
 	} else {
-		return "@" + s.botName
+		return s.botName
 	}
 }
 

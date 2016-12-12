@@ -114,6 +114,8 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	case *AcceptChangeByReviewerCommand:
 		commander := AcceptCommand{
 			srv.githubClient,
+			config.BotNameForGithub(),
+			cmd,
 			repoInfo,
 			reviewers,
 		}
@@ -121,6 +123,8 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	case *AcceptChangeByOthersCommand:
 		commander := AcceptCommand{
 			srv.githubClient,
+			config.BotNameForGithub(),
+			cmd,
 			repoInfo,
 			reviewers,
 		}
