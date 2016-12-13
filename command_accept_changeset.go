@@ -7,10 +7,12 @@ import (
 )
 
 type AcceptCommand struct {
+	owner string
+	name  string
+
 	client  *github.Client
 	botName string
 	cmd     AcceptChangesetCommand
-	repo    *RepositorySetting
 	info    *repositoryInfo
 }
 
@@ -34,10 +36,8 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	client := c.client
 	issueSvc := client.Issues
 
-	repoOwner := c.repo.Owner()
-	log.Printf("debug: repository owner is %v\n", repoOwner)
-	repoName := c.repo.Name()
-	log.Printf("debug: repository name is %v\n", repoName)
+	repoOwner := c.owner
+	repoName := c.name
 	issue := *ev.Issue.Number
 	log.Printf("debug: issue number is %v\n", issue)
 
