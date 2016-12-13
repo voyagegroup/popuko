@@ -1,5 +1,7 @@
 package main
 
+import "log"
+
 type RepositorySetting struct {
 	owner        string
 	name         string
@@ -44,4 +46,26 @@ func (r *RepositorySetting) ToRepoInfo() (bool, *repositoryInfo) {
 		ShouldDeleteMerged:       r.shouldDeleteMerged,
 	}
 	return true, &info
+}
+
+func (r *RepositorySetting) log() {
+	log.Println("--------------------------------")
+	log.Printf("%v\n", r.Fullname())
+
+	if r.UseOwnersFile() {
+		log.Println("See /OWNERS.json to confirm all configurations for each repos.")
+	} else {
+		log.Printf("* Enable auto-merging by this bot: %v\n", r.shouldMergeAutomatically)
+		log.Printf("* Try to delete a branch after auto merging: %v\n", r.shouldDeleteMerged)
+		if r.regardAllAsReviewer {
+			log.Println("* Privide the reviewer privilege for all user who can comment to the repo.")
+		} else {
+			log.Println("* reviewers:")
+			for _, name := range r.reviewers.Entries() {
+				log.Printf("  - %v\n", name)
+			}
+		}
+	}
+
+	log.Println("")
 }
