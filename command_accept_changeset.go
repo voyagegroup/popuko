@@ -7,11 +7,11 @@ import (
 )
 
 type AcceptCommand struct {
-	client    *github.Client
-	botName   string
-	cmd       AcceptChangesetCommand
-	repo      *RepositorySetting
-	reviewers *ReviewerSet
+	client  *github.Client
+	botName string
+	cmd     AcceptChangesetCommand
+	repo    *RepositorySetting
+	info    *repositoryInfo
 }
 
 func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueCommentEvent) (bool, error) {
@@ -26,7 +26,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	sender := *ev.Sender.Login
 	log.Printf("debug: command is sent from %v\n", sender)
 
-	if !c.reviewers.Has(sender) {
+	if !c.info.isReviewer(sender) {
 		log.Printf("info: %v is not an reviewer registred to this bot.\n", sender)
 		return false, nil
 	}
@@ -55,7 +55,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 		return false, err
 	}
 
-	if c.repo.ShouldMergeAutomatically() {
+	if c.info.ShouldMergeAutomatically {
 		{
 			comment := "Try to merge this pull request which has been approved by `" + sender + "`"
 			_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
@@ -81,7 +81,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 		}
 
 		// delete branch
-		if c.repo.ShouldDeleteMerged() {
+		if c.info.ShouldDeleteMerged {
 			pr, _, err := prSvc.Get(repoOwner, repoName, issue)
 			if err != nil {
 				log.Println("info: could not fetch the pull request information.")
@@ -111,7 +111,7 @@ func (c *AcceptCommand) commandAcceptChangesetByOtherReviewer(ev *github.IssueCo
 	log.Printf("info: Start: merge the pull request from other reviewer by %v\n", ev.Comment.ID)
 	defer log.Printf("info: End:merge the pull request from other reviewer by %v\n", ev.Comment.ID)
 
-	if !c.reviewers.Has(reviewer) {
+	if !c.info.isReviewer(reviewer) {
 		log.Println("info: could not find the actual reviewer in reviewer list")
 		log.Printf("debug: specified actial reviewer %v\n", reviewer)
 		return false, nil

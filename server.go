@@ -87,25 +87,25 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	repo := *ev.Repo.Name
 	log.Printf("debug: repository name is %v\n", repo)
 
-	repoInfo := config.Repositories().Get(repoOwner, repo)
-	if repoInfo == nil {
+	repoConfig := config.Repositories().Get(repoOwner, repo)
+	if repoConfig == nil {
 		log.Println("info: Not found registred repo config.")
 		return false, fmt.Errorf("Not found registred repo config.")
 	}
 
-	var reviewers *ReviewerSet
-	if repoInfo.UseOwnersFile() {
+	var repoinfo *repositoryInfo
+	if repoConfig.UseOwnersFile() {
 		log.Println("info: Use `OWNERS` file.")
 		ok, owners := fetchOwnersFile(srv.githubClient.Repositories, repoOwner, repo)
 		if !ok {
 			return false, fmt.Errorf("error: could not handle OWNERS file correctly")
 		}
-		ok, reviewers = owners.Reviewers()
+		ok, repoinfo = owners.ToRepoInfo()
 		if !ok {
 			return false, fmt.Errorf("error: could not get reviewer list correctly")
 		}
 	} else {
-		_, reviewers = repoInfo.Reviewers()
+		_, repoinfo = repoConfig.ToRepoInfo()
 	}
 
 	switch cmd := cmd.(type) {
@@ -116,8 +116,8 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			srv.githubClient,
 			config.BotNameForGithub(),
 			cmd,
-			repoInfo,
-			reviewers,
+			repoConfig,
+			repoinfo,
 		}
 		return commander.commandAcceptChangesetByReviewer(ev)
 	case *AcceptChangeByOthersCommand:
@@ -125,8 +125,8 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			srv.githubClient,
 			config.BotNameForGithub(),
 			cmd,
-			repoInfo,
-			reviewers,
+			repoConfig,
+			repoinfo,
 		}
 		return commander.commandAcceptChangesetByOtherReviewer(ev, cmd.Reviewer[0])
 	default:

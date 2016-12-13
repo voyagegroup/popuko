@@ -44,13 +44,16 @@ func main() {
 
 func dumpRepositorySetting(v *RepositorySetting) {
 	log.Printf("%v\n", v.Fullname())
-	log.Printf("  Try to delete a merged branch: %v\n", v.ShouldDeleteMerged())
+
+	_, info := v.ToRepoInfo()
+
+	log.Printf("  Try to delete a merged branch: %v\n", info.ShouldDeleteMerged)
 	log.Printf("  Use OWNERS.json: %v\n", v.UseOwnersFile())
 	if v.UseOwnersFile() {
 		log.Println("  reviewers: see OWNERS.json in the repository")
 	} else {
 		log.Println("  reviewers:")
-		_, reviewer := v.Reviewers()
+		reviewer := info.Reviewers()
 		for _, name := range reviewer.Entries() {
 			log.Printf("    - %v\n", name)
 		}

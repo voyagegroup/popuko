@@ -30,20 +30,18 @@ func (s *RepositorySetting) Fullname() string {
 	return s.owner + "/" + s.name
 }
 
-func (s *RepositorySetting) Reviewers() (ok bool, set *ReviewerSet) {
-	return true, &s.reviewers
-}
-
-func (r *RepositorySetting) ShouldMergeAutomatically() bool {
-	return r.shouldMergeAutomatically
-}
-
-func (r *RepositorySetting) ShouldDeleteMerged() bool {
-	return r.shouldDeleteMerged
-}
-
 func (r *RepositorySetting) UseOwnersFile() bool {
 	return r.useOwnersFile
+}
+
+func (r *RepositorySetting) ToRepoInfo() (bool, *repositoryInfo) {
+	info := repositoryInfo{
+		reviewers:                &r.reviewers,
+		regardAllAsReviewer:      false, // TODO
+		ShouldMergeAutomatically: r.shouldMergeAutomatically,
+		ShouldDeleteMerged:       r.shouldDeleteMerged,
+	}
+	return true, &info
 }
 
 type ReviewerSet struct {

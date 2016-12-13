@@ -36,3 +36,18 @@ func (o *OwnersFile) Reviewers() (ok bool, set *ReviewerSet) {
 	set = newReviewerSet(list, o.RegardAllAsReviewer)
 	return true, set
 }
+
+func (o *OwnersFile) ToRepoInfo() (bool, *repositoryInfo) {
+	ok, r := o.Reviewers()
+	if !ok {
+		return false, nil
+	}
+
+	info := repositoryInfo{
+		reviewers:                r,
+		regardAllAsReviewer:      o.RegardAllAsReviewer,
+		ShouldMergeAutomatically: false, // TODO
+		ShouldDeleteMerged:       false, // TODO
+	}
+	return true, &info
+}
