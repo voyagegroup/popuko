@@ -105,7 +105,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			return false, fmt.Errorf("error: could not get reviewer list correctly")
 		}
 	} else {
-		reviewers = repoInfo.Reviewers()
+		_, reviewers = repoInfo.Reviewers()
 	}
 
 	switch cmd := cmd.(type) {

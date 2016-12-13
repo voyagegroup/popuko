@@ -50,7 +50,8 @@ func dumpRepositorySetting(v *RepositorySetting) {
 		log.Println("  reviewers: see OWNERS.json in the repository")
 	} else {
 		log.Println("  reviewers:")
-		for _, name := range v.Reviewers().Entries() {
+		_, reviewer := v.Reviewers()
+		for _, name := range reviewer.Entries() {
 			log.Printf("    - %v\n", name)
 		}
 	}
