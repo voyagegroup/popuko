@@ -93,19 +93,9 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 		return false, fmt.Errorf("Not found registred repo config.")
 	}
 
-	var repoinfo *repositoryInfo
-	if repoConfig.UseOwnersFile() {
-		log.Println("info: Use `OWNERS` file.")
-		ok, owners := fetchOwnersFile(srv.githubClient.Repositories, repoOwner, repo)
-		if !ok {
-			return false, fmt.Errorf("error: could not handle OWNERS file correctly")
-		}
-		ok, repoinfo = owners.ToRepoInfo()
-		if !ok {
-			return false, fmt.Errorf("error: could not get reviewer list correctly")
-		}
-	} else {
-		_, repoinfo = repoConfig.ToRepoInfo()
+	repoInfo := createRepositoryInfo(repoConfig, srv.githubClient.Repositories)
+	if repoInfo == nil {
+		return false, fmt.Errorf("debug: cannot get repositoryInfo")
 	}
 
 	switch cmd := cmd.(type) {
@@ -118,7 +108,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			srv.githubClient,
 			config.BotNameForGithub(),
 			cmd,
-			repoinfo,
+			repoInfo,
 		}
 		return commander.commandAcceptChangesetByReviewer(ev)
 	case *AcceptChangeByOthersCommand:
@@ -128,7 +118,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			srv.githubClient,
 			config.BotNameForGithub(),
 			cmd,
-			repoinfo,
+			repoInfo,
 		}
 		return commander.commandAcceptChangesetByOtherReviewer(ev, cmd.Reviewer[0])
 	default:
@@ -151,6 +141,27 @@ func createGithubClient(config *Settings) *github.Client {
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
 	client := github.NewClient(tc)
 	return client
+}
+
+func createRepositoryInfo(s *RepositorySetting, repoSvc *github.RepositoriesService) *repositoryInfo {
+	var repoinfo *repositoryInfo
+	if s.UseOwnersFile() {
+		log.Println("info: Use `OWNERS` file.")
+		ok, owners := fetchOwnersFile(repoSvc, s.Owner(), s.Name())
+		if !ok {
+			log.Println("error: could not handle OWNERS file.")
+			return nil
+		}
+		ok, repoinfo = owners.ToRepoInfo()
+		if !ok {
+			log.Println("error: could not get reviewer list")
+			return nil
+		}
+	} else {
+		_, repoinfo = s.ToRepoInfo()
+	}
+
+	return repoinfo
 }
 
 func fetchOwnersFile(svc *github.RepositoriesService, owner string, reponame string) (bool, *OwnersFile) {
