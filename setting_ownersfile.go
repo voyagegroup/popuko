@@ -19,6 +19,13 @@ type OwnersFile struct {
 	// If you merge by hand and this bot should change the status label,
 	// disable this option.
 	IsDisabledMergeAutomatically bool `json:"disable_merge_automatically,omitempty"`
+
+	// Delete the branch by this bot after this bot had merged it
+	// if you enable this option.
+	// The operation may not delete contributor's branch by API
+	// restriction. This only clean up only the upstream repository
+	// managed by this bot.
+	ShouldDeleteMerged bool `json:"delete_branch_after_auto_merge,omitempty"`
 }
 
 func (o *OwnersFile) Reviewers() (ok bool, set *ReviewerSet) {
@@ -52,7 +59,7 @@ func (o *OwnersFile) ToRepoInfo() (bool, *repositoryInfo) {
 		reviewers:                r,
 		regardAllAsReviewer:      o.RegardAllAsReviewer,
 		ShouldMergeAutomatically: !o.IsDisabledMergeAutomatically,
-		ShouldDeleteMerged:       false, // TODO
+		ShouldDeleteMerged:       o.ShouldDeleteMerged,
 	}
 	return true, &info
 }
