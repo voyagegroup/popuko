@@ -8,6 +8,7 @@ script:
     - make travis -j 8
 
 notifications:
+    email: false
     webhooks:
         urls:
             - https://lism.in/travis
