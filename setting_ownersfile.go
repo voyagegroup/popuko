@@ -14,6 +14,11 @@ type OwnersFile struct {
 	// NOT FOR PUBLIC OPEN SOURCE PROJECT.
 	// You must not enable this option for an open source project.
 	RegardAllAsReviewer bool `json:"regard_all_as_reviewer,omitempty"`
+
+	// Enable to merge branch automatically by this bot after you command `r+`.
+	// If you merge by hand and this bot should change the status label,
+	// disable this option.
+	IsDisabledMergeAutomatically bool `json:"disable_merge_automatically,omitempty"`
 }
 
 func (o *OwnersFile) Reviewers() (ok bool, set *ReviewerSet) {
@@ -46,7 +51,7 @@ func (o *OwnersFile) ToRepoInfo() (bool, *repositoryInfo) {
 	info := repositoryInfo{
 		reviewers:                r,
 		regardAllAsReviewer:      o.RegardAllAsReviewer,
-		ShouldMergeAutomatically: false, // TODO
+		ShouldMergeAutomatically: !o.IsDisabledMergeAutomatically,
 		ShouldDeleteMerged:       false, // TODO
 	}
 	return true, &info
