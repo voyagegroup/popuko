@@ -4,5 +4,5 @@
     "nekoya",
     "saneyuki"
   ],
-  "should_delete_branch_after_merged": true,
+  "should_delete_branch_after_merged": true
 }
