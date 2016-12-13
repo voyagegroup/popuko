@@ -18,14 +18,14 @@ type OwnersFile struct {
 	// Enable to merge branch automatically by this bot after you command `r+`.
 	// If you merge by hand and this bot should change the status label,
 	// disable this option.
-	EnableAutoMerge bool `json:"enable_auto_merge,omitempty"`
+	EnableAutoMerge bool `json:"auto_merge.enabled,omitempty"`
 
 	// Delete the branch by this bot after this bot had merged it
 	// if you enable this option.
 	// The operation may not delete contributor's branch by API
 	// restriction. This only clean up only the upstream repository
 	// managed by this bot.
-	ShouldDeleteMerged bool `json:"delete_branch_after_auto_merge,omitempty"`
+	ShouldDeleteMerged bool `json:"auto_merge.delete_branch,omitempty"`
 }
 
 func (o *OwnersFile) Reviewers() (ok bool, set *ReviewerSet) {
