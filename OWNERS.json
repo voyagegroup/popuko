@@ -3,5 +3,6 @@
   "reviewers": [
     "nekoya",
     "saneyuki"
-  ]
+  ],
+  "should_delete_branch_after_merged": true
 }
