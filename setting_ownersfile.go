@@ -38,7 +38,7 @@ func (o *OwnersFile) Reviewers() (ok bool, set *ReviewerSet) {
 		log.Println("debug: This `OwnersFile` provides reviewer privilege for all users who can comment to this repo.")
 	}
 
-	set = newReviewerSet(list, o.RegardAllAsReviewer)
+	set = newReviewerSet(list)
 	return true, set
 }
 

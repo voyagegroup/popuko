@@ -13,7 +13,7 @@ type RepositorySetting struct {
 }
 
 func (s *RepositorySetting) Init() {
-	set := newReviewerSet(s.reviewerList, false)
+	set := newReviewerSet(s.reviewerList)
 	s.reviewerList = nil
 	s.reviewers = *set
 }

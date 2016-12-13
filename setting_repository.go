@@ -21,15 +21,10 @@ func (r *repositoryInfo) Reviewers() *ReviewerSet {
 }
 
 type ReviewerSet struct {
-	regardAllAsReviewer bool
-	set                 map[string]*interface{}
+	set map[string]*interface{}
 }
 
 func (s *ReviewerSet) Has(person string) bool {
-	if s.regardAllAsReviewer {
-		return true
-	}
-
 	_, ok := s.set[person]
 	return ok
 }
@@ -42,21 +37,13 @@ func (s *ReviewerSet) Entries() []string {
 	return list
 }
 
-func newReviewerSet(list []string, regardAllAsReviewer bool) *ReviewerSet {
-	if regardAllAsReviewer {
-		return &ReviewerSet{
-			true,
-			nil,
-		}
-	}
-
+func newReviewerSet(list []string) *ReviewerSet {
 	s := make(map[string]*interface{})
 	for _, name := range list {
 		s[name] = nil
 	}
 
 	return &ReviewerSet{
-		false,
 		s,
 	}
 }
