@@ -8,6 +8,8 @@ type RepositorySetting struct {
 
 	shouldMergeAutomatically bool
 	shouldDeleteMerged       bool
+	regardAllAsReviewer      bool
+
 	// Use `OWNERS` file as reviewer list in the repository's root.
 	useOwnersFile bool
 }
@@ -37,7 +39,7 @@ func (r *RepositorySetting) UseOwnersFile() bool {
 func (r *RepositorySetting) ToRepoInfo() (bool, *repositoryInfo) {
 	info := repositoryInfo{
 		reviewers:                &r.reviewers,
-		regardAllAsReviewer:      false, // TODO
+		regardAllAsReviewer:      r.regardAllAsReviewer,
 		ShouldMergeAutomatically: r.shouldMergeAutomatically,
 		ShouldDeleteMerged:       r.shouldDeleteMerged,
 	}
