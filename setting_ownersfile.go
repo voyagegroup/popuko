@@ -18,7 +18,7 @@ type OwnersFile struct {
 	// Enable to merge branch automatically by this bot after you command `r+`.
 	// If you merge by hand and this bot should change the status label,
 	// disable this option.
-	IsDisabledMergeAutomatically bool `json:"disable_merge_automatically,omitempty"`
+	EnableAutoMerge bool `json:"enable_auto_merge,omitempty"`
 
 	// Delete the branch by this bot after this bot had merged it
 	// if you enable this option.
@@ -58,7 +58,7 @@ func (o *OwnersFile) ToRepoInfo() (bool, *repositoryInfo) {
 	info := repositoryInfo{
 		reviewers:                r,
 		regardAllAsReviewer:      o.RegardAllAsReviewer,
-		ShouldMergeAutomatically: !o.IsDisabledMergeAutomatically,
+		ShouldMergeAutomatically: o.EnableAutoMerge,
 		ShouldDeleteMerged:       o.ShouldDeleteMerged,
 	}
 	return true, &info
