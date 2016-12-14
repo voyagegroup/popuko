@@ -55,9 +55,28 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 		return false, err
 	}
 
+	prSvc := client.PullRequests
+	pr, _, err := prSvc.Get(repoOwner, repoName, issue)
+	if err != nil {
+		log.Println("info: could not fetch the pull request information.")
+		return false, err
+	}
+
+	headSha := *pr.Head.SHA
+	{
+		comment := ":pushpin: Commit " + headSha + " has been approved by `" + sender + "`"
+		_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
+			Body: &comment,
+		})
+		if err != nil {
+			log.Println("info: could not create the comment to declare the head is approved.")
+			return false, err
+		}
+	}
+
 	if c.info.ShouldMergeAutomatically {
 		{
-			comment := "Try to merge this pull request which has been approved by `" + sender + "`"
+			comment := ":hourglass: Try to merge " + headSha
 			_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
 				Body: &comment,
 			})
@@ -69,7 +88,6 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 
 		// XXX: By the behavior, github uses defautlt merge message
 		// if we specify `""` to `commitMessage`.
-		prSvc := client.PullRequests
 		_, _, err = prSvc.Merge(repoOwner, repoName, issue, "", nil)
 		if err != nil {
 			log.Println("info: could not merge pull request")
@@ -82,12 +100,6 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 
 		// delete branch
 		if c.info.ShouldDeleteMerged {
-			pr, _, err := prSvc.Get(repoOwner, repoName, issue)
-			if err != nil {
-				log.Println("info: could not fetch the pull request information.")
-				return false, err
-			}
-
 			branchOwner := *pr.Head.Repo.Owner.Login
 			log.Printf("debug: branch owner: %v\n", branchOwner)
 			branchOwnerRepo := *pr.Head.Repo.Name
