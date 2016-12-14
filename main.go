@@ -25,8 +25,7 @@ func main() {
 		log.Println("---- popuko handling repositories -------")
 		repomap := config.Repositories()
 		for _, v := range repomap.Entries() {
-			dumpRepositorySetting(&v)
-			log.Println("")
+			v.log()
 		}
 	}
 	log.Println("==================")
@@ -40,22 +39,4 @@ func main() {
 
 	http.HandleFunc("/github", server.handleGithubHook)
 	http.ListenAndServe(config.PortStr(), nil)
-}
-
-func dumpRepositorySetting(v *RepositorySetting) {
-	log.Printf("%v\n", v.Fullname())
-
-	_, info := v.ToRepoInfo()
-
-	log.Printf("  Try to delete a merged branch: %v\n", info.ShouldDeleteMerged)
-	log.Printf("  Use OWNERS.json: %v\n", v.UseOwnersFile())
-	if v.UseOwnersFile() {
-		log.Println("  reviewers: see OWNERS.json in the repository")
-	} else {
-		log.Println("  reviewers:")
-		reviewer := info.Reviewers()
-		for _, name := range reviewer.Entries() {
-			log.Printf("    - %v\n", name)
-		}
-	}
 }
