@@ -23,7 +23,7 @@ func createSettings() *Settings {
 					// By default, this bot merge branch automatically after you command `r+`.
 					// If you merge by hand and this bot should change the status label,
 					// disable this option.
-					shouldMergeAutomatically: true,
+					enableAutoMerge: true,
 
 					// Delete the branch by this bot after this bot had merged it
 					// if you enable this option.

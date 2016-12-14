@@ -6,8 +6,8 @@ import (
 
 func TestRepositorySettingToRepoInfo1(t *testing.T) {
 	o := RepositorySetting{
-		shouldMergeAutomatically: true,
-		deleteAfterAutoMerge:     true,
+		enableAutoMerge:      true,
+		deleteAfterAutoMerge: true,
 	}
 
 	ok, info := o.ToRepoInfo()
