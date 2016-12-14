@@ -30,7 +30,7 @@ func createSettings() *Settings {
 					// The operation may not delete contributor's branch by API
 					// restriction. This only clean up only the upstream repository
 					// managed by this bot.
-					shouldDeleteMerged: false,
+					deleteAfterAutoMerge: false,
 
 					// Use `/OWNERS.json` in your repository's `master` branch
 					// to list reviewers.
