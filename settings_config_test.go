@@ -15,7 +15,7 @@ func TestRepositorySettingToRepoInfo1(t *testing.T) {
 		t.Fatal("should be success to convert from OwnersFile")
 	}
 
-	if !info.ShouldMergeAutomatically {
+	if !info.EnableAutoMerge {
 		t.Fatal("ShouldMergeAutomatically: should be true")
 	}
 

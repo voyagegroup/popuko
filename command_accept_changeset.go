@@ -74,7 +74,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 		}
 	}
 
-	if c.info.ShouldMergeAutomatically {
+	if c.info.EnableAutoMerge {
 		{
 			comment := ":hourglass: Try to merge " + headSha
 			_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{

@@ -56,10 +56,10 @@ func (o *OwnersFile) ToRepoInfo() (bool, *repositoryInfo) {
 	}
 
 	info := repositoryInfo{
-		reviewers:                r,
-		regardAllAsReviewer:      o.RegardAllAsReviewer,
-		ShouldMergeAutomatically: o.EnableAutoMerge,
-		DeleteAfterAutoMerge:     o.DeleteAfterAutoMerge,
+		reviewers:            r,
+		regardAllAsReviewer:  o.RegardAllAsReviewer,
+		EnableAutoMerge:      o.EnableAutoMerge,
+		DeleteAfterAutoMerge: o.DeleteAfterAutoMerge,
 	}
 	return true, &info
 }

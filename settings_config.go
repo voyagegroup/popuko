@@ -40,10 +40,10 @@ func (r *RepositorySetting) UseOwnersFile() bool {
 
 func (r *RepositorySetting) ToRepoInfo() (bool, *repositoryInfo) {
 	info := repositoryInfo{
-		reviewers:                &r.reviewers,
-		regardAllAsReviewer:      r.regardAllAsReviewer,
-		ShouldMergeAutomatically: r.shouldMergeAutomatically,
-		DeleteAfterAutoMerge:     r.shouldDeleteMerged,
+		reviewers:            &r.reviewers,
+		regardAllAsReviewer:  r.regardAllAsReviewer,
+		EnableAutoMerge:      r.shouldMergeAutomatically,
+		DeleteAfterAutoMerge: r.shouldDeleteMerged,
 	}
 	return true, &info
 }
