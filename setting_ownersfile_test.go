@@ -19,7 +19,7 @@ func TestOwnersFileToRepoInfo1(t *testing.T) {
 		t.Fatal("ShouldMergeAutomatically: should be true")
 	}
 
-	if !info.ShouldDeleteMerged {
+	if !info.DeleteAfterAutoMerge {
 		t.Fatal("ShouldDeleteMerged: should be true")
 	}
 }
@@ -39,7 +39,7 @@ func TestOwnersFileToRepoInfo2(t *testing.T) {
 		t.Fatal("ShouldMergeAutomatically: should be false")
 	}
 
-	if info.ShouldDeleteMerged {
+	if info.DeleteAfterAutoMerge {
 		t.Fatal("ShouldDeleteMerged: should be false")
 	}
 }

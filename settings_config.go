@@ -43,7 +43,7 @@ func (r *RepositorySetting) ToRepoInfo() (bool, *repositoryInfo) {
 		reviewers:                &r.reviewers,
 		regardAllAsReviewer:      r.regardAllAsReviewer,
 		ShouldMergeAutomatically: r.shouldMergeAutomatically,
-		ShouldDeleteMerged:       r.shouldDeleteMerged,
+		DeleteAfterAutoMerge:     r.shouldDeleteMerged,
 	}
 	return true, &info
 }

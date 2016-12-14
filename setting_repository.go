@@ -5,7 +5,7 @@ type repositoryInfo struct {
 	regardAllAsReviewer bool
 
 	ShouldMergeAutomatically bool
-	ShouldDeleteMerged       bool
+	DeleteAfterAutoMerge     bool
 }
 
 func (r *repositoryInfo) isReviewer(name string) bool {

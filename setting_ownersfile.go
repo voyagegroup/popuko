@@ -59,7 +59,7 @@ func (o *OwnersFile) ToRepoInfo() (bool, *repositoryInfo) {
 		reviewers:                r,
 		regardAllAsReviewer:      o.RegardAllAsReviewer,
 		ShouldMergeAutomatically: o.EnableAutoMerge,
-		ShouldDeleteMerged:       o.DeleteAfterAutoMerge,
+		DeleteAfterAutoMerge:     o.DeleteAfterAutoMerge,
 	}
 	return true, &info
 }

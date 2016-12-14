@@ -19,7 +19,7 @@ func TestRepositorySettingToRepoInfo1(t *testing.T) {
 		t.Fatal("ShouldMergeAutomatically: should be true")
 	}
 
-	if !info.ShouldDeleteMerged {
+	if !info.DeleteAfterAutoMerge {
 		t.Fatal("ShouldDeleteMerged: should be true")
 	}
 }
