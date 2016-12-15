@@ -8,9 +8,9 @@ type RepositorySetting struct {
 	reviewerList []string
 	reviewers    ReviewerSet
 
-	shouldMergeAutomatically bool
-	shouldDeleteMerged       bool
-	regardAllAsReviewer      bool
+	enableAutoMerge      bool
+	deleteAfterAutoMerge bool
+	regardAllAsReviewer  bool
 
 	// Use `OWNERS` file as reviewer list in the repository's root.
 	useOwnersFile bool
@@ -40,10 +40,10 @@ func (r *RepositorySetting) UseOwnersFile() bool {
 
 func (r *RepositorySetting) ToRepoInfo() (bool, *repositoryInfo) {
 	info := repositoryInfo{
-		reviewers:                &r.reviewers,
-		regardAllAsReviewer:      r.regardAllAsReviewer,
-		ShouldMergeAutomatically: r.shouldMergeAutomatically,
-		ShouldDeleteMerged:       r.shouldDeleteMerged,
+		reviewers:            &r.reviewers,
+		regardAllAsReviewer:  r.regardAllAsReviewer,
+		EnableAutoMerge:      r.enableAutoMerge,
+		DeleteAfterAutoMerge: r.deleteAfterAutoMerge,
 	}
 	return true, &info
 }
@@ -55,8 +55,8 @@ func (r *RepositorySetting) log() {
 	if r.UseOwnersFile() {
 		log.Println("See /OWNERS.json to confirm all configurations for each repos.")
 	} else {
-		log.Printf("* Enable auto-merging by this bot: %v\n", r.shouldMergeAutomatically)
-		log.Printf("* Try to delete a branch after auto merging: %v\n", r.shouldDeleteMerged)
+		log.Printf("* Enable auto-merging by this bot: %v\n", r.enableAutoMerge)
+		log.Printf("* Try to delete a branch after auto merging: %v\n", r.deleteAfterAutoMerge)
 		if r.regardAllAsReviewer {
 			log.Println("* Privide the reviewer privilege for all user who can comment to the repo.")
 		} else {

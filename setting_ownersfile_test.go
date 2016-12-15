@@ -6,8 +6,8 @@ import (
 
 func TestOwnersFileToRepoInfo1(t *testing.T) {
 	o := OwnersFile{
-		EnableAutoMerge:    true,
-		ShouldDeleteMerged: true,
+		EnableAutoMerge:      true,
+		DeleteAfterAutoMerge: true,
 	}
 
 	ok, info := o.ToRepoInfo()
@@ -15,19 +15,19 @@ func TestOwnersFileToRepoInfo1(t *testing.T) {
 		t.Fatal("should be success to convert from OwnersFile")
 	}
 
-	if !info.ShouldMergeAutomatically {
+	if !info.EnableAutoMerge {
 		t.Fatal("ShouldMergeAutomatically: should be true")
 	}
 
-	if !info.ShouldDeleteMerged {
+	if !info.DeleteAfterAutoMerge {
 		t.Fatal("ShouldDeleteMerged: should be true")
 	}
 }
 
 func TestOwnersFileToRepoInfo2(t *testing.T) {
 	o := OwnersFile{
-		EnableAutoMerge:    false,
-		ShouldDeleteMerged: false,
+		EnableAutoMerge:      false,
+		DeleteAfterAutoMerge: false,
 	}
 
 	ok, info := o.ToRepoInfo()
@@ -35,11 +35,11 @@ func TestOwnersFileToRepoInfo2(t *testing.T) {
 		t.Fatal("should be success to convert from OwnersFile")
 	}
 
-	if info.ShouldMergeAutomatically {
+	if info.EnableAutoMerge {
 		t.Fatal("ShouldMergeAutomatically: should be false")
 	}
 
-	if info.ShouldDeleteMerged {
+	if info.DeleteAfterAutoMerge {
 		t.Fatal("ShouldDeleteMerged: should be false")
 	}
 }

@@ -23,14 +23,14 @@ func createSettings() *Settings {
 					// By default, this bot merge branch automatically after you command `r+`.
 					// If you merge by hand and this bot should change the status label,
 					// disable this option.
-					shouldMergeAutomatically: true,
+					enableAutoMerge: true,
 
 					// Delete the branch by this bot after this bot had merged it
 					// if you enable this option.
 					// The operation may not delete contributor's branch by API
 					// restriction. This only clean up only the upstream repository
 					// managed by this bot.
-					shouldDeleteMerged: false,
+					deleteAfterAutoMerge: false,
 
 					// Use `/OWNERS.json` in your repository's `master` branch
 					// to list reviewers.

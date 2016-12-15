@@ -6,8 +6,8 @@ import (
 
 func TestRepositorySettingToRepoInfo1(t *testing.T) {
 	o := RepositorySetting{
-		shouldMergeAutomatically: true,
-		shouldDeleteMerged:       true,
+		enableAutoMerge:      true,
+		deleteAfterAutoMerge: true,
 	}
 
 	ok, info := o.ToRepoInfo()
@@ -15,11 +15,11 @@ func TestRepositorySettingToRepoInfo1(t *testing.T) {
 		t.Fatal("should be success to convert from OwnersFile")
 	}
 
-	if !info.ShouldMergeAutomatically {
+	if !info.EnableAutoMerge {
 		t.Fatal("ShouldMergeAutomatically: should be true")
 	}
 
-	if !info.ShouldDeleteMerged {
+	if !info.DeleteAfterAutoMerge {
 		t.Fatal("ShouldDeleteMerged: should be true")
 	}
 }

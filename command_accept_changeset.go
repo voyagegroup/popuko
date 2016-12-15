@@ -74,7 +74,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 		}
 	}
 
-	if c.info.ShouldMergeAutomatically {
+	if c.info.EnableAutoMerge {
 		{
 			comment := ":hourglass: Try to merge " + headSha
 			_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
@@ -98,8 +98,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 			return false, err
 		}
 
-		// delete branch
-		if c.info.ShouldDeleteMerged {
+		if c.info.DeleteAfterAutoMerge {
 			branchOwner := *pr.Head.Repo.Owner.Login
 			log.Printf("debug: branch owner: %v\n", branchOwner)
 			branchOwnerRepo := *pr.Head.Repo.Name
