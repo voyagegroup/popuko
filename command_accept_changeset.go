@@ -14,6 +14,8 @@ type AcceptCommand struct {
 	botName string
 	cmd     AcceptChangesetCommand
 	info    *repositoryInfo
+
+	queue *autoMergeQueue
 }
 
 func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueCommentEvent) (bool, error) {
@@ -76,6 +78,9 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 
 	if c.info.EnableAutoMerge {
 		if c.info.ExperimentalTryOnAutoBranch() {
+			c.queue.Lock()
+			defer c.queue.Unlock()
+
 			ok, _ := createBranchFromMaster(client.Git, repoOwner, repoName, "auto")
 			if !ok {
 				log.Println("info: cannot create the auto branch")

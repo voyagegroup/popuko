@@ -15,7 +15,8 @@ import (
 
 // AppServer is just an this application.
 type AppServer struct {
-	githubClient *github.Client
+	githubClient  *github.Client
+	autoMergeRepo *autoMergeQRepo
 }
 
 func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request) {
@@ -98,6 +99,13 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 		return false, fmt.Errorf("debug: cannot get repositoryInfo")
 	}
 
+	var queue *autoMergeQueue
+	if repoInfo.ExperimentalTryOnAutoBranch() {
+		srv.autoMergeRepo.Lock()
+		queue = srv.autoMergeRepo.Get(repoOwner, repo)
+		srv.autoMergeRepo.Unlock()
+	}
+
 	switch cmd := cmd.(type) {
 	case *AssignReviewerCommand:
 		return srv.commandAssignReviewer(ev, cmd.Reviewer)
@@ -109,6 +117,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			config.BotNameForGithub(),
 			cmd,
 			repoInfo,
+			queue,
 		}
 		return commander.commandAcceptChangesetByReviewer(ev)
 	case *AcceptChangeByOthersCommand:
@@ -119,6 +128,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			config.BotNameForGithub(),
 			cmd,
 			repoInfo,
+			queue,
 		}
 		return commander.commandAcceptChangesetByOtherReviewer(ev, cmd.Reviewer[0])
 	default:
