@@ -26,6 +26,8 @@ type OwnersFile struct {
 	// restriction. This only clean up only the upstream repository
 	// managed by this bot.
 	DeleteAfterAutoMerge bool `json:"auto_merge.delete_branch,omitempty"`
+
+	ExperimentalTryOnAutoBranch bool `json:"experimental.auto_merge.try_on_auto_branch,omitempty"`
 }
 
 func (o *OwnersFile) Reviewers() (ok bool, set *ReviewerSet) {
@@ -56,10 +58,11 @@ func (o *OwnersFile) ToRepoInfo() (bool, *repositoryInfo) {
 	}
 
 	info := repositoryInfo{
-		reviewers:            r,
-		regardAllAsReviewer:  o.RegardAllAsReviewer,
-		EnableAutoMerge:      o.EnableAutoMerge,
-		DeleteAfterAutoMerge: o.DeleteAfterAutoMerge,
+		reviewers:                   r,
+		regardAllAsReviewer:         o.RegardAllAsReviewer,
+		EnableAutoMerge:             o.EnableAutoMerge,
+		DeleteAfterAutoMerge:        o.DeleteAfterAutoMerge,
+		experimentalTryOnAutoBranch: o.ExperimentalTryOnAutoBranch,
 	}
 	return true, &info
 }
