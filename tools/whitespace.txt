@@ -3,3 +3,4 @@ This is inspired by https://chromium.googlesource.com/v8/v8/+/master/tools/white
 --------
 demo
 auto merge test 1
+auto merge test 2
