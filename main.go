@@ -35,7 +35,7 @@ func main() {
 		panic("Cannot create the github client")
 	}
 
-	server := AppServer{github}
+	server := AppServer{github, newAutoMergeQRepo()}
 
 	http.HandleFunc("/github", server.handleGithubHook)
 	http.ListenAndServe(config.PortStr(), nil)
