@@ -60,6 +60,10 @@ func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request
 		srv.processPushEvent(event)
 		rw.WriteHeader(http.StatusOK)
 		return
+	case *github.StatusEvent:
+		srv.processStatusEvent(event)
+		rw.WriteHeader(http.StatusOK)
+		return
 	default:
 		rw.WriteHeader(http.StatusOK)
 		log.Println("warn: Unsupported type events")
@@ -140,6 +144,12 @@ func (srv *AppServer) processPushEvent(ev *github.PushEvent) {
 	log.Println("info: Start: processPushEvent by push id")
 	defer log.Println("info: End: processPushEvent by push id")
 	srv.detectUnmergeablePR(ev)
+}
+
+func (srv *AppServer) processStatusEvent(ev *github.StatusEvent) {
+	log.Println("info: Start: processStatusEvent")
+	defer log.Println("info: End: processStatusEvent")
+	srv.checkAutoBranch(ev)
 }
 
 func createGithubClient(config *Settings) *github.Client {

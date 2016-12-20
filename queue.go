@@ -14,6 +14,7 @@ type autoMergeQRepo struct {
 func newAutoMergeQRepo() *autoMergeQRepo {
 	return &autoMergeQRepo{
 		mux: sync.Mutex{},
+		m:   make(map[string]*autoMergeQueue),
 	}
 }
 
@@ -100,10 +101,10 @@ func (s *autoMergeQueue) RemoveActive() {
 }
 
 func (s *autoMergeQueue) HasActive() bool {
-	return s.current == nil
+	return s.current != nil
 }
 
 type autoMergeQueueItem struct {
 	PullRequest int
-	SHA         string
+	SHA         *string
 }
