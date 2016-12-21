@@ -1,6 +1,6 @@
 # popuko
 
-[![Build Status (master)](https://travis-ci.org/nekoya/popuko.svg?branch=master)](https://travis-ci.org/nekoya/popuko)
+[![Build Status (master)](https://travis-ci.org/karen-irc/popuko.svg?branch=master)](https://travis-ci.org/karen-irc/popuko)
 
 ## What is this?
 
@@ -80,4 +80,4 @@ So you need to do these things.
 - Intelligent cooperation with TravisCI.
 - Intelligent parse your command.
 - Emojify bot's comment.
-- [See more...](https://github.com/nekoya/popuko/issues)
+- [See more...](https://github.com/karen-irc/popuko/issues)
