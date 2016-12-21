@@ -60,11 +60,12 @@ So you need to do these things.
 2. Set `http://<your_server_with_port>/github` for the webhook to your repository with these events
   - `Issue comment`
   - `Push`
-3. Create these labels to make the status visible.
+3. Set your bot's account (or the team which it belonging to) as a collaborator for the repository (give __write__ priviledge.)
+4. Create these labels to make the status visible.
   - `S-awaiting-review`: for a pull request assigned to some reviewer.
   - `S-awaiting-merge`: for a pull request queued to this bot.
   - `S-needs-rebase`: for an unmergeable pull request.
-4. Done!
+5. Done!
 
 
 ## Why there is no released version?
