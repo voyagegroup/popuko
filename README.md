@@ -79,6 +79,4 @@ So you need to do these things.
 ## TODO
 
 - Intelligent cooperation with TravisCI.
-- Intelligent parse your command.
-- Emojify bot's comment.
 - [See more...](https://github.com/karen-irc/popuko/issues)
