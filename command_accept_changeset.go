@@ -81,7 +81,38 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 			c.queue.Lock()
 			defer c.queue.Unlock()
 
-			ok, _ := createBranchFromMaster(client.Git, repoOwner, repoName, "auto")
+			q := &autoMergeQueueItem{
+				PullRequest: issue,
+				SHA:         nil,
+			}
+			c.queue.Push(q)
+
+			if c.queue.HasActive() {
+				log.Printf("info: pull request (%v) has been queued but other is active.\n", issue)
+				{
+					comment := ":postbox: This pull request is queued. Please await the time."
+					_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
+						Body: &comment,
+					})
+					if err != nil {
+						log.Println("info: could not create the comment to declare to merge this.")
+					}
+				}
+				return true, nil
+			}
+
+			ok, next := c.queue.GetNext()
+			if !ok || next == nil {
+				log.Println("error: this queue should not be empty because `q` is queued just now.")
+				return false, nil
+			}
+
+			if next != q {
+				log.Println("error: `next` should be equal to `q` because there should be only `q` in queue.")
+				return false, nil
+			}
+
+			ok, _ = createBranchFromMaster(client.Git, repoOwner, repoName, "auto")
 			if !ok {
 				log.Println("info: cannot create the auto branch")
 				return false, nil
@@ -96,6 +127,10 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 
 			log.Println("info: merge the auto branch")
 
+			q.SHA = commit.SHA
+			c.queue.SetActive(q)
+			log.Printf("info: pin #%v as the active item to queue\n", issue)
+
 			{
 				comment := ":hourglass: " + headSha + " has been merged into the auto branch " + *commit.HTMLURL
 				_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
@@ -106,43 +141,43 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 					return false, err
 				}
 			}
-		}
+		} else {
+			{
+				comment := ":hourglass: Try to merge " + headSha
+				_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
+					Body: &comment,
+				})
+				if err != nil {
+					log.Println("info: could not create the comment to declare to merge this.")
+					return false, err
+				}
+			}
 
-		{
-			comment := ":hourglass: Try to merge " + headSha
-			_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
-				Body: &comment,
-			})
+			// XXX: By the behavior, github uses defautlt merge message
+			// if we specify `""` to `commitMessage`.
+			_, _, err = prSvc.Merge(repoOwner, repoName, issue, "", nil)
 			if err != nil {
-				log.Println("info: could not create the comment to declare to merge this.")
+				log.Println("info: could not merge pull request")
+				comment := "Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
+				_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
+					Body: &comment,
+				})
 				return false, err
 			}
-		}
 
-		// XXX: By the behavior, github uses defautlt merge message
-		// if we specify `""` to `commitMessage`.
-		_, _, err = prSvc.Merge(repoOwner, repoName, issue, "", nil)
-		if err != nil {
-			log.Println("info: could not merge pull request")
-			comment := "Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
-			_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
-				Body: &comment,
-			})
-			return false, err
-		}
+			if c.info.DeleteAfterAutoMerge {
+				branchOwner := *pr.Head.Repo.Owner.Login
+				log.Printf("debug: branch owner: %v\n", branchOwner)
+				branchOwnerRepo := *pr.Head.Repo.Name
+				log.Printf("debug: repo: %v\n", branchOwnerRepo)
+				branchName := *pr.Head.Ref
+				log.Printf("debug: head ref: %v\n", branchName)
 
-		if c.info.DeleteAfterAutoMerge {
-			branchOwner := *pr.Head.Repo.Owner.Login
-			log.Printf("debug: branch owner: %v\n", branchOwner)
-			branchOwnerRepo := *pr.Head.Repo.Name
-			log.Printf("debug: repo: %v\n", branchOwnerRepo)
-			branchName := *pr.Head.Ref
-			log.Printf("debug: head ref: %v\n", branchName)
-
-			_, err = client.Git.DeleteRef(branchOwner, branchOwnerRepo, "heads/"+branchName)
-			if err != nil {
-				log.Println("info: could not delete the merged branch.")
-				return false, err
+				_, err = client.Git.DeleteRef(branchOwner, branchOwnerRepo, "heads/"+branchName)
+				if err != nil {
+					log.Println("info: could not delete the merged branch.")
+					return false, err
+				}
 			}
 		}
 	}
