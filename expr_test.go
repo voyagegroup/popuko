@@ -44,7 +44,7 @@ func TestParseCommand3(t *testing.T) {
 
 	v, ok := cmd.(*AcceptChangeByOthersCommand)
 	if !ok {
-		t.Fatal("should be AssignReviewerCommand")
+		t.Fatal("should be AcceptChangeByOthersCommand")
 	}
 
 	if name := v.BotName(); name != "bot" {
