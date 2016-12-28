@@ -137,18 +137,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 			}
 
 			if c.info.DeleteAfterAutoMerge {
-				branchOwner := *pr.Head.Repo.Owner.Login
-				log.Printf("debug: branch owner: %v\n", branchOwner)
-				branchOwnerRepo := *pr.Head.Repo.Name
-				log.Printf("debug: repo: %v\n", branchOwnerRepo)
-				branchName := *pr.Head.Ref
-				log.Printf("debug: head ref: %v\n", branchName)
-
-				_, err = client.Git.DeleteRef(branchOwner, branchOwnerRepo, "heads/"+branchName)
-				if err != nil {
-					log.Println("info: could not delete the merged branch.")
-					return false, err
-				}
+				operation.DeleteBranchByPullRequest(client.Git, pr)
 			}
 		}
 	}

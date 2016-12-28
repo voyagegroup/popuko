@@ -6,7 +6,7 @@ import (
 	"github.com/google/go-github/github"
 )
 
-func CreateBranchFromMaster(svc *github.GitService, owner string, repo string, branchName string) (ok bool, ref *github.Reference) {
+func createBranchFromMaster(svc *github.GitService, owner string, repo string, branchName string) (ok bool, ref *github.Reference) {
 	refName := "refs/heads/" + branchName
 
 	log.Printf("info: clean up %v by deleting it\n", refName)
@@ -36,7 +36,7 @@ func CreateBranchFromMaster(svc *github.GitService, owner string, repo string, b
 	return true, ref
 }
 
-func MergeIntoAutoBranch(svc *github.RepositoriesService, owner string, repo string, head *github.PullRequestBranch) (ok bool, commit *github.RepositoryCommit) {
+func mergeIntoAutoBranch(svc *github.RepositoriesService, owner string, repo string, head *github.PullRequestBranch) (ok bool, commit *github.RepositoryCommit) {
 	base := "auto"
 	message := "Auto merging"
 	req := github.RepositoryMergeRequest{
@@ -55,14 +55,14 @@ func MergeIntoAutoBranch(svc *github.RepositoriesService, owner string, repo str
 }
 
 func TryWithMaster(client *github.Client, owner string, name string, info *github.PullRequest) (ok bool, commit *github.RepositoryCommit) {
-	ok, _ = CreateBranchFromMaster(client.Git, owner, name, "auto")
+	ok, _ = createBranchFromMaster(client.Git, owner, name, "auto")
 	if !ok {
 		log.Println("info: cannot create the auto branch")
 		return
 	}
 	log.Println("info: create the auto branch")
 
-	ok, commit = MergeIntoAutoBranch(client.Repositories, owner, name, info.Head)
+	ok, commit = mergeIntoAutoBranch(client.Repositories, owner, name, info.Head)
 	if !ok {
 		log.Println("info: cannot merge into the auto branch")
 		return
@@ -79,4 +79,21 @@ func TryWithMaster(client *github.Client, owner string, name string, info *githu
 	}
 
 	return true, commit
+}
+
+func DeleteBranchByPullRequest(svc *github.GitService, pr *github.PullRequest) (bool, error) {
+	owner := *pr.Head.Repo.Owner.Login
+	log.Printf("debug: branch owner: %v\n", owner)
+	repo := *pr.Head.Repo.Name
+	log.Printf("debug: repo: %v\n", repo)
+	branch := *pr.Head.Ref
+	log.Printf("debug: head ref: %v\n", branch)
+
+	_, err := svc.DeleteRef(owner, repo, "heads/"+branch)
+	if err != nil {
+		log.Println("info: could not delete the merged branch.")
+		return false, err
+	}
+
+	return true, nil
 }

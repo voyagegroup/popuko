@@ -181,17 +181,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 	}
 
 	if repoInfo.DeleteAfterAutoMerge {
-		branchOwner := *prInfo.Head.Repo.Owner.Login
-		log.Printf("debug: branch owner: %v\n", branchOwner)
-		branchOwnerRepo := *prInfo.Head.Repo.Name
-		log.Printf("debug: repo: %v\n", branchOwnerRepo)
-		branchName := *prInfo.Head.Ref
-		log.Printf("debug: head ref: %v\n", branchName)
-
-		_, err = client.Git.DeleteRef(branchOwner, branchOwnerRepo, "heads/"+branchName)
-		if err != nil {
-			log.Println("info: could not delete the merged branch.")
-		}
+		operation.DeleteBranchByPullRequest(client.Git, prInfo)
 	}
 
 	queue.RemoveActive()
