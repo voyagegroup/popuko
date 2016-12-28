@@ -53,3 +53,30 @@ func MergeIntoAutoBranch(svc *github.RepositoriesService, owner string, repo str
 
 	return true, commit
 }
+
+func TryWithMaster(client *github.Client, owner string, name string, info *github.PullRequest) (ok bool, commit *github.RepositoryCommit) {
+	ok, _ = CreateBranchFromMaster(client.Git, owner, name, "auto")
+	if !ok {
+		log.Println("info: cannot create the auto branch")
+		return
+	}
+	log.Println("info: create the auto branch")
+
+	ok, commit = MergeIntoAutoBranch(client.Repositories, owner, name, info.Head)
+	if !ok {
+		log.Println("info: cannot merge into the auto branch")
+		return
+	}
+	log.Println("info: merge into the auto branch")
+
+	{
+		number := *info.Number
+		headSha := *info.Head.SHA
+		c := ":hourglass: " + headSha + " has been merged into the auto branch " + *commit.HTMLURL
+		if ok := AddComment(client.Issues, owner, name, number, c); !ok {
+			log.Println("info: could not create the comment to declare to merge this.")
+		}
+	}
+
+	return true, commit
+}
