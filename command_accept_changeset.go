@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/google/go-github/github"
+	"github.com/karen-irc/popuko/operation"
 )
 
 type AcceptCommand struct {
@@ -67,12 +68,9 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	headSha := *pr.Head.SHA
 	{
 		comment := ":pushpin: Commit " + headSha + " has been approved by `" + sender + "`"
-		_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
-			Body: &comment,
-		})
-		if err != nil {
+		if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
 			log.Println("info: could not create the comment to declare the head is approved.")
-			return false, err
+			return false, nil
 		}
 	}
 
@@ -91,10 +89,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 				log.Printf("info: pull request (%v) has been queued but other is active.\n", issue)
 				{
 					comment := ":postbox: This pull request is queued. Please await the time."
-					_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
-						Body: &comment,
-					})
-					if err != nil {
+					if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
 						log.Println("info: could not create the comment to declare to merge this.")
 					}
 				}
@@ -133,23 +128,17 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 
 			{
 				comment := ":hourglass: " + headSha + " has been merged into the auto branch " + *commit.HTMLURL
-				_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
-					Body: &comment,
-				})
-				if err != nil {
+				if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
 					log.Println("info: could not create the comment to declare to merge this.")
-					return false, err
+					return false, nil
 				}
 			}
 		} else {
 			{
 				comment := ":hourglass: Try to merge " + headSha
-				_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
-					Body: &comment,
-				})
-				if err != nil {
+				if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
 					log.Println("info: could not create the comment to declare to merge this.")
-					return false, err
+					return false, nil
 				}
 			}
 
@@ -159,10 +148,9 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 			if err != nil {
 				log.Println("info: could not merge pull request")
 				comment := "Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
-				_, _, err := issueSvc.CreateComment(repoOwner, repoName, issue, &github.IssueComment{
-					Body: &comment,
-				})
-				return false, err
+				if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
+					log.Println("info: could not create the comment to express no merging the pull request")
+				}
 			}
 
 			if c.info.DeleteAfterAutoMerge {

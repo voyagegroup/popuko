@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/google/go-github/github"
+
+	"github.com/karen-irc/popuko/operation"
 )
 
 func (srv *AppServer) detectUnmergeablePR(ev *github.PushEvent) {
@@ -101,10 +103,7 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 		return
 	}
 
-	_, _, err = issueSvc.CreateComment(repoOwner, repo, number, &github.IssueComment{
-		Body: &info.Comment,
-	})
-	if err != nil {
+	if ok := operation.AddComment(issueSvc, repoOwner, repo, number, info.Comment); !ok {
 		log.Println("info: could not create the comment to unmergeables")
 		return
 	}
