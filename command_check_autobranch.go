@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/google/go-github/github"
+	"github.com/karen-irc/popuko/operation"
 )
 
 func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
@@ -126,10 +127,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 			}
 		}
 
-		_, _, err = issueSvc.CreateComment(repoOwner, repoName, prNum, &github.IssueComment{
-			Body: &comment,
-		})
-		if err != nil {
+		if ok := operation.AddComment(issueSvc, repoOwner, repoName, prNum, comment); !ok {
 			log.Println("error: could not write the comment about the result of auto branch.")
 		}
 
@@ -157,20 +155,14 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 			}
 		}
 
-		_, _, err = issueSvc.CreateComment(repoOwner, repoName, prNum, &github.IssueComment{
-			Body: &comment,
-		})
-		if err != nil {
+		if ok := operation.AddComment(issueSvc, repoOwner, repoName, prNum, comment); !ok {
 			log.Println("error: could not write the comment about the result of auto branch.")
 		}
 	}
 
 	{
 		comment := ":hourglass: Try to merge " + *prInfo.Head.SHA + " into `master`"
-		_, _, err = issueSvc.CreateComment(repoOwner, repoName, prNum, &github.IssueComment{
-			Body: &comment,
-		})
-		if err != nil {
+		if ok := operation.AddComment(issueSvc, repoOwner, repoName, prNum, comment); !ok {
 			log.Println("info: could not create the comment to declare to merge this.")
 			return
 		}
@@ -183,9 +175,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 		if err != nil {
 			log.Println("info: could not merge pull request")
 			comment := "Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
-			_, _, err = issueSvc.CreateComment(repoOwner, repoName, prNum, &github.IssueComment{
-				Body: &comment,
-			})
+			operation.AddComment(issueSvc, repoOwner, repoName, prNum, comment)
 			return
 		}
 	}
@@ -266,10 +256,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 
 	{
 		comment := ":hourglass: " + *nextInfo.Head.SHA + " has been merged into the auto branch " + *commit.HTMLURL
-		_, _, err := issueSvc.CreateComment(repoOwner, repoName, nextNum, &github.IssueComment{
-			Body: &comment,
-		})
-		if err != nil {
+		if ok := operation.AddComment(issueSvc, repoOwner, repoName, nextNum, comment); !ok {
 			log.Println("info: could not create the comment to declare to merge this.")
 			return
 		}
