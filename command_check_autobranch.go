@@ -235,14 +235,14 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 
 	log.Printf("info: the pullrequest #%v has %v\n", nextNum, LABEL_AWAITING_MERGE)
 
-	ok, _ = createBranchFromMaster(client.Git, repoOwner, repoName, "auto")
+	ok, _ = operation.CreateBranchFromMaster(client.Git, repoOwner, repoName, "auto")
 	if !ok {
 		log.Println("info: cannot create the auto branch")
 		return
 	}
 	log.Println("info: create the auto branch")
 
-	ok, commit := mergeIntoAutoBranch(client.Repositories, repoOwner, repoName, nextInfo.Head)
+	ok, commit := operation.MergeIntoAutoBranch(client.Repositories, repoOwner, repoName, nextInfo.Head)
 	if !ok {
 		log.Println("info: cannot merge into the auto branch")
 		return
