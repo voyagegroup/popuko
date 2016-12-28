@@ -107,32 +107,15 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 				return false, nil
 			}
 
-			ok, _ = operation.CreateBranchFromMaster(client.Git, repoOwner, repoName, "auto")
+			ok, commit := operation.TryWithMaster(client, repoOwner, repoName, pr)
 			if !ok {
-				log.Println("info: cannot create the auto branch")
+				log.Printf("info: we cannot try #%v with the latest `master`.", issue)
 				return false, nil
 			}
-			log.Println("info: create the auto branch")
-
-			ok, commit := operation.MergeIntoAutoBranch(client.Repositories, repoOwner, repoName, pr.Head)
-			if !ok {
-				log.Println("info: cannot merge into the auto branch")
-				return false, nil
-			}
-
-			log.Println("info: merge the auto branch")
 
 			q.SHA = commit.SHA
 			c.queue.SetActive(q)
 			log.Printf("info: pin #%v as the active item to queue\n", issue)
-
-			{
-				comment := ":hourglass: " + headSha + " has been merged into the auto branch " + *commit.HTMLURL
-				if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
-					log.Println("info: could not create the comment to declare to merge this.")
-					return false, nil
-				}
-			}
 		} else {
 			{
 				comment := ":hourglass: Try to merge " + headSha

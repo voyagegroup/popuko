@@ -197,70 +197,24 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 	queue.RemoveActive()
 	log.Printf("info: complete merging #%v into master\n", prNum)
 
-	ok, next := queue.GetNext()
-	if !ok {
-		log.Println("error: this queue should not be empty because `q` is queued just now.")
-		return
-	}
-
+	next, nextInfo := getNextAvailableItem(queue, issueSvc, prSvc, repoOwner, repoName)
 	if next == nil {
 		log.Printf("info: there is no awating item in the queue of %v\n", repoOwner+repoName)
 		return
 	}
 
-	log.Println("info: the next item has fetched from queue.")
-
 	nextNum := next.PullRequest
 
-	nextInfo, _, err := prSvc.Get(repoOwner, repoName, nextNum)
-	if err != nil {
-		log.Println("info: could not fetch the pull request information.")
-		return
-	}
-
-	if *nextInfo.State != "open" {
-		log.Printf("info: the pull request #%v has been resolved the state\n", nextNum)
-		return
-	}
-
-	currentLabels, _, err := issueSvc.ListLabelsByIssue(repoOwner, repoName, nextNum, nil)
-	if err != nil {
-		log.Println("info: could not get labels by the issue")
-		return
-	}
-	if !hasStatusLabel(currentLabels, LABEL_AWAITING_MERGE) {
-		log.Printf("warn: #%v does not have %v\n", nextNum, LABEL_AWAITING_MERGE)
-		return
-	}
-
-	log.Printf("info: the pullrequest #%v has %v\n", nextNum, LABEL_AWAITING_MERGE)
-
-	ok, _ = operation.CreateBranchFromMaster(client.Git, repoOwner, repoName, "auto")
+	ok, commit := operation.TryWithMaster(client, repoOwner, repoName, nextInfo)
 	if !ok {
-		log.Println("info: cannot create the auto branch")
+		log.Printf("info: we cannot try #%v with the latest `master`.", nextNum)
+		// FIXME: We should to try the next pull req in the queue.
 		return
 	}
-	log.Println("info: create the auto branch")
-
-	ok, commit := operation.MergeIntoAutoBranch(client.Repositories, repoOwner, repoName, nextInfo.Head)
-	if !ok {
-		log.Println("info: cannot merge into the auto branch")
-		return
-	}
-
-	log.Println("info: merge the auto branch")
 
 	next.SHA = commit.SHA
 	queue.SetActive(next)
 	log.Printf("info: pin #%v as the active item to queue\n", nextNum)
-
-	{
-		comment := ":hourglass: " + *nextInfo.Head.SHA + " has been merged into the auto branch " + *commit.HTMLURL
-		if ok := operation.AddComment(issueSvc, repoOwner, repoName, nextNum, comment); !ok {
-			log.Println("info: could not create the comment to declare to merge this.")
-			return
-		}
-	}
 
 	log.Println("info: complete to start the next trying")
 }
@@ -281,4 +235,43 @@ func isIncludeAutoBranch(branches []*github.Branch) bool {
 	}
 
 	return false
+}
+
+func getNextAvailableItem(queue *autoMergeQueue,
+	issueSvc *github.IssuesService,
+	prSvc *github.PullRequestsService,
+	owner string,
+	name string) (item *autoMergeQueueItem, info *github.PullRequest) {
+
+	log.Println("Start to find the next item")
+	defer log.Println("End to find the next item")
+
+	for {
+		ok, next := queue.GetNext()
+		if !ok || next == nil {
+			log.Printf("debug: there is no awating item in the queue of %v/%v\n", owner, name)
+			return
+		}
+
+		log.Println("debug: the next item has fetched from queue.")
+
+		nextInfo, _, err := prSvc.Get(owner, name, next.PullRequest)
+		if err != nil {
+			log.Println("debug: could not fetch the pull request information.")
+			continue
+		}
+
+		if *nextInfo.State != "open" {
+			log.Printf("debug: the pull request #%v has been resolved the state as `%v`\n", next.PullRequest, *nextInfo.State)
+			continue
+		}
+
+		if !operation.HasStatusLabel(issueSvc, owner, name, next.PullRequest, LABEL_AWAITING_MERGE) {
+			continue
+		}
+
+		// XXX: We trust the result of detectUnmergeablePR instead of checking mergeable by myself.
+
+		return next, nextInfo
+	}
 }
