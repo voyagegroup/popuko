@@ -35,6 +35,7 @@ $(DIST_NAME): clean $(CONFIGURE_FILE)
 	go build -o $(DIST_NAME) -ldflags "-X main.revision=$(GIT_REVISION) -X \"main.builddate=$(BUILD_DATE)\""
 
 test:
+	go test ./setting
 	go test
 
 travis:

@@ -3,9 +3,11 @@ package main
 import (
 	"log"
 	"net/http"
+
+	"github.com/karen-irc/popuko/setting"
 )
 
-var config *Settings
+var config *setting.Settings
 
 var (
 	revision  string
@@ -25,7 +27,7 @@ func main() {
 		log.Println("---- popuko handling repositories -------")
 		repomap := config.Repositories()
 		for _, v := range repomap.Entries() {
-			v.log()
+			v.Log()
 		}
 	}
 	log.Println("==================")

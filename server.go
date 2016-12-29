@@ -11,6 +11,8 @@ import (
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
+
+	"github.com/karen-irc/popuko/setting"
 )
 
 // AppServer is just an this application.
@@ -152,7 +154,7 @@ func (srv *AppServer) processStatusEvent(ev *github.StatusEvent) {
 	srv.checkAutoBranch(ev)
 }
 
-func createGithubClient(config *Settings) *github.Client {
+func createGithubClient(config *setting.Settings) *github.Client {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{
 			AccessToken: config.GithubToken(),
@@ -163,11 +165,11 @@ func createGithubClient(config *Settings) *github.Client {
 	return client
 }
 
-func createRepositoryInfo(s *RepositorySetting, repoSvc *github.RepositoriesService) *repositoryInfo {
-	var repoinfo *repositoryInfo
-	if s.UseOwnersFile() {
+func createRepositoryInfo(s *setting.RepositorySetting, repoSvc *github.RepositoriesService) *setting.RepositoryInfo {
+	var repoinfo *setting.RepositoryInfo
+	if s.UseOwnersFile {
 		log.Println("info: Use `OWNERS` file.")
-		ok, owners := fetchOwnersFile(repoSvc, s.Owner(), s.Name())
+		ok, owners := fetchOwnersFile(repoSvc, s.Owner, s.Name)
 		if !ok {
 			log.Println("error: could not handle OWNERS file.")
 			return nil
@@ -184,7 +186,7 @@ func createRepositoryInfo(s *RepositorySetting, repoSvc *github.RepositoriesServ
 	return repoinfo
 }
 
-func fetchOwnersFile(svc *github.RepositoriesService, owner string, reponame string) (bool, *OwnersFile) {
+func fetchOwnersFile(svc *github.RepositoriesService, owner string, reponame string) (bool, *setting.OwnersFile) {
 	file, err := svc.DownloadContents(owner, reponame, "OWNERS.json", &github.RepositoryContentGetOptions{
 		// We always use the file in master which we regard as accepted to the project.
 		Ref: "master",
@@ -202,7 +204,7 @@ func fetchOwnersFile(svc *github.RepositoriesService, owner string, reponame str
 	}
 	log.Printf("debug: OWNERS.json:\n%v\n", string(raw))
 
-	var decoded OwnersFile
+	var decoded setting.OwnersFile
 	if err := json.Unmarshal(raw, &decoded); err != nil {
 		log.Printf("error: could not decode `OWNERS.json`: %v\n", err.Error())
 		return false, nil

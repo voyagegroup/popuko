@@ -1,6 +1,6 @@
-package main
+package setting
 
-type repositoryInfo struct {
+type RepositoryInfo struct {
 	reviewers           *ReviewerSet
 	regardAllAsReviewer bool
 
@@ -10,7 +10,7 @@ type repositoryInfo struct {
 	experimentalTryOnAutoBranch bool
 }
 
-func (r *repositoryInfo) isReviewer(name string) bool {
+func (r *RepositoryInfo) IsReviewer(name string) bool {
 	if r.regardAllAsReviewer {
 		return true
 	}
@@ -18,12 +18,8 @@ func (r *repositoryInfo) isReviewer(name string) bool {
 	return r.reviewers.Has(name)
 }
 
-func (r *repositoryInfo) ExperimentalTryOnAutoBranch() bool {
+func (r *RepositoryInfo) ExperimentalTryOnAutoBranch() bool {
 	return r.experimentalTryOnAutoBranch && r.EnableAutoMerge
-}
-
-func (r *repositoryInfo) Reviewers() *ReviewerSet {
-	return r.reviewers
 }
 
 type ReviewerSet struct {
