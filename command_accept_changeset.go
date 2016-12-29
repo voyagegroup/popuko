@@ -50,7 +50,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 		log.Println("info: could not get labels by the issue")
 		return false, err
 	}
-	labels := addAwaitingMergeLabel(currentLabels)
+	labels := operation.AddAwaitingMergeLabel(currentLabels)
 
 	// https://github.com/nekoya/popuko/blob/master/web.py
 	_, _, err = issueSvc.ReplaceLabelsForIssue(repoOwner, repoName, issue, labels)

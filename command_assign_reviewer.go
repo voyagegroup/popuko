@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/google/go-github/github"
+	"github.com/karen-irc/popuko/operation"
 )
 
 func (srv *AppServer) commandAssignReviewer(ev *github.IssueCommentEvent, target string) (bool, error) {
@@ -35,7 +36,7 @@ func (srv *AppServer) commandAssignReviewer(ev *github.IssueCommentEvent, target
 		return false, err
 	}
 
-	labels := addAwaitingReviewLabel(currentLabels)
+	labels := operation.AddAwaitingReviewLabel(currentLabels)
 	_, _, err = issueSvc.ReplaceLabelsForIssue(repoOwner, repo, issue, labels)
 	if err != nil {
 		log.Println("info: could not change labels.")
