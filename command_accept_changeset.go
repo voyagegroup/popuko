@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/karen-irc/popuko/operation"
+	"github.com/karen-irc/popuko/setting"
 )
 
 type AcceptCommand struct {
@@ -14,7 +15,7 @@ type AcceptCommand struct {
 	client  *github.Client
 	botName string
 	cmd     AcceptChangesetCommand
-	info    *repositoryInfo
+	info    *setting.RepositoryInfo
 
 	queue *autoMergeQueue
 }
@@ -31,7 +32,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	sender := *ev.Sender.Login
 	log.Printf("debug: command is sent from %v\n", sender)
 
-	if !c.info.isReviewer(sender) {
+	if !c.info.IsReviewer(sender) {
 		log.Printf("info: %v is not an reviewer registred to this bot.\n", sender)
 		return false, nil
 	}
@@ -136,7 +137,7 @@ func (c *AcceptCommand) commandAcceptChangesetByOtherReviewer(ev *github.IssueCo
 	log.Printf("info: Start: merge the pull request from other reviewer by %v\n", ev.Comment.ID)
 	defer log.Printf("info: End:merge the pull request from other reviewer by %v\n", ev.Comment.ID)
 
-	if !c.info.isReviewer(reviewer) {
+	if !c.info.IsReviewer(reviewer) {
 		log.Println("info: could not find the actual reviewer in reviewer list")
 		log.Printf("debug: specified actial reviewer %v\n", reviewer)
 		return false, nil

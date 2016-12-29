@@ -1,11 +1,11 @@
-package main
+package setting
 
 type GithubSetting struct {
-	botName    string
-	token      string
-	hookSecret string
-	repoList   []RepositorySetting
-	repoMap    RepositoryMap
+	BotName    string
+	Token      string
+	HookSecret string
+	RepoList   []RepositorySetting
+	RepoMap    RepositoryMap
 }
 
 type RepositoryMap struct {

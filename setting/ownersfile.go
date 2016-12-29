@@ -1,6 +1,8 @@
-package main
+package setting
 
-import "log"
+import (
+	"log"
+)
 
 type OwnersFile struct {
 	Version      float64       `json:"version"`
@@ -30,7 +32,7 @@ type OwnersFile struct {
 	ExperimentalTryOnAutoBranch bool `json:"experimental.auto_merge.try_on_auto_branch,omitempty"`
 }
 
-func (o *OwnersFile) Reviewers() (ok bool, set *ReviewerSet) {
+func (o *OwnersFile) reviewers() (ok bool, set *ReviewerSet) {
 	var list []string
 
 	if !o.RegardAllAsReviewer {
@@ -51,13 +53,13 @@ func (o *OwnersFile) Reviewers() (ok bool, set *ReviewerSet) {
 	return true, set
 }
 
-func (o *OwnersFile) ToRepoInfo() (bool, *repositoryInfo) {
-	ok, r := o.Reviewers()
+func (o *OwnersFile) ToRepoInfo() (bool, *RepositoryInfo) {
+	ok, r := o.reviewers()
 	if !ok {
 		return false, nil
 	}
 
-	info := repositoryInfo{
+	info := RepositoryInfo{
 		reviewers:                   r,
 		regardAllAsReviewer:         o.RegardAllAsReviewer,
 		EnableAutoMerge:             o.EnableAutoMerge,

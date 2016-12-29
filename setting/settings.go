@@ -1,40 +1,40 @@
-package main
+package setting
 
 import "strconv"
 
 type Settings struct {
-	botName string
-	port    uint64
-	github  GithubSetting
+	BotName string
+	Port    uint64
+	Github  GithubSetting
 }
 
 func (s *Settings) PortStr() string {
-	return ":" + strconv.FormatUint(s.port, 10)
+	return ":" + strconv.FormatUint(s.Port, 10)
 }
 
 func (s *Settings) Init() {
-	m := newRepositoryMap(s.github.repoList)
-	s.github.repoList = nil
-	s.github.repoMap = *m
+	m := newRepositoryMap(s.Github.RepoList)
+	s.Github.RepoList = nil
+	s.Github.RepoMap = *m
 }
 
 func (s *Settings) BotNameForGithub() string {
-	github := s.github.botName
+	github := s.Github.BotName
 	if github != "" {
 		return github
 	} else {
-		return s.botName
+		return s.BotName
 	}
 }
 
 func (s *Settings) GithubToken() string {
-	return s.github.token
+	return s.Github.Token
 }
 
 func (s *Settings) WebHookSecret() []byte {
-	return []byte(s.github.hookSecret)
+	return []byte(s.Github.HookSecret)
 }
 
 func (s *Settings) Repositories() *RepositoryMap {
-	return &s.github.repoMap
+	return &s.Github.RepoMap
 }

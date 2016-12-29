@@ -1,21 +1,25 @@
 package main
 
-func createSettings() *Settings {
-	return &Settings{
-		botName: "popuko",
-		port:    3000,
+import (
+	"github.com/karen-irc/popuko/setting"
+)
 
-		github: GithubSetting{
+func createSettings() *setting.Settings {
+	return &setting.Settings{
+		BotName: "popuko",
+		Port:    3000,
+
+		Github: setting.GithubSetting{
 			// If your github bot name is different from global botname,
 			// please specify this. Otherwise, you should set empty string.
-			botName:    "",
-			token:      "",
-			hookSecret: "",
-			repoList: []RepositorySetting{
-				RepositorySetting{
-					owner: "take-shobo",
-					name:  "popteamepic",
-					reviewerList: []string{
+			BotName:    "",
+			Token:      "",
+			HookSecret: "",
+			RepoList: []setting.RepositorySetting{
+				setting.RepositorySetting{
+					Owner: "take-shobo",
+					Name:  "popteamepic",
+					ReviewerList: []string{
 						"popuko",
 						"pipimi",
 					},
@@ -23,21 +27,21 @@ func createSettings() *Settings {
 					// By default, this bot merge branch automatically after you command `r+`.
 					// If you merge by hand and this bot should change the status label,
 					// disable this option.
-					enableAutoMerge: true,
+					EnableAutoMerge: true,
 
 					// Delete the branch by this bot after this bot had merged it
 					// if you enable this option.
 					// The operation may not delete contributor's branch by API
 					// restriction. This only clean up only the upstream repository
 					// managed by this bot.
-					deleteAfterAutoMerge: false,
+					DeleteAfterAutoMerge: false,
 
 					// Use `/OWNERS.json` in your repository's `master` branch
 					// to list reviewers.
 					// This option is prior to the value of `RepositorySetting.reviewerList`.
 					// If you don't like to manage reviewers for each `OWNERS.json` in repositories,
 					// Disable this option.
-					useOwnersFile: true,
+					UseOwnersFile: true,
 				},
 			},
 		},
