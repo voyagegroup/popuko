@@ -97,3 +97,30 @@ func DeleteBranchByPullRequest(svc *github.GitService, pr *github.PullRequest) (
 
 	return true, nil
 }
+
+func MergePullRequest(client *github.Client, owner string, name string, info *github.PullRequest) bool {
+	number := *info.Number
+	head := *info.Head.SHA
+
+	{
+		comment := ":hourglass: Try to merge " + head
+		if ok := AddComment(client.Issues, owner, name, number, comment); !ok {
+			log.Println("warn: could not create the comment to declare to merge this.")
+			return false
+		}
+	}
+
+	// XXX: By the behavior, github uses defautlt merge message
+	// if we specify `""` to `commitMessage`.
+	_, _, err := client.PullRequests.Merge(owner, name, number, "", nil)
+	if err != nil {
+		log.Println("warn: could not merge pull request")
+		comment := "Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
+		if ok := AddComment(client.Issues, owner, name, number, comment); !ok {
+			log.Println("warn: could not create the comment to express no merging the pull request")
+			return false
+		}
+	}
+
+	return true
+}

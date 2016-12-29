@@ -160,24 +160,9 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 		}
 	}
 
-	{
-		comment := ":hourglass: Try to merge " + *prInfo.Head.SHA + " into `master`"
-		if ok := operation.AddComment(issueSvc, repoOwner, repoName, prNum, comment); !ok {
-			log.Println("info: could not create the comment to declare to merge this.")
-			return
-		}
-	}
-
-	{
-		// XXX: By the behavior, github uses defautlt merge message
-		// if we specify `""` to `commitMessage`.
-		_, _, err := prSvc.Merge(repoOwner, repoName, prNum, "", nil)
-		if err != nil {
-			log.Println("info: could not merge pull request")
-			comment := "Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
-			operation.AddComment(issueSvc, repoOwner, repoName, prNum, comment)
-			return
-		}
+	if ok := operation.MergePullRequest(client, repoOwner, repoName, prInfo); !ok {
+		log.Printf("info: cannot merge pull request #%v\n", prNum)
+		return
 	}
 
 	if repoInfo.DeleteAfterAutoMerge {

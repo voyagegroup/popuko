@@ -117,23 +117,9 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 			c.queue.SetActive(q)
 			log.Printf("info: pin #%v as the active item to queue\n", issue)
 		} else {
-			{
-				comment := ":hourglass: Try to merge " + headSha
-				if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
-					log.Println("info: could not create the comment to declare to merge this.")
-					return false, nil
-				}
-			}
-
-			// XXX: By the behavior, github uses defautlt merge message
-			// if we specify `""` to `commitMessage`.
-			_, _, err = prSvc.Merge(repoOwner, repoName, issue, "", nil)
-			if err != nil {
-				log.Println("info: could not merge pull request")
-				comment := "Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
-				if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
-					log.Println("info: could not create the comment to express no merging the pull request")
-				}
+			if ok := operation.MergePullRequest(client, repoOwner, repoName, pr); !ok {
+				log.Printf("info: cannot merge pull request #%v\n", issue)
+				return false, nil
 			}
 
 			if c.info.DeleteAfterAutoMerge {
