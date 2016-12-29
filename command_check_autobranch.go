@@ -241,7 +241,7 @@ func getNextAvailableItem(queue *autoMergeQueue,
 			continue
 		}
 
-		if !operation.HasStatusLabel(issueSvc, owner, name, next.PullRequest, LABEL_AWAITING_MERGE) {
+		if !operation.HasStatusLabel(issueSvc, owner, name, next.PullRequest, operation.LABEL_AWAITING_MERGE) {
 			continue
 		}
 

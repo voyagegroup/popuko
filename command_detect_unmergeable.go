@@ -87,7 +87,7 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 	log.Printf("debug: the current labels: %v\n", currentLabels)
 
 	// We don't have to warn to a pull request which have been marked as unmergeable.
-	if hasStatusLabel(currentLabels, LABEL_NEEDS_REBASE) {
+	if operation.HasLabelInList(currentLabels, operation.LABEL_NEEDS_REBASE) {
 		log.Println("info: The pull request has marked as 'shold rebase on the latest master'")
 		return
 	}
@@ -108,7 +108,7 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 		return
 	}
 
-	labels := addNeedRebaseLabel(currentLabels)
+	labels := operation.AddNeedRebaseLabel(currentLabels)
 	log.Printf("debug: the changed labels: %v\n", labels)
 	_, _, err = issueSvc.ReplaceLabelsForIssue(repoOwner, repo, number, labels)
 	if err != nil {
