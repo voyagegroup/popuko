@@ -242,19 +242,19 @@ func getNextAvailableItem(queue *autoMergeQueue,
 			continue
 		}
 
+		currentLabels, _, err := issueSvc.ListLabelsByIssue(owner, name, prNum, nil)
+		if err != nil {
+			log.Println("info: could not get labels by the issue")
+			log.Printf("debug: %v\n", err)
+			continue
+		}
+		log.Printf("debug: the current labels: %v\n", currentLabels)
+
 		if nextInfo.Mergeable != nil && !(*nextInfo.Mergeable) {
 			comment := ":lock: Merge conflict"
 			if ok := operation.AddComment(issueSvc, owner, name, prNum, comment); !ok {
 				log.Println("error: could not write the comment about the result of auto branch.")
 			}
-
-			currentLabels, _, err := issueSvc.ListLabelsByIssue(owner, name, prNum, nil)
-			if err != nil {
-				log.Println("info: could not get labels by the issue")
-				log.Printf("debug: %v\n", err)
-				continue
-			}
-			log.Printf("debug: the current labels: %v\n", currentLabels)
 
 			labels := operation.AddNeedRebaseLabel(currentLabels)
 			log.Printf("debug: the changed labels: %v\n", labels)
@@ -264,9 +264,7 @@ func getNextAvailableItem(queue *autoMergeQueue,
 			}
 
 			continue
-		}
-
-		if !operation.HasStatusLabel(issueSvc, owner, name, prNum, operation.LABEL_AWAITING_MERGE) {
+		} else if !operation.HasLabelInList(currentLabels, operation.LABEL_AWAITING_MERGE) {
 			continue
 		}
 
