@@ -1,6 +1,7 @@
 package operation
 
 import (
+	"log"
 	"strings"
 
 	"github.com/google/go-github/github"
@@ -37,6 +38,17 @@ func changeStatusLabel(list []*github.Label, new string) []string {
 	}
 	result = append(result, new)
 	return result
+}
+
+func GetLabelsByIssue(issueSvc *github.IssuesService, owner string, name string, issue int) []*github.Label {
+	currentLabels, _, err := issueSvc.ListLabelsByIssue(owner, name, issue, nil)
+	if err != nil {
+		log.Println("info: could not get labels by the issue")
+		log.Printf("debug: %v\n", err)
+		return nil
+	}
+	log.Printf("debug: the current labels: %v\n", currentLabels)
+	return currentLabels
 }
 
 func HasLabelInList(list []*github.Label, target string) bool {

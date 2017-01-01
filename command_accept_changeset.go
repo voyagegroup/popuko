@@ -45,15 +45,15 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	issue := *ev.Issue.Number
 	log.Printf("debug: issue number is %v\n", issue)
 
-	currentLabels, _, err := issueSvc.ListLabelsByIssue(repoOwner, repoName, issue, nil)
-	if err != nil {
-		log.Println("info: could not get labels by the issue")
-		return false, err
+	currentLabels := operation.GetLabelsByIssue(issueSvc, repoOwner, repoName, issue)
+	if currentLabels == nil {
+		return false, nil
 	}
+
 	labels := operation.AddAwaitingMergeLabel(currentLabels)
 
 	// https://github.com/nekoya/popuko/blob/master/web.py
-	_, _, err = issueSvc.ReplaceLabelsForIssue(repoOwner, repoName, issue, labels)
+	_, _, err := issueSvc.ReplaceLabelsForIssue(repoOwner, repoName, issue, labels)
 	if err != nil {
 		log.Println("info: could not change labels by the issue")
 		return false, err
