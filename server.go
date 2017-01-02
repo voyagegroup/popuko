@@ -12,13 +12,14 @@ import (
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 
+	"github.com/karen-irc/popuko/queue"
 	"github.com/karen-irc/popuko/setting"
 )
 
 // AppServer is just an this application.
 type AppServer struct {
 	githubClient  *github.Client
-	autoMergeRepo *autoMergeQRepo
+	autoMergeRepo *queue.AutoMergeQRepo
 }
 
 func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request) {
@@ -105,7 +106,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 		return false, fmt.Errorf("debug: cannot get repositoryInfo")
 	}
 
-	var queue *autoMergeQueue
+	var queue *queue.AutoMergeQueue
 	if repoInfo.ExperimentalTryOnAutoBranch() {
 		srv.autoMergeRepo.Lock()
 		queue = srv.autoMergeRepo.Get(repoOwner, repo)

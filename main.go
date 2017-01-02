@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/karen-irc/popuko/queue"
 	"github.com/karen-irc/popuko/setting"
 )
 
@@ -37,7 +38,7 @@ func main() {
 		panic("Cannot create the github client")
 	}
 
-	server := AppServer{github, newAutoMergeQRepo()}
+	server := AppServer{github, queue.NewAutoMergeQRepo()}
 
 	http.HandleFunc("/github", server.handleGithubHook)
 	http.ListenAndServe(config.PortStr(), nil)
