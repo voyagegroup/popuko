@@ -7,14 +7,19 @@ import (
 )
 
 type AutoMergeQRepo struct {
-	mux sync.Mutex
-	m   map[string]*AutoMergeQueue
+	mux  sync.Mutex
+	repo fileRepository
 }
 
-func NewAutoMergeQRepo() *AutoMergeQRepo {
+func NewAutoMergeQRepo(root string) *AutoMergeQRepo {
+	repo := newFileRepository(root)
+	if repo == nil {
+		return nil
+	}
+
 	return &AutoMergeQRepo{
-		mux: sync.Mutex{},
-		m:   make(map[string]*AutoMergeQueue),
+		mux:  sync.Mutex{},
+		repo: *repo,
 	}
 }
 
@@ -27,32 +32,41 @@ func (s *AutoMergeQRepo) Unlock() {
 }
 
 func (s *AutoMergeQRepo) Get(owner string, name string) *AutoMergeQueue {
-	k := owner + "/" + name
-	item, ok := s.m[k]
-	if !ok {
-		n := &AutoMergeQueue{}
-		s.m[k] = n
-		return n
+	ok, result := s.repo.load(owner, name)
+	if !ok || result == nil {
+		result = &AutoMergeQueue{
+			owner:  owner,
+			name:   name,
+			parent: s,
+		}
+		s.Save(owner, name, result)
 	}
 
-	return item
-}
+	result.owner = owner
+	result.name = name
+	result.parent = s
 
-func (s *AutoMergeQRepo) Remove(owner string, name string) {
-	k := owner + "/" + name
-	delete(s.m, k)
+	return result
 }
 
 func (s *AutoMergeQRepo) Save(owner string, name string, v *AutoMergeQueue) {
-	k := owner + "/" + name
-	s.m[k] = v
+	if ok := s.repo.save(owner, name, v); !ok {
+		log.Printf("error: cannot save the queue information for %v/%v\n", owner, name)
+	}
 }
 
 type AutoMergeQueue struct {
-	isLocked bool
-	mux      sync.Mutex
-	q        []*AutoMergeQueueItem
-	current  *AutoMergeQueueItem
+	mux     sync.Mutex
+	q       []*AutoMergeQueueItem
+	current *AutoMergeQueueItem
+
+	owner  string
+	name   string
+	parent *AutoMergeQRepo
+}
+
+func (s *AutoMergeQueue) Save() {
+	s.parent.Save(s.owner, s.name, s)
 }
 
 func (s *AutoMergeQueue) Lock() {
@@ -105,6 +119,6 @@ func (s *AutoMergeQueue) HasActive() bool {
 }
 
 type AutoMergeQueueItem struct {
-	PullRequest int
-	SHA         *string
+	PullRequest int     `json:"pull_request"`
+	SHA         *string `json:"sha"`
 }

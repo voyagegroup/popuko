@@ -118,6 +118,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 			q.SHA = commit.SHA
 			c.queue.SetActive(q)
 			log.Printf("info: pin #%v as the active item to queue\n", issue)
+			c.queue.Save()
 		} else {
 			if ok := operation.MergePullRequest(client, repoOwner, repoName, pr); !ok {
 				log.Printf("info: cannot merge pull request #%v\n", issue)
