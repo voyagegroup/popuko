@@ -18,8 +18,6 @@ var (
 )
 
 func main() {
-	config = createSettings()
-
 	var configDir string
 	{
 		c := "Specify the base dir of config as absolute path. default: $" + setting.XdgConfigHomeEnvKey
@@ -39,6 +37,11 @@ func main() {
 			log.Println("error: cannot create the config home dir.")
 			return
 		}
+	}
+
+	config = setting.LoadSettings(root)
+	if config == nil {
+		panic("Cannot find $XDG_CONFIG_HOME/popuko" + setting.RootConfigFile)
 	}
 
 	log.Println("===== popuko =====")

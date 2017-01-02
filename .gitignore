@@ -4,5 +4,5 @@ vendor/
 # Exec binary
 popuko
 
-# configration file
-config.go
+# config file
+config.toml

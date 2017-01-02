@@ -1,0 +1,18 @@
+## The root configuration file for [popuko](https://github.com/karen-irc/popuko)
+
+# This bot name.
+botname = "popuko"
+
+# The port number which this application listening. 
+port = 3000
+
+[github]
+# If your github bot name is different from global botname,
+# please specify this. Otherwise, you should set empty string.
+botname = ""
+
+# GitHub API Token
+api_token = "api_token"
+
+# GitHub Webhook secret
+webhook_secret = "webhook_secret"
