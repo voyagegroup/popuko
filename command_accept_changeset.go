@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/karen-irc/popuko/operation"
+	"github.com/karen-irc/popuko/queue"
 	"github.com/karen-irc/popuko/setting"
 )
 
@@ -17,7 +18,7 @@ type AcceptCommand struct {
 	cmd     AcceptChangesetCommand
 	info    *setting.RepositoryInfo
 
-	queue *autoMergeQueue
+	queue *queue.AutoMergeQueue
 }
 
 func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueCommentEvent) (bool, error) {
@@ -80,7 +81,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 			c.queue.Lock()
 			defer c.queue.Unlock()
 
-			q := &autoMergeQueueItem{
+			q := &queue.AutoMergeQueueItem{
 				PullRequest: issue,
 				SHA:         nil,
 			}

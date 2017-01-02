@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/karen-irc/popuko/operation"
+	"github.com/karen-irc/popuko/queue"
 )
 
 func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
@@ -212,11 +213,11 @@ func isIncludeAutoBranch(branches []*github.Branch) bool {
 	return false
 }
 
-func getNextAvailableItem(queue *autoMergeQueue,
+func getNextAvailableItem(queue *queue.AutoMergeQueue,
 	issueSvc *github.IssuesService,
 	prSvc *github.PullRequestsService,
 	owner string,
-	name string) (item *autoMergeQueueItem, info *github.PullRequest) {
+	name string) (item *queue.AutoMergeQueueItem, info *github.PullRequest) {
 
 	log.Println("Start to find the next item")
 	defer log.Println("End to find the next item")
