@@ -21,16 +21,15 @@ func (srv *AppServer) commandAssignReviewer(ev *github.IssueCommentEvent, target
 	issue := *ev.Issue.Number
 	log.Printf("debug: issue number is %v\n", issue)
 
-	currentLabels, _, err := issueSvc.ListLabelsByIssue(repoOwner, repo, issue, nil)
-	if err != nil {
-		log.Println("info: could not get labels by issues.")
-		return false, err
+	currentLabels := operation.GetLabelsByIssue(issueSvc, repoOwner, repo, issue)
+	if currentLabels == nil {
+		return false, nil
 	}
 
 	assignees := []string{target}
 	log.Printf("debug: assignees is %v\n", assignees)
 
-	_, _, err = issueSvc.AddAssignees(repoOwner, repo, issue, assignees)
+	_, _, err := issueSvc.AddAssignees(repoOwner, repo, issue, assignees)
 	if err != nil {
 		log.Println("info: could not change assignees.")
 		return false, err

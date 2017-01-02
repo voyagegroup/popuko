@@ -40,20 +40,15 @@ func changeStatusLabel(list []*github.Label, new string) []string {
 	return result
 }
 
-func HasStatusLabel(issueSvc *github.IssuesService, owner string, name string, issue int, label string) bool {
-	current, _, err := issueSvc.ListLabelsByIssue(owner, name, issue, nil)
+func GetLabelsByIssue(issueSvc *github.IssuesService, owner string, name string, issue int) []*github.Label {
+	currentLabels, _, err := issueSvc.ListLabelsByIssue(owner, name, issue, nil)
 	if err != nil {
-		log.Println("warn: could not get labels by the issue")
+		log.Println("info: could not get labels by the issue")
 		log.Printf("debug: %v\n", err)
-		return false
+		return nil
 	}
-
-	has := HasLabelInList(current, label)
-	if !has {
-		log.Printf("debug: #%v does not have %v\n", issue, label)
-	}
-
-	return has
+	log.Printf("debug: the current labels: %v\n", currentLabels)
+	return currentLabels
 }
 
 func HasLabelInList(list []*github.Label, target string) bool {

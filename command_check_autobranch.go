@@ -229,23 +229,48 @@ func getNextAvailableItem(queue *autoMergeQueue,
 		}
 
 		log.Println("debug: the next item has fetched from queue.")
+		prNum := next.PullRequest
 
-		nextInfo, _, err := prSvc.Get(owner, name, next.PullRequest)
+		nextInfo, _, err := prSvc.Get(owner, name, prNum)
 		if err != nil {
 			log.Println("debug: could not fetch the pull request information.")
 			continue
 		}
 
 		if *nextInfo.State != "open" {
-			log.Printf("debug: the pull request #%v has been resolved the state as `%v`\n", next.PullRequest, *nextInfo.State)
+			log.Printf("debug: the pull request #%v has been resolved the state as `%v`\n", prNum, *nextInfo.State)
 			continue
 		}
 
-		if !operation.HasStatusLabel(issueSvc, owner, name, next.PullRequest, operation.LABEL_AWAITING_MERGE) {
-			continue
-		}
+		if nextInfo.Mergeable != nil && !(*nextInfo.Mergeable) {
+			comment := ":lock: Merge conflict"
+			if ok := operation.AddComment(issueSvc, owner, name, prNum, comment); !ok {
+				log.Println("error: could not write the comment about the result of auto branch.")
+			}
 
-		// XXX: We trust the result of detectUnmergeablePR instead of checking mergeable by myself.
+			currentLabels := operation.GetLabelsByIssue(issueSvc, owner, name, prNum)
+			if currentLabels == nil {
+				continue
+			}
+
+			labels := operation.AddNeedRebaseLabel(currentLabels)
+			log.Printf("debug: the changed labels: %v\n", labels)
+			_, _, err = issueSvc.ReplaceLabelsForIssue(owner, name, prNum, labels)
+			if err != nil {
+				log.Println("warn: could not change labels of the issue")
+			}
+
+			continue
+		} else {
+			label := operation.GetLabelsByIssue(issueSvc, owner, name, prNum)
+			if label == nil {
+				continue
+			}
+
+			if !operation.HasLabelInList(label, operation.LABEL_AWAITING_MERGE) {
+				continue
+			}
+		}
 
 		return next, nextInfo
 	}

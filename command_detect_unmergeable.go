@@ -78,13 +78,10 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 	number := info.Number
 	log.Printf("debug: pull request number is %v\n", number)
 
-	currentLabels, _, err := issueSvc.ListLabelsByIssue(repoOwner, repo, number, nil)
-	if err != nil {
-		log.Println("info: could not get labels by the issue")
-		log.Printf("debug: %v\n", err)
+	currentLabels := operation.GetLabelsByIssue(issueSvc, repoOwner, repo, number)
+	if currentLabels == nil {
 		return
 	}
-	log.Printf("debug: the current labels: %v\n", currentLabels)
 
 	// We don't have to warn to a pull request which have been marked as unmergeable.
 	if operation.HasLabelInList(currentLabels, operation.LABEL_NEEDS_REBASE) {
