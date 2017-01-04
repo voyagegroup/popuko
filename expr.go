@@ -27,13 +27,19 @@ func parseCommand(raw string) (ok bool, cmd interface{}) {
 	}
 
 	trigger := command[0]
-	if strings.Index(trigger, "@") != 0 {
+	if (strings.Index(trigger, "@") != 0) && (trigger != "r?") {
 		return false, nil
 	}
 
 	args := strings.Trim(command[1], " ")
 	log.Printf("debug: trigger: %v\n", trigger)
 	log.Printf("debug: args: %#v\n", args)
+
+	if trigger == "r?" {
+		return true, &AssignReviewerCommand{
+			Reviewer: strings.TrimPrefix(args, "@"),
+		}
+	}
 
 	if args == "r?" {
 		return true, &AssignReviewerCommand{
