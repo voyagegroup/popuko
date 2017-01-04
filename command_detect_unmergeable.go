@@ -134,6 +134,9 @@ func isMergeable(prSvc *github.PullRequestsService, owner string, name string, i
 		}
 
 		mergeable = pr.Mergeable
+		if mergeable == nil {
+			return true, false
+		}
 	}
 
 	return true, *mergeable
