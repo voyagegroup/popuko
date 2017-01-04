@@ -95,13 +95,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	repo := *ev.Repo.Name
 	log.Printf("debug: repository name is %v\n", repo)
 
-	repoConfig := config.Repositories().Get(repoOwner, repo)
-	if repoConfig == nil {
-		log.Println("info: Not found registred repo config.")
-		return false, fmt.Errorf("Not found registred repo config.")
-	}
-
-	repoInfo := createRepositoryInfo(repoConfig, srv.githubClient.Repositories)
+	repoInfo := createRepositoryInfo(srv.githubClient.Repositories, repoOwner, repo)
 	if repoInfo == nil {
 		return false, fmt.Errorf("debug: cannot get repositoryInfo")
 	}
@@ -166,22 +160,19 @@ func createGithubClient(config *setting.Settings) *github.Client {
 	return client
 }
 
-func createRepositoryInfo(s *setting.RepositorySetting, repoSvc *github.RepositoriesService) *setting.RepositoryInfo {
+func createRepositoryInfo(repoSvc *github.RepositoriesService, owner, name string) *setting.RepositoryInfo {
 	var repoinfo *setting.RepositoryInfo
-	if s.UseOwnersFile {
-		log.Println("info: Use `OWNERS` file.")
-		ok, owners := fetchOwnersFile(repoSvc, s.Owner, s.Name)
-		if !ok {
-			log.Println("error: could not handle OWNERS file.")
-			return nil
-		}
-		ok, repoinfo = owners.ToRepoInfo()
-		if !ok {
-			log.Println("error: could not get reviewer list")
-			return nil
-		}
-	} else {
-		_, repoinfo = s.ToRepoInfo()
+	log.Println("info: Use `OWNERS` file.")
+	ok, owners := fetchOwnersFile(repoSvc, owner, name)
+	if !ok {
+		log.Println("error: could not handle OWNERS file.")
+		return nil
+	}
+
+	ok, repoinfo = owners.ToRepoInfo()
+	if !ok {
+		log.Println("error: could not get reviewer list")
+		return nil
 	}
 
 	return repoinfo

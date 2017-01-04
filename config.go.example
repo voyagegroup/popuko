@@ -15,35 +15,6 @@ func createSettings() *setting.Settings {
 			BotName:    "",
 			Token:      "",
 			HookSecret: "",
-			RepoList: []setting.RepositorySetting{
-				setting.RepositorySetting{
-					Owner: "take-shobo",
-					Name:  "popteamepic",
-					ReviewerList: []string{
-						"popuko",
-						"pipimi",
-					},
-
-					// By default, this bot merge branch automatically after you command `r+`.
-					// If you merge by hand and this bot should change the status label,
-					// disable this option.
-					EnableAutoMerge: true,
-
-					// Delete the branch by this bot after this bot had merged it
-					// if you enable this option.
-					// The operation may not delete contributor's branch by API
-					// restriction. This only clean up only the upstream repository
-					// managed by this bot.
-					DeleteAfterAutoMerge: false,
-
-					// Use `/OWNERS.json` in your repository's `master` branch
-					// to list reviewers.
-					// This option is prior to the value of `RepositorySetting.reviewerList`.
-					// If you don't like to manage reviewers for each `OWNERS.json` in repositories,
-					// Disable this option.
-					UseOwnersFile: true,
-				},
-			},
 		},
 	}
 }
