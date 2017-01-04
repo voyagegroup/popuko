@@ -17,20 +17,12 @@ var (
 
 func main() {
 	config = createSettings()
-	config.Init()
 
 	log.Println("===== popuko =====")
 	log.Printf("version (git revision): %s\n", revision)
 	log.Printf("builddate: %s\n", builddate)
 	log.Printf("listen http on port: %v\n", config.PortStr())
 	log.Printf("botname for GitHub: %v\n", "@"+config.BotNameForGithub())
-	{
-		log.Println("---- popuko handling repositories -------")
-		repomap := config.Repositories()
-		for _, v := range repomap.Entries() {
-			v.Log()
-		}
-	}
 	log.Println("==================")
 
 	github := createGithubClient(config)

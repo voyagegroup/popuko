@@ -22,13 +22,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 	repoName := *ev.Repo.Name
 	log.Printf("info: Target repository is %v/%v\n", repoOwner, repoName)
 
-	repoConfig := config.Repositories().Get(repoOwner, repoName)
-	if repoConfig == nil {
-		log.Println("info: Not found registred repo config.")
-		return
-	}
-
-	repoInfo := createRepositoryInfo(repoConfig, srv.githubClient.Repositories)
+	repoInfo := createRepositoryInfo(srv.githubClient.Repositories, repoOwner, repoName)
 	if repoInfo == nil {
 		log.Println("debug: cannot get repositoryInfo")
 		return
