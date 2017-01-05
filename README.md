@@ -65,6 +65,7 @@ So you need to do these things.
   - `S-awaiting-review`: for a pull request assigned to some reviewer.
   - `S-awaiting-merge`: for a pull request queued to this bot.
   - `S-needs-rebase`: for an unmergeable pull request.
+  - `S-fails-tests-with-upstream`: for a pull request which fails tests after try to merge into upstream.
 5. Done!
 
 
