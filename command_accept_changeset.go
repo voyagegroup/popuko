@@ -85,7 +85,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 
 		item := &queue.AutoMergeQueueItem{
 			PullRequest: issue,
-			SHA:         nil,
+			SHA:         &headSha,
 		}
 		q.Push(item)
 		q.Save()
