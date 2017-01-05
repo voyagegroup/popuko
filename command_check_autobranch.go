@@ -236,6 +236,27 @@ func getNextAvailableItem(queue *queue.AutoMergeQueue,
 			continue
 		}
 
+		if *next.SHA != *nextInfo.Head.SHA {
+			log.Printf("warn: the head of #%v is changed from r+.\n", prNum)
+			currentLabels := operation.GetLabelsByIssue(issueSvc, owner, name, prNum)
+			if currentLabels == nil {
+				continue
+			}
+
+			labels := operation.AddAwaitingReviewLabel(currentLabels)
+			_, _, err = issueSvc.ReplaceLabelsForIssue(owner, name, prNum, labels)
+			if err != nil {
+				log.Println("warn: could not change labels of the issue")
+			}
+
+			comment := ":no_entry: The current head is changed from when this had been accepted. Please review again."
+			if ok := operation.AddComment(issueSvc, owner, name, prNum, comment); !ok {
+				log.Println("error: could not write the comment about the result of auto branch.")
+			}
+
+			continue
+		}
+
 		if *nextInfo.State != "open" {
 			log.Printf("debug: the pull request #%v has been resolved the state as `%v`\n", prNum, *nextInfo.State)
 			continue
