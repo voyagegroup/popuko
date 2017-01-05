@@ -3,7 +3,7 @@
 # This bot name.
 botname = "popuko"
 
-# The port number which this application listening. 
+# The port number which this application listening.
 port = 3000
 
 [github]
