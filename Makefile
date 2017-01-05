@@ -1,5 +1,4 @@
 DIST_NAME := popuko
-CONFIGURE_FILE := ./config.go
 GIT_REVISION := $(shell git rev-parse --verify HEAD)
 BUILD_DATE := $(shell date '+%Y/%m/%d %H:%M:%S %z')
 
@@ -18,8 +17,6 @@ bootstrap:
 	go get -u github.com/mattn/gom
 	gom install
 
-new_config: $(CONFIGURE_FILE) ## Create the config file from our boilerplate.
-
 build: $(DIST_NAME) ## Build the exec binary for youe machine.
 
 build_linux_x64: ## Just an alias to build for some cloud instance.
@@ -28,10 +25,7 @@ build_linux_x64: ## Just an alias to build for some cloud instance.
 run: $(DIST_NAME) ## Execute the binary for youe machine.
 	./$(DIST_NAME)
 
-$(CONFIGURE_FILE):
-	cp $@.example $@
-
-$(DIST_NAME): clean $(CONFIGURE_FILE)
+$(DIST_NAME): clean
 	go build -o $(DIST_NAME) -ldflags "-X main.revision=$(GIT_REVISION) -X \"main.builddate=$(BUILD_DATE)\""
 
 test:
