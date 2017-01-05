@@ -85,7 +85,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 
 		item := &queue.AutoMergeQueueItem{
 			PullRequest: issue,
-			SHA:         &headSha,
+			SHA:         headSha,
 		}
 		q.Push(item)
 		q.Save()
@@ -118,7 +118,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 			return false, nil
 		}
 
-		item.SHA = commit.SHA
+		item.SHA = *commit.SHA
 		q.SetActive(item)
 		log.Printf("info: pin #%v as the active item to queue\n", issue)
 		q.Save()

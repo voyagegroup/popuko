@@ -89,12 +89,7 @@ func isRelatedToAutoBranch(active *queue.AutoMergeQueueItem, ev *github.StatusEv
 }
 
 func checkCommitHashOnTrying(active *queue.AutoMergeQueueItem, ev *github.StatusEvent) bool {
-	if active.SHA == nil {
-		log.Println("error: ASSERT! `active.SHA` should not be null")
-		return false
-	}
-
-	autoTipSha := *active.SHA
+	autoTipSha := active.SHA
 	if autoTipSha != *ev.SHA {
 		log.Printf("debug: The commit hash which contained by the status event: %v\n", *ev.SHA)
 		log.Printf("debug: The commit hash is pinned to the status queue as the tip of auto branch: %v\n", autoTipSha)
@@ -204,7 +199,7 @@ func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQu
 		return false, true
 	}
 
-	next.SHA = commit.SHA
+	next.SHA = *commit.SHA
 	q.SetActive(next)
 	log.Printf("info: pin #%v as the active item to queue\n", nextNum)
 
@@ -236,7 +231,7 @@ func getNextAvailableItem(queue *queue.AutoMergeQueue,
 			continue
 		}
 
-		if *next.SHA != *nextInfo.Head.SHA {
+		if next.SHA != *nextInfo.Head.SHA {
 			log.Printf("warn: the head of #%v is changed from r+.\n", prNum)
 			currentLabels := operation.GetLabelsByIssue(issueSvc, owner, name, prNum)
 			if currentLabels == nil {
