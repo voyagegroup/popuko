@@ -37,12 +37,12 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 	}
 	log.Println("info: Start to handle auto merging the branch.")
 
-	srv.autoMergeRepo.Lock()
-	q := srv.autoMergeRepo.Get(repoOwner, repoName)
-	srv.autoMergeRepo.Unlock()
+	qHandle := srv.autoMergeRepo.Get(repoOwner, repoName)
 
-	q.Lock()
-	defer q.Unlock()
+	qHandle.Lock()
+	defer qHandle.Unlock()
+
+	q := qHandle.Load()
 
 	if !q.HasActive() {
 		log.Println("info: there is no testing item")

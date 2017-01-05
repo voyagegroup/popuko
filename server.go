@@ -100,13 +100,6 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 		return false, fmt.Errorf("debug: cannot get repositoryInfo")
 	}
 
-	var queue *queue.AutoMergeQueue
-	if repoInfo.EnableAutoMerge {
-		srv.autoMergeRepo.Lock()
-		queue = srv.autoMergeRepo.Get(repoOwner, repo)
-		srv.autoMergeRepo.Unlock()
-	}
-
 	switch cmd := cmd.(type) {
 	case *AssignReviewerCommand:
 		return srv.commandAssignReviewer(ev, cmd.Reviewer)
@@ -118,7 +111,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			config.BotNameForGithub(),
 			cmd,
 			repoInfo,
-			queue,
+			srv.autoMergeRepo,
 		}
 		return commander.commandAcceptChangesetByReviewer(ev)
 	case *AcceptChangeByOthersCommand:
@@ -129,7 +122,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			config.BotNameForGithub(),
 			cmd,
 			repoInfo,
-			queue,
+			srv.autoMergeRepo,
 		}
 		return commander.commandAcceptChangesetByOtherReviewer(ev, cmd.Reviewer[0])
 	default:

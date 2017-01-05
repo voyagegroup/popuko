@@ -18,7 +18,7 @@ type AcceptCommand struct {
 	cmd     AcceptChangesetCommand
 	info    *setting.RepositoryInfo
 
-	queue *queue.AutoMergeQueue
+	autoMergeRepo *queue.AutoMergeQRepo
 }
 
 func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueCommentEvent) (bool, error) {
@@ -77,16 +77,19 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	}
 
 	if c.info.EnableAutoMerge {
-		c.queue.Lock()
-		defer c.queue.Unlock()
+		qHandle := c.autoMergeRepo.Get(repoOwner, repoName)
+		qHandle.Lock()
+		defer qHandle.Unlock()
 
-		q := &queue.AutoMergeQueueItem{
+		q := qHandle.Load()
+
+		item := &queue.AutoMergeQueueItem{
 			PullRequest: issue,
 			SHA:         nil,
 		}
-		c.queue.Push(q)
+		q.Push(item)
 
-		if c.queue.HasActive() {
+		if q.HasActive() {
 			log.Printf("info: pull request (%v) has been queued but other is active.\n", issue)
 			{
 				comment := ":postbox: This pull request is queued. Please await the time."
@@ -97,13 +100,13 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 			return true, nil
 		}
 
-		ok, next := c.queue.GetNext()
+		ok, next := q.GetNext()
 		if !ok || next == nil {
 			log.Println("error: this queue should not be empty because `q` is queued just now.")
 			return false, nil
 		}
 
-		if next != q {
+		if next != item {
 			log.Println("error: `next` should be equal to `q` because there should be only `q` in queue.")
 			return false, nil
 		}
@@ -114,10 +117,10 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 			return false, nil
 		}
 
-		q.SHA = commit.SHA
-		c.queue.SetActive(q)
+		item.SHA = commit.SHA
+		q.SetActive(item)
 		log.Printf("info: pin #%v as the active item to queue\n", issue)
-		c.queue.Save()
+		q.Save()
 	}
 
 	log.Printf("info: complete merge the pull request %v\n", issue)
