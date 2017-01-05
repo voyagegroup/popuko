@@ -75,21 +75,27 @@ func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) 
 		return false
 	}
 
-	file, err := os.Create(path)
-	if err != nil {
-		log.Printf("error: cannot create the file to %v\n", path)
-		return false
+	// If the file exists, rename the current file as `***.bak` file.
+	var back string
+	if exists(path) {
+		back = path + ".old"
+		if err := os.Rename(path, back); err != nil {
+			panic(err)
+		}
 	}
-	defer file.Close()
+	// clean up the backup file after all.
+	defer (func(p string) {
+		if p == "" {
+			return
+		}
 
-	n, err := file.Write(b)
-	if err != nil {
-		fmt.Printf("error: on writing the file to %v: %v\n", path, err)
-		return false
-	}
+		if err := os.Remove(p); err != nil {
+			log.Printf("error: cannot clean up the backup file: %v\n", p)
+		}
+	})(back)
 
-	if n != len(b) {
-		fmt.Printf("error: `n != len(b)` on writing the file to %v: %v\n", path, err)
+	if err := ioutil.WriteFile(path, b, 0644); err != nil {
+		fmt.Printf("error: cannot write the data to %v: %v\n", path, err)
 		return false
 	}
 
