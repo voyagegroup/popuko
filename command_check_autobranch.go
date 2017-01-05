@@ -166,6 +166,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 
 	queue.RemoveActive()
 	log.Printf("info: complete merging #%v into master\n", prNum)
+	queue.Save()
 
 	next, nextInfo := getNextAvailableItem(queue, issueSvc, prSvc, repoOwner, repoName)
 	if next == nil {
@@ -185,6 +186,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 	next.SHA = commit.SHA
 	queue.SetActive(next)
 	log.Printf("info: pin #%v as the active item to queue\n", nextNum)
+	queue.Save()
 
 	log.Println("info: complete to start the next trying")
 }
