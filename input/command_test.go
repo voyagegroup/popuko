@@ -101,9 +101,18 @@ func TestParseCommand9(t *testing.T) {
 }
 
 func TestParseCommand10(t *testing.T) {
-	ok, _ := ParseCommand("    @bot r+")
-	if ok {
-		t.Fatal("should not be ok")
+	ok, cmd := ParseCommand("    @bot r+")
+	if !ok {
+		t.Fatal("should be ok")
+	}
+
+	v, ok := cmd.(*AcceptChangeByReviewerCommand)
+	if !ok {
+		t.Fatal("should be AcceptChangeByReviewerCommand")
+	}
+
+	if name := v.BotName(); name != "bot" {
+		t.Fatalf("should be the expected bot name: %v\n", name)
 	}
 }
 
@@ -128,5 +137,57 @@ func TestParseCommand12(t *testing.T) {
 
 	if v.Reviewer != "reviewer" {
 		t.Fatal("should be the expected reviewer")
+	}
+}
+
+func TestParseCommand13(t *testing.T) {
+	ok, cmd := ParseCommand("@bot        r+")
+	if !ok {
+		t.Fatal("should be ok")
+	}
+
+	v, ok := cmd.(*AcceptChangeByReviewerCommand)
+	if !ok {
+		t.Fatal("should be AcceptChangeByReviewerCommand")
+	}
+
+	if name := v.BotName(); name != "bot" {
+		t.Fatalf("should be the expected bot name: %v\n", name)
+	}
+}
+
+func TestParseCommand14(t *testing.T) {
+	ok, cmd := ParseCommand(`@bot        r+          
+	
+
+	
+	`)
+	if !ok {
+		t.Fatal("should be ok")
+	}
+
+	v, ok := cmd.(*AcceptChangeByReviewerCommand)
+	if !ok {
+		t.Fatal("should be AcceptChangeByReviewerCommand")
+	}
+
+	if name := v.BotName(); name != "bot" {
+		t.Fatalf("should be the expected bot name: %v\n", name)
+	}
+}
+
+func TestParseCommand15(t *testing.T) {
+	ok, cmd := ParseCommand("@bot　　　  r+")
+	if !ok {
+		t.Fatal("should be ok")
+	}
+
+	v, ok := cmd.(*AcceptChangeByReviewerCommand)
+	if !ok {
+		t.Fatal("should be AcceptChangeByReviewerCommand")
+	}
+
+	if name := v.BotName(); name != "bot" {
+		t.Fatalf("should be the expected bot name: %v\n", name)
 	}
 }
