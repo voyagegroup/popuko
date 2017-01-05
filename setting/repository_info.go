@@ -6,8 +6,6 @@ type RepositoryInfo struct {
 
 	EnableAutoMerge      bool
 	DeleteAfterAutoMerge bool
-
-	experimentalTryOnAutoBranch bool
 }
 
 func (r *RepositoryInfo) IsReviewer(name string) bool {
@@ -16,10 +14,6 @@ func (r *RepositoryInfo) IsReviewer(name string) bool {
 	}
 
 	return r.reviewers.Has(name)
-}
-
-func (r *RepositoryInfo) ExperimentalTryOnAutoBranch() bool {
-	return r.experimentalTryOnAutoBranch && r.EnableAutoMerge
 }
 
 type ReviewerSet struct {

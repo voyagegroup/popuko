@@ -5,6 +5,5 @@
     "saneyuki"
   ],
   "auto_merge.enabled": true,
-  "experimental.auto_merge.try_on_auto_branch": true,
   "auto_merge.delete_branch": true
 }

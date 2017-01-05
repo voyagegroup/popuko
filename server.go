@@ -101,7 +101,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	}
 
 	var queue *queue.AutoMergeQueue
-	if repoInfo.ExperimentalTryOnAutoBranch() {
+	if repoInfo.EnableAutoMerge {
 		srv.autoMergeRepo.Lock()
 		queue = srv.autoMergeRepo.Get(repoOwner, repo)
 		srv.autoMergeRepo.Unlock()

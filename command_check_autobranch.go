@@ -31,7 +31,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 
 	log.Println("info: success to load the configure.")
 
-	if !(repoInfo.EnableAutoMerge && repoInfo.ExperimentalTryOnAutoBranch()) {
+	if !repoInfo.EnableAutoMerge {
 		log.Println("info: this repository does not enable merging into master automatically.")
 		return
 	}
