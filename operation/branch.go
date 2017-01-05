@@ -1,12 +1,13 @@
 package operation
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/google/go-github/github"
 )
 
-func createBranchFromMaster(svc *github.GitService, owner string, repo string, branchName string) (ok bool, ref *github.Reference) {
+func createAutoBranch(svc *github.GitService, owner string, repo string, number int, branchName string) (ok bool, ref *github.Reference) {
 	refName := "refs/heads/" + branchName
 
 	log.Printf("info: clean up %v by deleting it\n", refName)
@@ -14,7 +15,11 @@ func createBranchFromMaster(svc *github.GitService, owner string, repo string, b
 		log.Printf("info: could not clean up %v by %v, but we continue to create %v optimistically\n", refName, err, refName)
 	}
 
-	const base string = "refs/heads/master"
+	// see:
+	// https://github.com/karen-irc/popuko/issues/93
+	// https://help.github.com/articles/checking-out-pull-requests-locally/
+	base := fmt.Sprintf("refs/pull/%d/merge", number)
+	log.Printf("debug: `ref` is: %v\n", base)
 	ref, _, err := svc.GetRef(owner, repo, base)
 	if err != nil {
 		log.Printf("warn: cannot get reference about %v\n", base)
@@ -36,49 +41,28 @@ func createBranchFromMaster(svc *github.GitService, owner string, repo string, b
 	return true, ref
 }
 
-func mergeIntoAutoBranch(svc *github.RepositoriesService, owner string, repo string, head *github.PullRequestBranch) (ok bool, commit *github.RepositoryCommit) {
-	base := "auto"
-	message := "Auto merging"
-	req := github.RepositoryMergeRequest{
-		Base:          &base,
-		Head:          head.SHA,
-		CommitMessage: &message,
-	}
+func TryWithMaster(client *github.Client, owner string, name string, info *github.PullRequest) (bool, string) {
+	number := *info.Number
 
-	commit, _, err := svc.Merge(owner, repo, &req)
-	if err != nil {
-		log.Printf("warn: could not merge '%v' branch into master\n", base)
-		return
-	}
-
-	return true, commit
-}
-
-func TryWithMaster(client *github.Client, owner string, name string, info *github.PullRequest) (ok bool, commit *github.RepositoryCommit) {
-	ok, _ = createBranchFromMaster(client.Git, owner, name, "auto")
+	ok, ref := createAutoBranch(client.Git, owner, name, number, "auto")
 	if !ok {
 		log.Println("info: cannot create the auto branch")
-		return
+		return false, ""
 	}
 	log.Println("info: create the auto branch")
 
-	ok, commit = mergeIntoAutoBranch(client.Repositories, owner, name, info.Head)
-	if !ok {
-		log.Println("info: cannot merge into the auto branch")
-		return
-	}
-	log.Println("info: merge into the auto branch")
+	sha := *ref.Object.SHA
 
 	{
 		number := *info.Number
 		headSha := *info.Head.SHA
-		c := ":hourglass: " + headSha + " has been merged into the auto branch " + *commit.HTMLURL
+		c := ":hourglass: " + headSha + " has been merged into the auto branch " + sha
 		if ok := AddComment(client.Issues, owner, name, number, c); !ok {
 			log.Println("info: could not create the comment to declare to merge this.")
 		}
 	}
 
-	return true, commit
+	return true, sha
 }
 
 func DeleteBranchByPullRequest(svc *github.GitService, pr *github.PullRequest) (bool, error) {

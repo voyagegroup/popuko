@@ -120,7 +120,7 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 			return false, nil
 		}
 
-		item.AutoBranchHead = commit.SHA
+		item.AutoBranchHead = &commit
 		q.SetActive(item)
 		log.Printf("info: pin #%v as the active item to queue\n", issue)
 		q.Save()

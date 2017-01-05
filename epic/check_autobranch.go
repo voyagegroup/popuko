@@ -200,7 +200,7 @@ func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQu
 		return tryNextItem(client, owner, name, q)
 	}
 
-	next.AutoBranchHead = commit.SHA
+	next.AutoBranchHead = &commit
 	q.SetActive(next)
 	log.Printf("info: pin #%v as the active item to queue\n", nextNum)
 
