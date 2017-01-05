@@ -157,10 +157,10 @@ func TestParseCommand13(t *testing.T) {
 }
 
 func TestParseCommand14(t *testing.T) {
-	ok, cmd := ParseCommand(`@bot        r+          
-	
+	ok, cmd := ParseCommand(`@bot        r+
 
-	
+
+
 	`)
 	if !ok {
 		t.Fatal("should be ok")
@@ -185,6 +185,18 @@ func TestParseCommand15(t *testing.T) {
 	v, ok := cmd.(*AcceptChangeByReviewerCommand)
 	if !ok {
 		t.Fatal("should be AcceptChangeByReviewerCommand")
+	}
+
+	if name := v.BotName(); name != "bot" {
+		t.Fatalf("should be the expected bot name: %v\n", name)
+	}
+}
+
+func TestParseCommand16(t *testing.T) {
+	ok, cmd := ParseCommand("@bot r-")
+	v, ok := cmd.(*CancelApprovedByReviewerCommand)
+	if !ok {
+		t.Fatal("should be CancelApprovedByReviewerCommand")
 	}
 
 	if name := v.BotName(); name != "bot" {
