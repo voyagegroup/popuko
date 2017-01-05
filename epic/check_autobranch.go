@@ -193,8 +193,7 @@ func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQu
 	ok, commit := operation.TryWithMaster(client, owner, name, nextInfo)
 	if !ok {
 		log.Printf("info: we cannot try #%v with the latest `master`.", nextNum)
-		// FIXME: We should to try the next pull req in the queue.
-		return false, true
+		return tryNextItem(client, owner, name, q)
 	}
 
 	next.SHA = *commit.SHA
