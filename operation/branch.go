@@ -100,15 +100,6 @@ func DeleteBranchByPullRequest(svc *github.GitService, pr *github.PullRequest) (
 
 func MergePullRequest(client *github.Client, owner string, name string, info *github.PullRequest) bool {
 	number := *info.Number
-	head := *info.Head.SHA
-
-	{
-		comment := ":hourglass: Try to merge " + head
-		if ok := AddComment(client.Issues, owner, name, number, comment); !ok {
-			log.Println("warn: could not create the comment to declare to merge this.")
-			return false
-		}
-	}
 
 	// XXX: By the behavior, github uses defautlt merge message
 	// if we specify `""` to `commitMessage`.
