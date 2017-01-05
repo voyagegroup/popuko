@@ -92,15 +92,15 @@ func (s *AutoMergeQueue) GetNext() (ok bool, item *AutoMergeQueueItem) {
 		return true, nil
 	}
 
-	f, q := s.q[0], s.q[1:]
+	front, q := s.q[0], s.q[1:]
 	s.q = q
 
-	if f == nil {
+	if front == nil {
 		log.Println("error: the front of auto merge queue is nil")
 		return
 	}
 
-	return true, f
+	return true, front
 }
 
 func (s *AutoMergeQueue) GetActive() *AutoMergeQueueItem {
