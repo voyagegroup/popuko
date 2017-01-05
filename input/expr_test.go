@@ -1,11 +1,11 @@
-package main
+package input
 
 import (
 	"testing"
 )
 
 func TestParseCommand1(t *testing.T) {
-	ok, cmd := parseCommand("@bot r+")
+	ok, cmd := ParseCommand("@bot r+")
 	if !ok {
 		t.Fatal("should be ok")
 	}
@@ -21,7 +21,7 @@ func TestParseCommand1(t *testing.T) {
 }
 
 func TestParseCommand2(t *testing.T) {
-	ok, cmd := parseCommand("@reviewer r?")
+	ok, cmd := ParseCommand("@reviewer r?")
 	if !ok {
 		t.Fatal("should be ok")
 	}
@@ -37,7 +37,7 @@ func TestParseCommand2(t *testing.T) {
 }
 
 func TestParseCommand3(t *testing.T) {
-	ok, cmd := parseCommand("@bot r=popuko,pipimi")
+	ok, cmd := ParseCommand("@bot r=popuko,pipimi")
 	if !ok {
 		t.Fatal("should be ok")
 	}
@@ -61,7 +61,7 @@ func TestParseCommand3(t *testing.T) {
 }
 
 func TestParseCommand5(t *testing.T) {
-	ok, cmd := parseCommand("")
+	ok, cmd := ParseCommand("")
 	if ok {
 		t.Fatal("should be no result")
 	}
@@ -72,7 +72,7 @@ func TestParseCommand5(t *testing.T) {
 }
 
 func TestParseCommand6(t *testing.T) {
-	ok, _ := parseCommand(`@bot
+	ok, _ := ParseCommand(`@bot
     r+`)
 	if ok {
 		t.Fatal("should not be ok")
@@ -80,35 +80,35 @@ func TestParseCommand6(t *testing.T) {
 }
 
 func TestParseCommand7(t *testing.T) {
-	ok, _ := parseCommand("@bot")
+	ok, _ := ParseCommand("@bot")
 	if ok {
 		t.Fatal("should not be ok")
 	}
 }
 
 func TestParseCommand8(t *testing.T) {
-	ok, _ := parseCommand("bot r+")
+	ok, _ := ParseCommand("bot r+")
 	if ok {
 		t.Fatal("should not be ok")
 	}
 }
 
 func TestParseCommand9(t *testing.T) {
-	ok, _ := parseCommand("Hello, I'm john.")
+	ok, _ := ParseCommand("Hello, I'm john.")
 	if ok {
 		t.Fatal("should not be ok")
 	}
 }
 
 func TestParseCommand10(t *testing.T) {
-	ok, _ := parseCommand("    @bot r+")
+	ok, _ := ParseCommand("    @bot r+")
 	if ok {
 		t.Fatal("should not be ok")
 	}
 }
 
 func TestParseCommand11(t *testing.T) {
-	ok, _ := parseCommand(`
+	ok, _ := ParseCommand(`
     @bot r+`)
 	if ok {
 		t.Fatal("should not be ok")
@@ -116,7 +116,7 @@ func TestParseCommand11(t *testing.T) {
 }
 
 func TestParseCommand12(t *testing.T) {
-	ok, cmd := parseCommand("r? @reviewer")
+	ok, cmd := ParseCommand("r? @reviewer")
 	if !ok {
 		t.Fatal("should be ok")
 	}

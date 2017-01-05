@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"reflect"
@@ -12,6 +10,8 @@ import (
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 
+	"github.com/karen-irc/popuko/epic"
+	"github.com/karen-irc/popuko/input"
 	"github.com/karen-irc/popuko/queue"
 	"github.com/karen-irc/popuko/setting"
 )
@@ -81,7 +81,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	defer log.Printf("End: processCommitCommentEvent by %v\n", *ev.Comment.ID)
 
 	body := *ev.Comment.Body
-	ok, cmd := parseCommand(body)
+	ok, cmd := input.ParseCommand(body)
 	if !ok {
 		return false, fmt.Errorf("No operations which this bot should handle.")
 	}
@@ -95,16 +95,16 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	repo := *ev.Repo.Name
 	log.Printf("debug: repository name is %v\n", repo)
 
-	repoInfo := createRepositoryInfo(srv.githubClient.Repositories, repoOwner, repo)
+	repoInfo := epic.GetRepositoryInfo(srv.githubClient.Repositories, repoOwner, repo)
 	if repoInfo == nil {
 		return false, fmt.Errorf("debug: cannot get repositoryInfo")
 	}
 
 	switch cmd := cmd.(type) {
-	case *AssignReviewerCommand:
-		return srv.commandAssignReviewer(ev, cmd.Reviewer)
-	case *AcceptChangeByReviewerCommand:
-		commander := AcceptCommand{
+	case *input.AssignReviewerCommand:
+		return epic.AssignReviewer(srv.githubClient, ev, cmd.Reviewer)
+	case *input.AcceptChangeByReviewerCommand:
+		commander := epic.AcceptCommand{
 			repoOwner,
 			repo,
 			srv.githubClient,
@@ -113,9 +113,9 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			repoInfo,
 			srv.autoMergeRepo,
 		}
-		return commander.commandAcceptChangesetByReviewer(ev)
-	case *AcceptChangeByOthersCommand:
-		commander := AcceptCommand{
+		return commander.AcceptChangesetByReviewer(ev)
+	case *input.AcceptChangeByOthersCommand:
+		commander := epic.AcceptCommand{
 			repoOwner,
 			repo,
 			srv.githubClient,
@@ -124,7 +124,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			repoInfo,
 			srv.autoMergeRepo,
 		}
-		return commander.commandAcceptChangesetByOtherReviewer(ev, cmd.Reviewer[0])
+		return commander.AcceptChangesetByOtherReviewer(ev, cmd.Reviewer[0])
 	default:
 		return false, fmt.Errorf("error: unreachable")
 	}
@@ -133,13 +133,13 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 func (srv *AppServer) processPushEvent(ev *github.PushEvent) {
 	log.Println("info: Start: processPushEvent by push id")
 	defer log.Println("info: End: processPushEvent by push id")
-	srv.detectUnmergeablePR(ev)
+	epic.DetectUnmergeablePR(srv.githubClient, ev)
 }
 
 func (srv *AppServer) processStatusEvent(ev *github.StatusEvent) {
 	log.Println("info: Start: processStatusEvent")
 	defer log.Println("info: End: processStatusEvent")
-	srv.checkAutoBranch(ev)
+	epic.CheckAutoBranch(srv.githubClient, srv.autoMergeRepo, ev)
 }
 
 func createGithubClient(config *setting.Settings) *github.Client {
@@ -151,49 +151,4 @@ func createGithubClient(config *setting.Settings) *github.Client {
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
 	client := github.NewClient(tc)
 	return client
-}
-
-func createRepositoryInfo(repoSvc *github.RepositoriesService, owner, name string) *setting.RepositoryInfo {
-	var repoinfo *setting.RepositoryInfo
-	log.Println("info: Use `OWNERS` file.")
-	ok, owners := fetchOwnersFile(repoSvc, owner, name)
-	if !ok {
-		log.Println("error: could not handle OWNERS file.")
-		return nil
-	}
-
-	ok, repoinfo = owners.ToRepoInfo()
-	if !ok {
-		log.Println("error: could not get reviewer list")
-		return nil
-	}
-
-	return repoinfo
-}
-
-func fetchOwnersFile(svc *github.RepositoriesService, owner string, reponame string) (bool, *setting.OwnersFile) {
-	file, err := svc.DownloadContents(owner, reponame, "OWNERS.json", &github.RepositoryContentGetOptions{
-		// We always use the file in master which we regard as accepted to the project.
-		Ref: "master",
-	})
-	if err != nil {
-		log.Printf("error: could not fetch `OWNERS.json`: %v\n", err)
-		return false, nil
-	}
-
-	raw, err := ioutil.ReadAll(file)
-	defer file.Close()
-	if err != nil {
-		log.Printf("error: could not read `OWNERS.json`: %v\n", err)
-		return false, nil
-	}
-	log.Printf("debug: OWNERS.json:\n%v\n", string(raw))
-
-	var decoded setting.OwnersFile
-	if err := json.Unmarshal(raw, &decoded); err != nil {
-		log.Printf("error: could not decode `OWNERS.json`: %v\n", err.Error())
-		return false, nil
-	}
-
-	return true, &decoded
 }

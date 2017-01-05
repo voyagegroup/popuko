@@ -28,17 +28,11 @@ run: $(DIST_NAME) ## Execute the binary for youe machine.
 $(DIST_NAME): clean
 	go build -o $(DIST_NAME) -ldflags "-X main.revision=$(GIT_REVISION) -X \"main.builddate=$(BUILD_DATE)\""
 
-test: test_operation test_queue test_setting
+test: test_epic test_input test_operation test_queue test_setting
 	go test
 
-test_operation:
-	make test -C ./operation
-
-test_queue:
-	make test -C ./queue
-
-test_setting:
-	make test -C ./setting
+test_%:
+	make test -C ./$*
 
 travis:
 	make bootstrap

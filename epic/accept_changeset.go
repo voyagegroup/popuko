@@ -1,31 +1,33 @@
-package main
+package epic
 
 import (
 	"log"
 
 	"github.com/google/go-github/github"
+
+	"github.com/karen-irc/popuko/input"
 	"github.com/karen-irc/popuko/operation"
 	"github.com/karen-irc/popuko/queue"
 	"github.com/karen-irc/popuko/setting"
 )
 
 type AcceptCommand struct {
-	owner string
-	name  string
+	Owner string
+	Name  string
 
-	client  *github.Client
-	botName string
-	cmd     AcceptChangesetCommand
-	info    *setting.RepositoryInfo
+	Client  *github.Client
+	BotName string
+	Cmd     input.AcceptChangesetCommand
+	Info    *setting.RepositoryInfo
 
-	autoMergeRepo *queue.AutoMergeQRepo
+	AutoMergeRepo *queue.AutoMergeQRepo
 }
 
-func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueCommentEvent) (bool, error) {
+func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) (bool, error) {
 	log.Printf("info: Start: merge the pull request by %v\n", *ev.Comment.ID)
 	defer log.Printf("info: End: merge the pull request by %v\n", *ev.Comment.ID)
 
-	if c.botName != c.cmd.BotName() {
+	if c.BotName != c.Cmd.BotName() {
 		log.Printf("info: this command works only if target user is actual our bot.")
 		return false, nil
 	}
@@ -33,16 +35,16 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	sender := *ev.Sender.Login
 	log.Printf("debug: command is sent from %v\n", sender)
 
-	if !c.info.IsReviewer(sender) {
+	if !c.Info.IsReviewer(sender) {
 		log.Printf("info: %v is not an reviewer registred to this bot.\n", sender)
 		return false, nil
 	}
 
-	client := c.client
+	client := c.Client
 	issueSvc := client.Issues
 
-	repoOwner := c.owner
-	repoName := c.name
+	repoOwner := c.Owner
+	repoName := c.Name
 	issue := *ev.Issue.Number
 	log.Printf("debug: issue number is %v\n", issue)
 
@@ -76,8 +78,8 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 		}
 	}
 
-	if c.info.EnableAutoMerge {
-		qHandle := c.autoMergeRepo.Get(repoOwner, repoName)
+	if c.Info.EnableAutoMerge {
+		qHandle := c.AutoMergeRepo.Get(repoOwner, repoName)
 		qHandle.Lock()
 		defer qHandle.Unlock()
 
@@ -128,15 +130,15 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	return true, nil
 }
 
-func (c *AcceptCommand) commandAcceptChangesetByOtherReviewer(ev *github.IssueCommentEvent, reviewer string) (bool, error) {
+func (c *AcceptCommand) AcceptChangesetByOtherReviewer(ev *github.IssueCommentEvent, reviewer string) (bool, error) {
 	log.Printf("info: Start: merge the pull request from other reviewer by %v\n", ev.Comment.ID)
 	defer log.Printf("info: End:merge the pull request from other reviewer by %v\n", ev.Comment.ID)
 
-	if !c.info.IsReviewer(reviewer) {
+	if !c.Info.IsReviewer(reviewer) {
 		log.Println("info: could not find the actual reviewer in reviewer list")
 		log.Printf("debug: specified actial reviewer %v\n", reviewer)
 		return false, nil
 	}
 
-	return c.commandAcceptChangesetByReviewer(ev)
+	return c.AcceptChangesetByReviewer(ev)
 }
