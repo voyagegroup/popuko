@@ -39,7 +39,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 
 	srv.autoMergeRepo.Lock()
 	q := srv.autoMergeRepo.Get(repoOwner, repoName)
-	srv.autoMergeRepo.Unlock()
+	defer srv.autoMergeRepo.Unlock()
 
 	q.Lock()
 	defer q.Unlock()
