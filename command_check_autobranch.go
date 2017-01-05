@@ -6,6 +6,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/karen-irc/popuko/operation"
 	"github.com/karen-irc/popuko/queue"
+	"github.com/karen-irc/popuko/setting"
 )
 
 func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
@@ -34,161 +35,168 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 		log.Println("info: this repository does not enable merging into master automatically.")
 		return
 	}
-
 	log.Println("info: Start to handle auto merging the branch.")
 
 	srv.autoMergeRepo.Lock()
-	queue := srv.autoMergeRepo.Get(repoOwner, repoName)
+	q := srv.autoMergeRepo.Get(repoOwner, repoName)
 	srv.autoMergeRepo.Unlock()
 
-	queue.Lock()
-	defer queue.Unlock()
+	q.Lock()
+	defer q.Unlock()
 
-	if !queue.HasActive() {
+	if !q.HasActive() {
 		log.Println("info: there is no testing item")
 		return
 	}
 
-	active := queue.GetActive()
+	active := q.GetActive()
 	if active == nil {
 		log.Println("error: `active` should not be null")
 		return
 	}
-
 	log.Println("info: got the active item.")
 
-	if !operation.IsIncludeAutoBranch(ev.Branches) {
-		log.Printf("warn: this status event (%v) does not include the auto branch\n", *ev.ID)
+	if !isRelatedToAutoBranch(active, ev) {
+		log.Printf("info: The event's tip sha does not equal to the one which is tesing actively in %v/%v\n", repoOwner, repoName)
 		return
 	}
-
 	log.Println("info: the status event is related to auto branch.")
 
+	client := srv.githubClient
+
+	mergeSucceedItem(client, repoOwner, repoName, repoInfo, q, ev)
+
+	q.RemoveActive()
+	q.Save()
+
+	tryNextItem(client, repoOwner, repoName, q)
+
+	log.Println("info: complete to start the next trying")
+}
+
+func isRelatedToAutoBranch(active *queue.AutoMergeQueueItem, ev *github.StatusEvent) bool {
+	if !operation.IsIncludeAutoBranch(ev.Branches) {
+		log.Printf("warn: this status event (%v) does not include the auto branch\n", *ev.ID)
+		return false
+	}
+
+	if ok := checkCommitHashOnTrying(active, ev); !ok {
+		return false
+	}
+
+	log.Println("info: the tip of auto branch is same as `active.SHA`")
+	return true
+}
+
+func checkCommitHashOnTrying(active *queue.AutoMergeQueueItem, ev *github.StatusEvent) bool {
 	if active.SHA == nil {
 		log.Println("error: ASSERT! `active.SHA` should not be null")
-		return
+		return false
 	}
 
 	autoTipSha := *active.SHA
 	if autoTipSha != *ev.SHA {
 		log.Printf("debug: The commit hash which contained by the status event: %v\n", *ev.SHA)
 		log.Printf("debug: The commit hash is pinned to the status queue as the tip of auto branch: %v\n", autoTipSha)
-		log.Printf("info: The event's tip sha does not equal to the one which is tesing actively in %v/%v\n", repoOwner, repoName)
-		return
+		return false
 	}
-	log.Println("info: the tip of auto branch is same as `active.SHA`")
 
-	client := srv.githubClient
-	issueSvc := client.Issues
-	prSvc := client.PullRequests
+	return true
+}
+
+func mergeSucceedItem(client *github.Client,
+	owner string,
+	name string,
+	repoInfo *setting.RepositoryInfo,
+	q *queue.AutoMergeQueue,
+	ev *github.StatusEvent) bool {
+
+	active := q.GetActive()
+
 	prNum := active.PullRequest
 
-	prInfo, _, err := prSvc.Get(repoOwner, repoName, prNum)
+	prInfo, _, err := client.PullRequests.Get(owner, name, prNum)
 	if err != nil {
 		log.Println("info: could not fetch the pull request information.")
-		return
+		return false
 	}
 
 	if *prInfo.State != "open" {
 		log.Printf("info: the pull request #%v has been resolved the state\n", prNum)
-		return
+		return true
 	}
 
 	if *ev.State != "success" {
 		log.Println("info: could not merge pull request")
 
-		client := srv.githubClient
-		issueSvc := client.Issues
-		repoSvc := client.Repositories
-
-		prNum := active.PullRequest
-
-		status, _, err := repoSvc.GetCombinedStatus(repoOwner, repoName, "auto", nil)
-		if err != nil {
-			log.Println("error: could not get the status about the auto branch.")
-		}
-
 		comment := ":collision: " + *ev.State + ": The branch testing to merge this pull request into master has been troubled."
-		if status != nil {
-			comment += "\n\n"
-
-			for _, s := range status.Statuses {
-				if s.Description == nil || s.TargetURL == nil {
-					continue
-				}
-
-				item := "* [" + *s.Description + "](" + *s.TargetURL + ")\n"
-				comment += item
-			}
-		}
-
-		if ok := operation.AddComment(issueSvc, repoOwner, repoName, prNum, comment); !ok {
-			log.Println("error: could not write the comment about the result of auto branch.")
-		}
-
-		return
+		commentStatus(client, owner, name, prNum, comment)
+		return false
 	}
 
-	{
-		repoSvc := client.Repositories
-		status, _, err := repoSvc.GetCombinedStatus(repoOwner, repoName, "auto", nil)
-		if err != nil {
-			log.Println("error: could not get the status about the auto branch.")
-		}
+	comment := ":tada: " + *ev.State + ": The branch testing to merge this pull request into master has been succeed."
+	commentStatus(client, owner, name, prNum, comment)
 
-		comment := ":tada: " + *ev.State + ": The branch testing to merge this pull request into master has been succeed."
-		if status != nil {
-			comment += "\n\n"
-
-			for _, s := range status.Statuses {
-				if s.Description == nil || s.TargetURL == nil {
-					continue
-				}
-
-				item := "* [" + *s.Description + "](" + *s.TargetURL + ")\n"
-				comment += item
-			}
-		}
-
-		if ok := operation.AddComment(issueSvc, repoOwner, repoName, prNum, comment); !ok {
-			log.Println("error: could not write the comment about the result of auto branch.")
-		}
-	}
-
-	if ok := operation.MergePullRequest(client, repoOwner, repoName, prInfo); !ok {
+	if ok := operation.MergePullRequest(client, owner, name, prInfo); !ok {
 		log.Printf("info: cannot merge pull request #%v\n", prNum)
-		return
+		return false
 	}
 
 	if repoInfo.DeleteAfterAutoMerge {
 		operation.DeleteBranchByPullRequest(client.Git, prInfo)
 	}
 
-	queue.RemoveActive()
 	log.Printf("info: complete merging #%v into master\n", prNum)
-	queue.Save()
+	return true
+}
 
-	next, nextInfo := getNextAvailableItem(queue, issueSvc, prSvc, repoOwner, repoName)
+func commentStatus(client *github.Client, owner, name string, prNum int, comment string) {
+	status, _, err := client.Repositories.GetCombinedStatus(owner, name, "auto", nil)
+	if err != nil {
+		log.Println("error: could not get the status about the auto branch.")
+	}
+
+	if status != nil {
+		comment += "\n\n"
+
+		for _, s := range status.Statuses {
+			if s.Description == nil || s.TargetURL == nil {
+				continue
+			}
+
+			item := "* [" + *s.Description + "](" + *s.TargetURL + ")\n"
+			comment += item
+		}
+	}
+
+	if ok := operation.AddComment(client.Issues, owner, name, prNum, comment); !ok {
+		log.Println("error: could not write the comment about the result of auto branch.")
+	}
+}
+
+func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQueue) (ok, hasNext bool) {
+	defer q.Save()
+
+	next, nextInfo := getNextAvailableItem(q, client.Issues, client.PullRequests, owner, name)
 	if next == nil {
-		log.Printf("info: there is no awating item in the queue of %v\n", repoOwner+repoName)
-		return
+		log.Printf("info: there is no awating item in the queue of %v/%v\n", owner, name)
+		return true, false
 	}
 
 	nextNum := next.PullRequest
 
-	ok, commit := operation.TryWithMaster(client, repoOwner, repoName, nextInfo)
+	ok, commit := operation.TryWithMaster(client, owner, name, nextInfo)
 	if !ok {
 		log.Printf("info: we cannot try #%v with the latest `master`.", nextNum)
 		// FIXME: We should to try the next pull req in the queue.
-		return
+		return false, true
 	}
 
 	next.SHA = commit.SHA
-	queue.SetActive(next)
+	q.SetActive(next)
 	log.Printf("info: pin #%v as the active item to queue\n", nextNum)
-	queue.Save()
 
-	log.Println("info: complete to start the next trying")
+	return true, true
 }
 
 func getNextAvailableItem(queue *queue.AutoMergeQueue,
