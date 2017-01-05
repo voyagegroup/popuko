@@ -131,6 +131,18 @@ func mergeSucceedItem(client *github.Client,
 
 		comment := ":collision: " + *ev.State + ": The branch testing to merge this pull request into master has been troubled."
 		commentStatus(client, owner, name, prNum, comment)
+
+		currentLabels := operation.GetLabelsByIssue(client.Issues, owner, name, prNum)
+		if currentLabels == nil {
+			return false
+		}
+
+		labels := operation.AddFailsTestsWithUpsreamLabel(currentLabels)
+		_, _, err = client.Issues.ReplaceLabelsForIssue(owner, name, prNum, labels)
+		if err != nil {
+			log.Println("warn: could not change labels of the issue")
+		}
+
 		return false
 	}
 
