@@ -77,13 +77,11 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	}
 
 	if c.info.EnableAutoMerge {
-		c.autoMergeRepo.Lock()
-		defer c.autoMergeRepo.Unlock()
+		qHandle := c.autoMergeRepo.Get(repoOwner, repoName)
+		qHandle.Lock()
+		defer qHandle.Unlock()
 
-		q := c.autoMergeRepo.Get(repoOwner, repoName)
-
-		q.Lock()
-		defer q.Unlock()
+		q := qHandle.Load()
 
 		item := &queue.AutoMergeQueueItem{
 			PullRequest: issue,
