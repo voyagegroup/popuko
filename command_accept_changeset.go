@@ -77,58 +77,47 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 	}
 
 	if c.info.EnableAutoMerge {
-		if c.info.ExperimentalTryOnAutoBranch() {
-			c.queue.Lock()
-			defer c.queue.Unlock()
+		c.queue.Lock()
+		defer c.queue.Unlock()
 
-			q := &queue.AutoMergeQueueItem{
-				PullRequest: issue,
-				SHA:         nil,
-			}
-			c.queue.Push(q)
-
-			if c.queue.HasActive() {
-				log.Printf("info: pull request (%v) has been queued but other is active.\n", issue)
-				{
-					comment := ":postbox: This pull request is queued. Please await the time."
-					if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
-						log.Println("info: could not create the comment to declare to merge this.")
-					}
-				}
-				return true, nil
-			}
-
-			ok, next := c.queue.GetNext()
-			if !ok || next == nil {
-				log.Println("error: this queue should not be empty because `q` is queued just now.")
-				return false, nil
-			}
-
-			if next != q {
-				log.Println("error: `next` should be equal to `q` because there should be only `q` in queue.")
-				return false, nil
-			}
-
-			ok, commit := operation.TryWithMaster(client, repoOwner, repoName, pr)
-			if !ok {
-				log.Printf("info: we cannot try #%v with the latest `master`.", issue)
-				return false, nil
-			}
-
-			q.SHA = commit.SHA
-			c.queue.SetActive(q)
-			log.Printf("info: pin #%v as the active item to queue\n", issue)
-			c.queue.Save()
-		} else {
-			if ok := operation.MergePullRequest(client, repoOwner, repoName, pr); !ok {
-				log.Printf("info: cannot merge pull request #%v\n", issue)
-				return false, nil
-			}
-
-			if c.info.DeleteAfterAutoMerge {
-				operation.DeleteBranchByPullRequest(client.Git, pr)
-			}
+		q := &queue.AutoMergeQueueItem{
+			PullRequest: issue,
+			SHA:         nil,
 		}
+		c.queue.Push(q)
+
+		if c.queue.HasActive() {
+			log.Printf("info: pull request (%v) has been queued but other is active.\n", issue)
+			{
+				comment := ":postbox: This pull request is queued. Please await the time."
+				if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
+					log.Println("info: could not create the comment to declare to merge this.")
+				}
+			}
+			return true, nil
+		}
+
+		ok, next := c.queue.GetNext()
+		if !ok || next == nil {
+			log.Println("error: this queue should not be empty because `q` is queued just now.")
+			return false, nil
+		}
+
+		if next != q {
+			log.Println("error: `next` should be equal to `q` because there should be only `q` in queue.")
+			return false, nil
+		}
+
+		ok, commit := operation.TryWithMaster(client, repoOwner, repoName, pr)
+		if !ok {
+			log.Printf("info: we cannot try #%v with the latest `master`.", issue)
+			return false, nil
+		}
+
+		q.SHA = commit.SHA
+		c.queue.SetActive(q)
+		log.Printf("info: pin #%v as the active item to queue\n", issue)
+		c.queue.Save()
 	}
 
 	log.Printf("info: complete merge the pull request %v\n", issue)
