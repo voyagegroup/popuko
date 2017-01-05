@@ -125,6 +125,18 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			srv.autoMergeRepo,
 		}
 		return commander.AcceptChangesetByOtherReviewer(ev, cmd.Reviewer[0])
+	case *input.RejectChangeByReviewerCommand:
+		commander := epic.RejectChangeSetCommand{
+			BotName:       config.BotNameForGithub(),
+			Client:        srv.githubClient,
+			Owner:         repoOwner,
+			Name:          repo,
+			Number:        *ev.Issue.Number,
+			Cmd:           cmd,
+			Info:          repoInfo,
+			AutoMergeRepo: srv.autoMergeRepo,
+		}
+		return commander.RejectChangeset(ev)
 	default:
 		return false, fmt.Errorf("error: unreachable")
 	}
