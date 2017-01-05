@@ -125,6 +125,6 @@ func (s *AutoMergeQueue) HasActive() bool {
 }
 
 type AutoMergeQueueItem struct {
-	PullRequest int     `json:"pull_request"`
-	SHA         *string `json:"sha"`
+	PullRequest int    `json:"pull_request"`
+	SHA         string `json:"sha"`
 }
