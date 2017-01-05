@@ -88,6 +88,7 @@ func (c *AcceptCommand) commandAcceptChangesetByReviewer(ev *github.IssueComment
 			SHA:         nil,
 		}
 		q.Push(item)
+		q.Save()
 
 		if q.HasActive() {
 			log.Printf("info: pull request (%v) has been queued but other is active.\n", issue)
