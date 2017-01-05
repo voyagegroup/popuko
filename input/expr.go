@@ -1,13 +1,13 @@
-package main
+package input
 
 import (
 	"log"
 	"strings"
 )
 
-// XXX: parseCommand is doing adhoc command parsing.
+// ParseCommand is doing adhoc command parsing.
 // for the future, we should write an actual parser.
-func parseCommand(raw string) (ok bool, cmd interface{}) {
+func ParseCommand(raw string) (ok bool, cmd interface{}) {
 	log.Printf("debug: input: %v\n", raw)
 	tmp := strings.Split(raw, "\n")
 

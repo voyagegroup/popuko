@@ -1,4 +1,4 @@
-package main
+package epic
 
 import (
 	"log"
@@ -10,7 +10,7 @@ import (
 	"github.com/karen-irc/popuko/operation"
 )
 
-func (srv *AppServer) detectUnmergeablePR(ev *github.PushEvent) {
+func DetectUnmergeablePR(client *github.Client, ev *github.PushEvent) {
 	// At this moment, we only care a pull request which are looking master branch.
 	if *ev.Ref != "refs/heads/master" {
 		log.Printf("info: pushed branch is not related to me: %v\n", *ev.Ref)
@@ -22,7 +22,6 @@ func (srv *AppServer) detectUnmergeablePR(ev *github.PushEvent) {
 	repo := *ev.Repo.Name
 	log.Printf("debug: repository name is %v\n", repo)
 
-	client := srv.githubClient
 	prSvc := client.PullRequests
 
 	prList, _, err := prSvc.List(repoOwner, repo, &github.PullRequestListOptions{

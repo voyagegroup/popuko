@@ -1,4 +1,4 @@
-package main
+package epic
 
 import (
 	"log"
@@ -7,11 +7,10 @@ import (
 	"github.com/karen-irc/popuko/operation"
 )
 
-func (srv *AppServer) commandAssignReviewer(ev *github.IssueCommentEvent, target string) (bool, error) {
+func AssignReviewer(client *github.Client, ev *github.IssueCommentEvent, target string) (bool, error) {
 	log.Printf("info: Start: assign the reviewer by %v\n", *ev.Comment.ID)
 	defer log.Printf("info: End: assign the reviewer by %v\n", *ev.Comment.ID)
 
-	client := srv.githubClient
 	issueSvc := client.Issues
 
 	repoOwner := *ev.Repo.Owner.Login

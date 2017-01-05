@@ -1,4 +1,4 @@
-package main
+package epic
 
 import (
 	"log"
@@ -9,7 +9,7 @@ import (
 	"github.com/karen-irc/popuko/setting"
 )
 
-func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
+func CheckAutoBranch(client *github.Client, autoMergeRepo *queue.AutoMergeQRepo, ev *github.StatusEvent) {
 	log.Println("info: Start: checkAutoBranch")
 	defer log.Println("info: End: checkAutoBranch")
 
@@ -23,7 +23,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 	repoName := *ev.Repo.Name
 	log.Printf("info: Target repository is %v/%v\n", repoOwner, repoName)
 
-	repoInfo := createRepositoryInfo(srv.githubClient.Repositories, repoOwner, repoName)
+	repoInfo := GetRepositoryInfo(client.Repositories, repoOwner, repoName)
 	if repoInfo == nil {
 		log.Println("debug: cannot get repositoryInfo")
 		return
@@ -37,7 +37,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 	}
 	log.Println("info: Start to handle auto merging the branch.")
 
-	qHandle := srv.autoMergeRepo.Get(repoOwner, repoName)
+	qHandle := autoMergeRepo.Get(repoOwner, repoName)
 
 	qHandle.Lock()
 	defer qHandle.Unlock()
@@ -61,8 +61,6 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 		return
 	}
 	log.Println("info: the status event is related to auto branch.")
-
-	client := srv.githubClient
 
 	mergeSucceedItem(client, repoOwner, repoName, repoInfo, q, ev)
 
