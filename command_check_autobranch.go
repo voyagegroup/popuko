@@ -144,7 +144,7 @@ func mergeSucceedItem(client *github.Client,
 	comment := ":tada: " + *ev.State + ": The branch testing to merge this pull request into master has been succeed."
 	commentStatus(client, owner, name, prNum, comment)
 
-	if ok := operation.MergePullRequest(client, owner, name, prInfo); !ok {
+	if ok := operation.MergePullRequest(client, owner, name, prInfo, active.SHA); !ok {
 		log.Printf("info: cannot merge pull request #%v\n", prNum)
 		return false
 	}
@@ -232,23 +232,7 @@ func getNextAvailableItem(queue *queue.AutoMergeQueue,
 		}
 
 		if next.SHA != *nextInfo.Head.SHA {
-			log.Printf("warn: the head of #%v is changed from r+.\n", prNum)
-			currentLabels := operation.GetLabelsByIssue(issueSvc, owner, name, prNum)
-			if currentLabels == nil {
-				continue
-			}
-
-			labels := operation.AddAwaitingReviewLabel(currentLabels)
-			_, _, err = issueSvc.ReplaceLabelsForIssue(owner, name, prNum, labels)
-			if err != nil {
-				log.Println("warn: could not change labels of the issue")
-			}
-
-			comment := ":no_entry: The current head is changed from when this had been accepted. Please review again."
-			if ok := operation.AddComment(issueSvc, owner, name, prNum, comment); !ok {
-				log.Println("error: could not write the comment about the result of auto branch.")
-			}
-
+			operation.CommentHeadIsDifferentFromAccepted(issueSvc, owner, name, prNum)
 			continue
 		}
 
