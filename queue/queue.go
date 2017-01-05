@@ -125,6 +125,10 @@ func (s *AutoMergeQueue) HasActive() bool {
 }
 
 type AutoMergeQueueItem struct {
-	PullRequest int    `json:"pull_request"`
-	SHA         string `json:"sha"`
+	// The number of the pull request.
+	PullRequest int `json:"pull_request"`
+	// The head sha of the pull request when it has been accepted.
+	PrHead string `json:"pr_head_sha"`
+	// The head sha of the branch which trying to merge into the upstream
+	AutoBranchHead *string `json:"testing_head_sha"`
 }
