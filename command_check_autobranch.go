@@ -57,7 +57,7 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 
 	log.Println("info: got the active item.")
 
-	if !isIncludeAutoBranch(ev.Branches) {
+	if !operation.IsIncludeAutoBranch(ev.Branches) {
 		log.Printf("warn: this status event (%v) does not include the auto branch\n", *ev.ID)
 		return
 	}
@@ -187,24 +187,6 @@ func (srv *AppServer) checkAutoBranch(ev *github.StatusEvent) {
 	log.Printf("info: pin #%v as the active item to queue\n", nextNum)
 
 	log.Println("info: complete to start the next trying")
-}
-
-func isIncludeAutoBranch(branches []*github.Branch) bool {
-	for _, b := range branches {
-		if b == nil {
-			continue
-		}
-
-		if b.Name == nil {
-			continue
-		}
-
-		if *b.Name == "auto" {
-			return true
-		}
-	}
-
-	return false
 }
 
 func getNextAvailableItem(queue *queue.AutoMergeQueue,

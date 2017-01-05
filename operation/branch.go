@@ -124,3 +124,21 @@ func MergePullRequest(client *github.Client, owner string, name string, info *gi
 
 	return true
 }
+
+func IsIncludeAutoBranch(branches []*github.Branch) bool {
+	for _, b := range branches {
+		if b == nil {
+			continue
+		}
+
+		if b.Name == nil {
+			continue
+		}
+
+		if *b.Name == "auto" {
+			return true
+		}
+	}
+
+	return false
+}
