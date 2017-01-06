@@ -4,11 +4,10 @@
 
 ## What is this?
 
-- This is an operation bot to do these things automatically.
-    - GitHub
-        - merge a pull request automatically.
-        - assign a pull request to a reviewer.
-        - patrol a pull request which are newly unmergeable by others.
+- This is an operation bot to do these things automatically for your project on GitHub.
+    - merge a pull request automatically.
+    - assign a pull request to a reviewer.
+    - patrol a pull request which are newly unmergeable by others.
 - Almost reimplementation of [homu](https://github.com/barosl/homu).
 
 
