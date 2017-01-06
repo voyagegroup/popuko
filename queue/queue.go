@@ -160,5 +160,5 @@ type AutoMergeQueueItem struct {
 	// The head sha of the pull request when it has been accepted.
 	PrHead string `json:"pr_head_sha"`
 	// The head sha of the branch which trying to merge into the upstream
-	AutoBranchHead *string `json:"testing_head_sha"`
+	AutoBranchHead *string `json:"auto_head_sha"`
 }
