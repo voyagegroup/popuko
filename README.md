@@ -19,8 +19,21 @@ and more. But its development is not in active now. And also Mozilla's servo tea
 [their forked version of homu][servo-homu]. But it is developed for their specific usecase.
 Not for other projects.
 
-This project intent to re-implement homu with minimum features to support our projects for work including non-public activities,
-and to simplify to deploy this bot, and challenge to deploy this bot easily.
+And, to use without host homu by yourself, you can use [homu.io][homu.io].
+But it's shared by other third repositories. It would not suite to use it for your internal repository.
+
+Some features (e.g. assigning reviewers to the pull request) are provided by [highfilve][highfive], not by homu.
+Thus you also have to setup it to use their features which are used in code review frequently.
+
+And furthermore, homu's reviewer configuration need to configure the central configuration file.
+But we'd like to place the configuration for each repositries as decentralization.
+This decentraization is important if you manage many repositories and
+each of them has contibutors and reviewers individually.
+
+By these things, this project intent to re-implement homu and highfive with minimum features
+which can support a review process, and the primary targets are an internal repository on GitHub for work
+or a public repository which want to host some merge bots by themselves.
+And also this aims to simpify deploying this bot. We challenge to make it easier than the original's one.
 
 These are why we have developed this project.
 
@@ -138,6 +151,13 @@ Auto-Merging behaves like this:
 - The base revision and build date are embedded to the exec binary. You can see them by checking stdout on start it.
 
 
+### Out of scope of this project
+
+- Full-replace homu.
+- This project does not have any plan to re-implement all features of homu.
+- No plans to create any alternatives of [homu.io][homu.io].
+
+
 ### The current limitations
 
 - The upstream branch should be named as `master`.
@@ -179,3 +199,4 @@ Auto-Merging behaves like this:
 [homu]: https://github.com/barosl/homu
 [servo-homu]: https://github.com/servo/homu
 [highfive]: https://github.com/servo/highfive
+[homu.io]: http://homu.io/
