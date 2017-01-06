@@ -99,7 +99,7 @@ Auto-Merging behaves like this:
 3. Set `http://<your_server_with_port>/github` for the webhook to your repository with these events:
     - `Issue comment`
     - `Push`
-    - `Status` (required to use Auto-Merge feature).
+    - `Status` (required to use Auto-Merging feature).
 4. Create these labels to make the status visible.
     - `S-awaiting-review`
         - for a pull request assigned to some reviewer.
@@ -108,7 +108,7 @@ Auto-Merging behaves like this:
     - `S-needs-rebase`
         - for an unmergeable pull request.
     - `S-fails-tests-with-upstream`
-        - for a pull request which fails tests after try to merge into upstream (used by Auto-Merge feature).
+        - for a pull request which fails tests after try to merge into upstream (used by Auto-Merging feature).
 6. Enable to start the build on creating the branch named `auto` for your CI service (e.g. TravisCI).
 7. Done!
 
