@@ -6,7 +6,7 @@
 
 - This is an operation bot to do these things automatically.
     - GitHub
-        - merge a pull request.
+        - merge a pull request automatically.
         - assign a pull request to a reviewer.
         - patrol a pull request which are newly unmergeable by others.
 - Almost reimplementation of [homu](https://github.com/barosl/homu).
@@ -21,21 +21,54 @@ and more. But its development is not in active now. And also Mozilla's servo tea
 Not for other projects.
 
 This project intent to re-implement homu with minimum features to support our projects for work including non-public activities,
-and to simplify to deploy this bot. This is why we have developed this project.
+and to simplify to deploy this bot, and challenge to deploy this bot easily.
+
+These are why we have developed this project.
 
 
-## Command
+## Features
+
+These features are inspired by [homu](https://github.com/barosl/homu) and [highfive](https://github.com/servo/highfive).
+
+- __Change the labels, the assignees of the pull request by comments__
+    - By a reviewer's comment, this bot changes the labels, the assignees of the pull request.
+- __Patrol pull requests which cannot merge into it after the upstream has been updated__
+    - This bot patrols automatically by hooking GitHub's push events.
+    - And change the label for the unmergeable pull request.
+- __Try the pull request with the latest `master` branch, and merge into it automatically__
+    - We call this feature as "Auto-Merging".
+- __Specify a reviewer by a file committed to the repository__
+    - This feature is not implemented by homu.
+    - You can manage a reviewer by normal pull request process for open governance.
+
+
+### Command
 
 You can use these command as the comment for pull request.
 
-- `@<botname> r+`
+- `r? @<reviewer>` or `@<reviewer> r?`
+    - Assign the reviewer to the pull request with labeling `S-awaiting-review`.
+- `@<botname> r+` or `@<botname> r=<reviewer>`
     - Merge this pull request by `<botname>` with labeling `S-awaiting-merge`.
-    - `@<botname> r=<reviewer>` means the same thing.
+    - If you enable Auto-Merging, this bot queues the pull request into the approved queue.
+      And this bot
 - `@<botname> r-`
     - Cancel the approved by `@<botname> r+`.
     - This set back the label to `S-awaiting-review`
-- `@<reviewer> r?`
-    - Assign the pull request to the reviewer with labeling `S-awaiting-review`.
+
+
+### Auto-Merging
+
+This bot provides a powerful feature we called as "Auto-Merging".
+Auto-Merging behaves like this:
+
+1. Accept the pull request by the review's approved comment (e.g. `@bot r+`)
+2. This bot queues its pull request into the approved queue.
+3. If there is no active item, try to merge it into the latest upstream and run CI on the special "auto" branch.
+4. If the result of step 3 is success, this bot merge its pull request into the upstream actually.
+   Otherwise, this bot marks it as failed.
+5. This bot redo step 3 until the approved queue will be empty.
+
 
 
 ## Setup Instructions
@@ -83,6 +116,13 @@ You can use these command as the comment for pull request.
 - We only support the latest revision.
 - All of `master` branch is equal to our released version.
 - The base revision and build date are embedded to the exec binary. You can see them by checking stdout on start it.
+
+
+## The current limitations
+
+- The upstream branch should be named as `master`.
+- This bot cannot handle the pull request which aims to merge into not `master` correctly.
+- This bot uses `auto` branch for the origin repository. You cannot configure the name.
 
 
 ## TODO
