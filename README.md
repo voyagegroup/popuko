@@ -144,6 +144,14 @@ Auto-Merging behaves like this:
 - This bot uses `auto` branch for the origin repository. You cannot configure the name.
 
 
+### Can I reuse this package as a library?
+
+- Yes... But I don't recomment to do it.
+- Sorry. We don't think to maintain this package as a library.
+    - We don't care the breaking change for library APIs.
+- This repository is developed for the application, not to reuse from others.
+
+
 ## License
 
 [The MIT License](./LICENSE.txt)
