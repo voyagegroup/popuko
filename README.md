@@ -152,6 +152,12 @@ Auto-Merging behaves like this:
 - This repository is developed for the application, not to reuse from others.
 
 
+### Do you have any plan to support GitLab or GitHub Enterprise?
+
+- GitLab: see [#152](https://github.com/karen-irc/popuko/issues/152).
+- GitHub Enterprise: [#173](https://github.com/karen-irc/popuko/issues/173).
+
+
 ## License
 
 [The MIT License](./LICENSE.txt)
