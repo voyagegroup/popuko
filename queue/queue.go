@@ -103,6 +103,15 @@ func (s *AutoMergeQueue) GetNext() (ok bool, item *AutoMergeQueueItem) {
 	return true, front
 }
 
+func (s *AutoMergeQueue) IsAwaiting(pr int) (ok bool, item *AutoMergeQueueItem) {
+	for _, item := range s.q {
+		if item.PullRequest == pr {
+			return true, item
+		}
+	}
+	return
+}
+
 func (s *AutoMergeQueue) RemoveAwaiting(pr int) (found bool) {
 	active := s.GetActive()
 	if (active != nil) && (active.PullRequest == pr) {
