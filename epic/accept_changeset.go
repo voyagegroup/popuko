@@ -111,27 +111,7 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 			return true, nil
 		}
 
-		ok, next := q.GetNext()
-		if !ok || next == nil {
-			log.Println("error: this queue should not be empty because `q` is queued just now.")
-			return false, nil
-		}
-
-		if next != item {
-			log.Println("error: `next` should be equal to `q` because there should be only `q` in queue.")
-			return false, nil
-		}
-
-		ok, commit := operation.TryWithMaster(client, repoOwner, repoName, pr)
-		if !ok {
-			log.Printf("info: we cannot try #%v with the latest `master`.", issue)
-			return false, nil
-		}
-
-		item.AutoBranchHead = &commit
-		q.SetActive(item)
-		log.Printf("info: pin #%v as the active item to queue\n", issue)
-		q.Save()
+		tryNextItem(client, repoOwner, repoName, q)
 	}
 
 	log.Printf("info: complete merge the pull request %v\n", issue)
