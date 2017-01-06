@@ -186,7 +186,7 @@ func commentStatus(client *github.Client, owner, name string, prNum int, comment
 func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQueue) (ok, hasNext bool) {
 	defer q.Save()
 
-	next, nextInfo := getNextAvailableItem(q, client.Issues, client.PullRequests, owner, name)
+	next, nextInfo := getNextAvailableItem(client, owner, name, q)
 	if next == nil {
 		log.Printf("info: there is no awating item in the queue of %v/%v\n", owner, name)
 		return true, false
@@ -207,11 +207,13 @@ func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQu
 	return true, true
 }
 
-func getNextAvailableItem(queue *queue.AutoMergeQueue,
-	issueSvc *github.IssuesService,
-	prSvc *github.PullRequestsService,
+func getNextAvailableItem(client *github.Client,
 	owner string,
-	name string) (item *queue.AutoMergeQueueItem, info *github.PullRequest) {
+	name string,
+	queue *queue.AutoMergeQueue) (*queue.AutoMergeQueueItem, *github.PullRequest) {
+
+	issueSvc := client.Issues
+	prSvc := client.PullRequests
 
 	log.Println("Start to find the next item")
 	defer log.Println("End to find the next item")
@@ -220,7 +222,7 @@ func getNextAvailableItem(queue *queue.AutoMergeQueue,
 		ok, next := queue.GetNext()
 		if !ok || next == nil {
 			log.Printf("debug: there is no awating item in the queue of %v/%v\n", owner, name)
-			return
+			return nil, nil
 		}
 
 		log.Println("debug: the next item has fetched from queue.")
