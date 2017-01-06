@@ -20,7 +20,7 @@ var (
 func main() {
 	var configDir string
 	{
-		c := "Specify the base dir of config as absolute path. default: $" + setting.XdgConfigHomeEnvKey
+		c := "Specify the config dir as absolute path. default: $" + setting.XdgConfigHomeEnvKey + "/" + setting.HomeDirName
 		flag.StringVar(&configDir, "config-base-dir", "", c)
 	}
 	flag.Parse()
