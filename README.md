@@ -102,6 +102,7 @@ Auto-Merging behaves like this:
     - Let's copy from [`./example.config.toml`](./example.config.toml)
 4. Start the exec binary.
     - This app dumps all logs into stdout & stderr.
+    - If you'd like to use TLS, then provide `--tls`, `--cert`, and `--key` options.
 
 #### Set up for your repository in GitHub.
 
