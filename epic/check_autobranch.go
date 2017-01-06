@@ -239,8 +239,8 @@ func getNextAvailableItem(client *github.Client,
 			continue
 		}
 
-		if *nextInfo.State != "open" {
-			log.Printf("debug: the pull request #%v has been resolved the state as `%v`\n", prNum, *nextInfo.State)
+		if state := *nextInfo.State; state != "open" {
+			log.Printf("debug: the pull request #%v has been resolved the state as `%v`\n", prNum, state)
 			continue
 		}
 
