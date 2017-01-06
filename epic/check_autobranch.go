@@ -126,7 +126,7 @@ func mergeSucceedItem(client *github.Client,
 	if *ev.State != "success" {
 		log.Println("info: could not merge pull request")
 
-		comment := ":collision: " + *ev.State + ": The branch testing to merge this pull request into master has been troubled."
+		comment := ":collision: The branch status which tried to merge this pull request into master is: " + *ev.State
 		commentStatus(client, owner, name, prNum, comment)
 
 		currentLabels := operation.GetLabelsByIssue(client.Issues, owner, name, prNum)
@@ -143,7 +143,7 @@ func mergeSucceedItem(client *github.Client,
 		return false
 	}
 
-	comment := ":tada: " + *ev.State + ": The branch testing to merge this pull request into master has been succeed."
+	comment := ":tada: The branch status which tried to merge this pull request into master is: " + *ev.State
 	commentStatus(client, owner, name, prNum, comment)
 
 	if ok := operation.MergePullRequest(client, owner, name, prInfo, active.PrHead); !ok {
