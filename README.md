@@ -8,15 +8,15 @@
     - merge a pull request automatically.
     - assign a pull request to a reviewer.
     - patrol a pull request which are newly unmergeable by others.
-- Almost reimplementation of [homu](https://github.com/barosl/homu).
+- Almost reimplementation of [homu][homu].
 
 
 ## Motivation
 
-[homu](https://github.com/barosl/homu) is the super great operation bot for development on GitHub
+[homu][homu] is the super great operation bot for development on GitHub
 and it supports a lot of valuable features: merge pull request into the latest upstream, try to testing on TravisCI,
 and more. But its development is not in active now. And also Mozilla's servo team maintains
-[their forked version of homu](https://github.com/servo/homu). But it is developed for their specific usecase.
+[their forked version of homu][servo-homu]. But it is developed for their specific usecase.
 Not for other projects.
 
 This project intent to re-implement homu with minimum features to support our projects for work including non-public activities,
@@ -27,7 +27,7 @@ These are why we have developed this project.
 
 ## Features
 
-These features are inspired by [homu](https://github.com/barosl/homu) and [highfive](https://github.com/servo/highfive).
+These features are inspired by [homu][homu] and [highfive][highfive].
 
 - __Change the labels, the assignees of the pull request by comments__
     - By a reviewer's comment, this bot changes the labels, the assignees of the pull request.
@@ -158,3 +158,9 @@ Auto-Merging behaves like this:
 
 - Intelligent cooperation with TravisCI.
 - [See more...](https://github.com/karen-irc/popuko/issues)
+
+
+
+[homu]: https://github.com/barosl/homu
+[servo-homu]: https://github.com/servo/homu
+[highfive]: https://github.com/servo/highfive
