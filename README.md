@@ -40,43 +40,48 @@ You can use these command as the comment for pull request.
 
 ## Setup Instructions
 
+### Build & Launch the Application
 
-### Build
+1. Build from source file
+    - You can do `go get`.
+2. Create the config directory.
+    - By default, this app uses `$XDG_CONFIG_HOME/popuko/` as the config dir.
+      (If you don't set `$XDG_CONFIG_HOME` environment variable, this use `~/.config/popuko/`.)
+    - You can configure the config directory by `--config-base-dir`
+3. Set `config.toml` to the config directory.
+    - Let's copy from [`./example.config.toml`](./example.config.toml)
+4. Start the exec binary.
+    - This app dumps all logs into stdout & stderr.
 
-This tools does not work with `go get` currently.
-So you need to do these things.
+#### Set up for your repository in GitHub.
 
-0. Clone this source file
-1. [`gom install`](https://github.com/mattn/gom)
-2. `make new_config`
-3. Fill `config.go` with your preference.
-    - For building a single binary which contains all configure at the compile time.
-4. `make build`
-5. You can get the exec binary as named `popuko` into the current directory.
-
-
-### Setup
-
-#### GitHub
-
-1. Start the exec binary in your server.
-2. Set `http://<your_server_with_port>/github` for the webhook to your repository with these events
+1. Set the account (or the team which it belonging to) which this app uses as a collaborator
+   for your repository (requires __write__ priviledge).
+2. Add `OWNERS.json` file to the root of your repository.
+    - Please see [`OwnersFile`](./setting/ownersfile.go) about the detail.
+    - The example is [here](./OWNERS.json).
+3. Set `http://<your_server_with_port>/github` for the webhook to your repository with these events:
     - `Issue comment`
     - `Push`
-3. Set your bot's account (or the team which it belonging to) as a collaborator for the repository (give __write__ priviledge.)
+    - `Status` (required to use Auto-Merge feature).
 4. Create these labels to make the status visible.
-    - `S-awaiting-review`: for a pull request assigned to some reviewer.
-    - `S-awaiting-merge`: for a pull request queued to this bot.
-    - `S-needs-rebase`: for an unmergeable pull request.
-    - `S-fails-tests-with-upstream`: for a pull request which fails tests after try to merge into upstream.
-5. Done!
+    - `S-awaiting-review`
+        - for a pull request assigned to some reviewer.
+    - `S-awaiting-merge`
+        - for a pull request queued to this bot.
+    - `S-needs-rebase`
+        - for an unmergeable pull request.
+    - `S-fails-tests-with-upstream`
+        - for a pull request which fails tests after try to merge into upstream (used by Auto-Merge feature).
+6. Enable to start the build on creating the branch named `auto` for your CI service (e.g. TravisCI).
+7. Done!
 
 
 ## Why there is no released version?
 
 - __This project always lives in canary__.
 - We only support the latest revision.
-- All the `HEAD` of `master` branch is equal to our released version.
+- All of `master` branch is equal to our released version.
 - The base revision and build date are embedded to the exec binary. You can see them by checking stdout on start it.
 
 
