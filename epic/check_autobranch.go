@@ -87,8 +87,12 @@ func isRelatedToAutoBranch(active *queue.AutoMergeQueueItem, ev *github.StatusEv
 }
 
 func checkCommitHashOnTrying(active *queue.AutoMergeQueueItem, ev *github.StatusEvent) bool {
-	autoTipSha := active.SHA
-	if autoTipSha != *ev.SHA {
+	autoTipSha := active.AutoBranchHead
+	if autoTipSha == nil {
+		return false
+	}
+
+	if *autoTipSha != *ev.SHA {
 		log.Printf("debug: The commit hash which contained by the status event: %v\n", *ev.SHA)
 		log.Printf("debug: The commit hash is pinned to the status queue as the tip of auto branch: %v\n", autoTipSha)
 		return false
@@ -142,7 +146,7 @@ func mergeSucceedItem(client *github.Client,
 	comment := ":tada: " + *ev.State + ": The branch testing to merge this pull request into master has been succeed."
 	commentStatus(client, owner, name, prNum, comment)
 
-	if ok := operation.MergePullRequest(client, owner, name, prInfo); !ok {
+	if ok := operation.MergePullRequest(client, owner, name, prInfo, active.PrHead); !ok {
 		log.Printf("info: cannot merge pull request #%v\n", prNum)
 		return false
 	}
@@ -196,7 +200,7 @@ func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQu
 		return tryNextItem(client, owner, name, q)
 	}
 
-	next.SHA = *commit.SHA
+	next.AutoBranchHead = commit.SHA
 	q.SetActive(next)
 	log.Printf("info: pin #%v as the active item to queue\n", nextNum)
 
@@ -228,24 +232,8 @@ func getNextAvailableItem(queue *queue.AutoMergeQueue,
 			continue
 		}
 
-		if next.SHA != *nextInfo.Head.SHA {
-			log.Printf("warn: the head of #%v is changed from r+.\n", prNum)
-			currentLabels := operation.GetLabelsByIssue(issueSvc, owner, name, prNum)
-			if currentLabels == nil {
-				continue
-			}
-
-			labels := operation.AddAwaitingReviewLabel(currentLabels)
-			_, _, err = issueSvc.ReplaceLabelsForIssue(owner, name, prNum, labels)
-			if err != nil {
-				log.Println("warn: could not change labels of the issue")
-			}
-
-			comment := ":no_entry_sign: The current head is changed from when this had been accepted. Please review again. :no_entry_sign:"
-			if ok := operation.AddComment(issueSvc, owner, name, prNum, comment); !ok {
-				log.Println("error: could not write the comment about the result of auto branch.")
-			}
-
+		if next.PrHead != *nextInfo.Head.SHA {
+			operation.CommentHeadIsDifferentFromAccepted(issueSvc, owner, name, prNum)
 			continue
 		}
 

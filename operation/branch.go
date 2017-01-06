@@ -98,12 +98,22 @@ func DeleteBranchByPullRequest(svc *github.GitService, pr *github.PullRequest) (
 	return true, nil
 }
 
-func MergePullRequest(client *github.Client, owner string, name string, info *github.PullRequest) bool {
+func MergePullRequest(client *github.Client, owner string, name string, info *github.PullRequest, acceptedSha string) bool {
 	number := *info.Number
+
+	// Even if we checks the head at here, the new commits may be pushed from user
+	// before we merge it actually. To prevent to such case, we also set `github.PullRequestOptions.SHA`.
+	if acceptedSha != *info.Head.SHA {
+		CommentHeadIsDifferentFromAccepted(client.Issues, owner, name, number)
+		return false
+	}
+	option := &github.PullRequestOptions{
+		SHA: acceptedSha, // To ensure that we only accept the accepted changeset.
+	}
 
 	// XXX: By the behavior, github uses defautlt merge message
 	// if we specify `""` to `commitMessage`.
-	_, _, err := client.PullRequests.Merge(owner, name, number, "", nil)
+	_, _, err := client.PullRequests.Merge(owner, name, number, "", option)
 	if err != nil {
 		log.Println("warn: could not merge pull request")
 		comment := "Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
