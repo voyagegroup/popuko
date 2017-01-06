@@ -34,6 +34,12 @@ func DetectUnmergeablePR(client *github.Client, ev *github.PushEvent) {
 
 	compare := *ev.Compare
 	comment := ":umbrella: The latest upstream change (presumably [these](" + compare + ")) made this pull request unmergeable. Please resolve the merge conflicts."
+
+	// Restrict the number of Goroutine which checks unmergeables
+	// to avoid the API limits at a moment.
+	const maxConcurrency int = 8
+	semaphore := make(chan int, maxConcurrency)
+
 	wg := &sync.WaitGroup{}
 	for _, item := range prList {
 		wg.Add(1)
@@ -45,6 +51,7 @@ func DetectUnmergeablePR(client *github.Client, ev *github.PushEvent) {
 			repo,
 			*item.Number,
 			comment,
+			semaphore,
 		})
 	}
 	wg.Wait()
@@ -57,12 +64,17 @@ type markUnmergeableInfo struct {
 	Repo      string
 	Number    int
 	Comment   string
+	semaphore chan int
 }
 
 func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
+	info.semaphore <- 0 // wait until the internal buffer takes a space.
+
 	var err error
 	defer wg.Done()
 	defer func() {
+		<-info.semaphore // release the space of the internal buffer
+
 		if err != nil {
 			log.Printf("error: %v\n", err)
 		}
