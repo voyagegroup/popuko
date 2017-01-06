@@ -1,7 +1,4 @@
 You can modify this file to create no-op changelists.
 This is inspired by https://chromium.googlesource.com/v8/v8/+/master/tools/whitespace.txt
 --------
-demo
-demo
 testing for auto merging
-test test
