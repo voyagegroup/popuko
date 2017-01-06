@@ -5,6 +5,8 @@ import (
 
 	"github.com/google/go-github/github"
 
+	"errors"
+
 	"github.com/karen-irc/popuko/input"
 	"github.com/karen-irc/popuko/operation"
 	"github.com/karen-irc/popuko/queue"
@@ -90,7 +92,15 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 			PrHead:      headSha,
 		}
 		q.Push(item)
-		q.Save()
+
+		ok, mutated := queuePullReq(q, item)
+		if !ok {
+			return false, errors.New("error: we cannot recover the error")
+		}
+
+		if mutated {
+			q.Save()
+		}
 
 		if q.HasActive() {
 			log.Printf("info: pull request (%v) has been queued but other is active.\n", issue)
@@ -141,4 +151,37 @@ func (c *AcceptCommand) AcceptChangesetByOtherReviewer(ev *github.IssueCommentEv
 	}
 
 	return c.AcceptChangesetByReviewer(ev)
+}
+
+func queuePullReq(queue *queue.AutoMergeQueue, item *queue.AutoMergeQueueItem) (ok bool, mutated bool) {
+	if queue.HasActive() {
+		active := queue.GetActive()
+		if active.PullRequest == item.PullRequest {
+			if active.PrHead == item.PrHead {
+				// noop
+				return true, false
+			}
+
+			queue.RemoveActive()
+			queue.Push(item)
+			return true, true
+		}
+	}
+
+	has, awaiting := queue.IsAwaiting(item.PullRequest)
+	if has {
+		if sameHead := (awaiting.PrHead == item.PrHead); sameHead {
+			return true, false
+		}
+
+		if ok := queue.RemoveAwaiting(item.PullRequest); !ok {
+			log.Println("error: ASSERT!: cannot remove awaiting item")
+			log.Printf("error: queue %+v\n", queue)
+			log.Printf("error: item %+v\n", item)
+			return false, false
+		}
+	}
+
+	queue.Push(item)
+	return true, true
 }
