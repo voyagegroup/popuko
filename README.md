@@ -33,7 +33,7 @@ These features are inspired by [homu](https://github.com/barosl/homu) and [highf
     - By a reviewer's comment, this bot changes the labels, the assignees of the pull request.
 - __Patrol pull requests which cannot merge into it after the upstream has been updated__
     - This bot patrols automatically by hooking GitHub's push events.
-    - And change the label for the unmergeable pull request.
+    - Change the label for the unmergeable pull request and comment about it.
 - __Try the pull request with the latest `master` branch, and merge into it automatically__
     - We call this feature as "Auto-Merging".
 - __Specify a reviewer by a file committed to the repository__
