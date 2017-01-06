@@ -100,7 +100,7 @@ func MergePullRequest(client *github.Client, owner string, name string, info *gi
 	_, _, err := client.PullRequests.Merge(owner, name, number, "", option)
 	if err != nil {
 		log.Println("warn: could not merge pull request")
-		comment := "Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
+		comment := ":skull:　Could not merge this pull request by:\n```\n" + err.Error() + "\n```"
 		if ok := AddComment(client.Issues, owner, name, number, comment); !ok {
 			log.Println("warn: could not create the comment to express no merging the pull request")
 		}
