@@ -114,7 +114,9 @@ Auto-Merging behaves like this:
 7. Done!
 
 
-## Why there is no released version?
+## FAQ
+
+### Why there is no released version?
 
 - __This project always lives in canary__.
 - We only support the latest revision.
@@ -122,11 +124,21 @@ Auto-Merging behaves like this:
 - The base revision and build date are embedded to the exec binary. You can see them by checking stdout on start it.
 
 
-## The current limitations
+### The current limitations
 
 - The upstream branch should be named as `master`.
 - This bot cannot handle the pull request which aims to merge into not `master` correctly.
 - This bot uses `auto` branch for the origin repository. You cannot configure the name.
+
+
+## License
+
+[The MIT License](./LICENSE.txt)
+
+
+## How to Contribute
+
+- [TODO: Write CONTRUBUTING.md](https://github.com/karen-irc/popuko/issues/97)
 
 
 ## TODO
