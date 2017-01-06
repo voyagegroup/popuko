@@ -40,34 +40,48 @@ These features are inspired by [homu](https://github.com/barosl/homu) and [highf
     - This feature is not implemented by homu.
     - You can manage a reviewer by normal pull request process for open governance.
 
-
 ### Command
 
 You can use these command as the comment for pull request.
 
-- `r? @<reviewer>` or `@<reviewer> r?`
-    - Assign the reviewer to the pull request with labeling `S-awaiting-review`.
-- `@<botname> r+` or `@<botname> r=<reviewer>`
-    - Merge this pull request by `<botname>` with labeling `S-awaiting-merge`.
-    - If you enable Auto-Merging, this bot queues the pull request into the approved queue.
-      And this bot
-- `@<botname> r-`
-    - Cancel the approved by `@<botname> r+`.
-    - This set back the label to `S-awaiting-review`
+#### `r? @<reviewer>`
+
+- Assign the reviewer to the pull request with labeling `S-awaiting-review`.
+- You can also call `@<reviewer> r?`.
+- All user can call this command.
+
+#### `@<botname> r+` or `@<botname> r=<reviewer>`
+
+- Mark this pull request as `S-awaiting-merge` by labeling.
+- If you enable Auto-Merging, this bot queues the pull request into the approved queue.
+- Require _reviewer_ privilege to call this command.
+
+#### `@<botname> r-`
+
+- Cancel the approved by `@<botname> r+`.
+    - If Auto-Merging is enabled, this removes the pull request from the approved queue.
+- This set back the label to `S-awaiting-review`
+- Require _reviewer_ privilege to call this command.
 
 
 ### Auto-Merging
 
-This bot provides a powerful feature we called as "Auto-Merging".
+This bot provides a powerful feature we called as _Auto-Merging_.
 Auto-Merging behaves like this:
 
-1. Accept the pull request by the review's approved comment (e.g. `@bot r+`)
+1. Accept the pull request by the review's approved comment (e.g. `@<bot> r+`)
 2. This bot queues its pull request into the approved queue.
 3. If there is no active item, try to merge it into the latest upstream and run CI on the special "auto" branch.
 4. If the result of step 3 is success, this bot merge its pull request into the upstream actually.
    Otherwise, this bot marks it as failed.
 5. This bot redo step 3 until the approved queue will be empty.
 
+
+### Reviewer
+
+- A _reviewer_ is managed by `OWNERS.json` places to the root of your repository.
+- You can provide _reviewer_ privilege for all users that can comment to the repository.
+    - This is useful for an internal repository.
 
 
 ## Setup Instructions
