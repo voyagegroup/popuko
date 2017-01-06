@@ -9,20 +9,23 @@ import (
 )
 
 const XdgConfigHomeEnvKey = "XDG_CONFIG_HOME"
-const homeDirName = "popuko"
+const HomeDirName = "popuko"
 
 func HomeDir(base string) (bool, string) {
+	var dir string
 	if base == "" {
-		log.Println("info: Use $" + XdgConfigHomeEnvKey + " as the config root dir of this application.")
-		base = getXdgConfigHome()
+		dir = getXdgConfigHome() + "/" + HomeDirName
+	} else {
+		dir = base
 	}
 
-	root, err := filepath.Abs(base + "/" + homeDirName)
+	root, err := filepath.Abs(dir)
 	if err != nil {
 		log.Println("error: cannot get the path to config home dir.")
 		return false, ""
 	}
 
+	log.Println("info: Use " + root + " as the config root dir of this application.")
 	return true, root
 }
 
