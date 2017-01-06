@@ -91,8 +91,6 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 			PullRequest: issue,
 			PrHead:      headSha,
 		}
-		q.Push(item)
-
 		ok, mutated := queuePullReq(q, item)
 		if !ok {
 			return false, errors.New("error: we cannot recover the error")
