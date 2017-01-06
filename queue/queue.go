@@ -103,6 +103,27 @@ func (s *AutoMergeQueue) GetNext() (ok bool, item *AutoMergeQueueItem) {
 	return true, front
 }
 
+func (s *AutoMergeQueue) RemoveAwaiting(pr int) (found bool) {
+	active := s.GetActive()
+	if (active != nil) && (active.PullRequest == pr) {
+		log.Printf("debug: the current active is %v\n", pr)
+		s.RemoveActive()
+		return true
+	}
+
+	n := make([]*AutoMergeQueueItem, 0, len(s.q)-1) // create small slice with huristic buffer size.
+	for _, item := range s.q {
+		if item.PullRequest == pr {
+			found = true
+		} else {
+			n = append(n, item)
+		}
+	}
+
+	s.q = n
+	return found
+}
+
 func (s *AutoMergeQueue) GetActive() *AutoMergeQueueItem {
 	return s.current
 }

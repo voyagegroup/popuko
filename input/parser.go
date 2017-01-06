@@ -73,6 +73,14 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 		result = &AcceptChangeByReviewerCommand{
 			botName: person[0],
 		}
+	case tMinus:
+		if len(person) > 1 {
+			return nil, fmt.Errorf("found person is %v, person should be only 1", len(person))
+		}
+
+		result = &CancelApprovedByReviewerCommand{
+			botName: person[0],
+		}
 	case tEqual:
 		reviewer := make([]string, 0, 1)
 		for {

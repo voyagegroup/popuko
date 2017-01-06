@@ -31,6 +31,9 @@ You can use these command as the comment for pull request.
 - `@<botname> r+`
     - Merge this pull request by `<botname>` with labeling `S-awaiting-merge`.
     - `@<botname> r=<reviewer>` means the same thing.
+- `@<botname> r-`
+    - Cancel the approved by `@<botname> r+`.
+    - This set back the label to `S-awaiting-review`
 - `@<reviewer> r?`
     - Assign the pull request to the reviewer with labeling `S-awaiting-review`.
 
