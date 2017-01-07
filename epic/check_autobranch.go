@@ -244,7 +244,13 @@ func getNextAvailableItem(client *github.Client,
 			continue
 		}
 
-		if nextInfo.Mergeable != nil && !(*nextInfo.Mergeable) {
+		ok, mergeable := operation.IsMergeable(prSvc, owner, name, prNum, nextInfo)
+		if !ok {
+			log.Println("info: We treat it as 'mergeable' to avoid miss detection because we could not fetch the pr info,")
+			continue
+		}
+
+		if !mergeable {
 			comment := ":lock: Merge conflict"
 			if ok := operation.AddComment(issueSvc, owner, name, prNum, comment); !ok {
 				log.Println("error: could not write the comment about the result of auto branch.")

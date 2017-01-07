@@ -3,7 +3,6 @@ package epic
 import (
 	"log"
 	"sync"
-	"time"
 
 	"github.com/google/go-github/github"
 
@@ -102,7 +101,7 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 
 	ok, mergeable := isMergeable(info.prSvc, repoOwner, repo, number)
 	if !ok {
-		log.Println("info: We treat it as 'mergeable' to avoid miss detection if we could not fetch the pr info,")
+		log.Println("info: We treat it as 'mergeable' to avoid miss detection because we could not fetch the pr info,")
 		return
 	}
 
@@ -126,10 +125,6 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 }
 
 func isMergeable(prSvc *github.PullRequestsService, owner string, name string, issue int) (bool, bool) {
-	return innerIsMergeable(prSvc, owner, name, issue, 0)
-}
-
-func innerIsMergeable(prSvc *github.PullRequestsService, owner, name string, issue int, nest uint) (bool, bool) {
 	pr, _, err := prSvc.Get(owner, name, issue)
 	if err != nil || pr == nil {
 		log.Println("info: could not get the info for pull request")
@@ -137,20 +132,5 @@ func innerIsMergeable(prSvc *github.PullRequestsService, owner, name string, iss
 		return false, false
 	}
 
-	mergeable := pr.Mergeable
-	if mergeable == nil {
-		// By the document https://developer.github.com/v3/pulls/#get-a-single-pull-request
-		// this state is still in checking if pr.Mergeable == nil.
-		if nest > 1 {
-			// We tried once.
-			// Conclude it is not mergeable heurístically
-			return true, false
-		}
-
-		// sleep same time: https://github.com/barosl/homu/blob/2104e4b154d2fba15d515b478a5bd6105c1522f6/homu/main.py#L722
-		time.Sleep(5 * time.Second)
-		return innerIsMergeable(prSvc, owner, name, issue, nest+1)
-	}
-
-	return true, *mergeable
+	return operation.IsMergeable(prSvc, owner, name, issue, pr)
 }
