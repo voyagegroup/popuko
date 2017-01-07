@@ -219,7 +219,7 @@ func getNextAvailableItem(client *github.Client,
 	defer log.Println("End to find the next item")
 
 	for {
-		ok, next := queue.GetNext()
+		ok, next := queue.TakeNext()
 		if !ok || next == nil {
 			log.Printf("debug: there is no awating item in the queue of %v/%v\n", owner, name)
 			return nil, nil

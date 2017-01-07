@@ -87,7 +87,7 @@ func (s *AutoMergeQueue) Push(item *AutoMergeQueueItem) {
 	s.q = append(s.q, item)
 }
 
-func (s *AutoMergeQueue) GetNext() (ok bool, item *AutoMergeQueueItem) {
+func (s *AutoMergeQueue) TakeNext() (ok bool, item *AutoMergeQueueItem) {
 	if len(s.q) == 0 {
 		return true, nil
 	}
@@ -101,6 +101,14 @@ func (s *AutoMergeQueue) GetNext() (ok bool, item *AutoMergeQueueItem) {
 	}
 
 	return true, front
+}
+
+func (s *AutoMergeQueue) Front() *AutoMergeQueueItem {
+	if len(s.q) == 0 {
+		return nil
+	}
+
+	return s.q[0]
 }
 
 func (s *AutoMergeQueue) IsAwaiting(pr int) (ok bool, item *AutoMergeQueueItem) {

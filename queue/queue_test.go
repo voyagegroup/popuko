@@ -52,13 +52,13 @@ func Test_AutoMergeQueue_RemoveAwaiting2(t *testing.T) {
 		t.Fatalf("should be success to remove the awaiting")
 	}
 
-	ok, next := queue.GetNext()
+	ok, next := queue.TakeNext()
 	if !ok {
-		t.Fatalf("queue.GetNext() should be ok=true")
+		t.Fatalf("queue.TakeNext() should be ok=true")
 	}
 
 	if next != list[0] {
 		log.Printf("debug: queue is :%+v\n", queue)
-		t.Fatalf("queue.GetNext() should return the front of list, but %v\n", next)
+		t.Fatalf("queue.TakeNext() should return the front of list, but %v\n", next)
 	}
 }
