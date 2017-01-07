@@ -45,7 +45,9 @@ func Test_AutoMergeQueue_RemoveAwaiting2(t *testing.T) {
 		},
 	}
 	for _, item := range list {
-		queue.Push(item)
+		if ok := queue.Push(item); !ok {
+			t.Fail()
+		}
 	}
 
 	if ok := queue.RemoveAwaiting(number + 1); !ok {

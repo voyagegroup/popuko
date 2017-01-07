@@ -83,8 +83,16 @@ func (s *AutoMergeQueue) Save() {
 	s.ownerHandle.parent.save(s.ownerHandle.owner, s.ownerHandle.name, s)
 }
 
-func (s *AutoMergeQueue) Push(item *AutoMergeQueueItem) {
+func (s *AutoMergeQueue) Push(item *AutoMergeQueueItem) bool {
+	// Prevent to push a dupulicated item.
+	for _, elm := range s.q {
+		if elm.PullRequest == item.PullRequest {
+			return false
+		}
+	}
+
 	s.q = append(s.q, item)
+	return true
 }
 
 func (s *AutoMergeQueue) TakeNext() (ok bool, item *AutoMergeQueueItem) {

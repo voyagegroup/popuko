@@ -139,7 +139,10 @@ func queuePullReq(queue *queue.AutoMergeQueue, item *queue.AutoMergeQueueItem) (
 			}
 
 			queue.RemoveActive()
-			queue.Push(item)
+			if ok := queue.Push(item); !ok {
+				return false, false
+			}
+
 			return true, true
 		}
 	}
@@ -158,7 +161,10 @@ func queuePullReq(queue *queue.AutoMergeQueue, item *queue.AutoMergeQueueItem) (
 		}
 	}
 
-	queue.Push(item)
+	if ok := queue.Push(item); !ok {
+		return false, false
+	}
+
 	return true, true
 }
 
