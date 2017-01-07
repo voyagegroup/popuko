@@ -101,14 +101,12 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 		}
 
 		if q.HasActive() {
-			log.Printf("info: pull request (%v) has been queued but other is active.\n", issue)
-			{
-				comment := ":postbox: This pull request is queued. Please await the time."
-				if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
-					log.Println("info: could not create the comment to declare to merge this.")
-				}
-			}
+			commentAsPostponed(issueSvc, repoOwner, repoName, issue)
 			return true, nil
+		}
+
+		if next := q.Front(); next != item {
+			commentAsPostponed(issueSvc, repoOwner, repoName, issue)
 		}
 
 		tryNextItem(client, repoOwner, repoName, q)
@@ -141,7 +139,10 @@ func queuePullReq(queue *queue.AutoMergeQueue, item *queue.AutoMergeQueueItem) (
 			}
 
 			queue.RemoveActive()
-			queue.Push(item)
+			if ok := queue.Push(item); !ok {
+				return false, false
+			}
+
 			return true, true
 		}
 	}
@@ -160,6 +161,19 @@ func queuePullReq(queue *queue.AutoMergeQueue, item *queue.AutoMergeQueueItem) (
 		}
 	}
 
-	queue.Push(item)
+	if ok := queue.Push(item); !ok {
+		return false, false
+	}
+
 	return true, true
+}
+
+func commentAsPostponed(issueSvc *github.IssuesService, owner, name string, issue int) {
+	log.Printf("info: pull request (%v) has been queued but other is active.\n", issue)
+	{
+		comment := ":postbox: This pull request is queued. Please await the time."
+		if ok := operation.AddComment(issueSvc, owner, name, issue, comment); !ok {
+			log.Println("info: could not create the comment to declare to merge this.")
+		}
+	}
 }

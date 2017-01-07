@@ -67,7 +67,7 @@ func Test_queuePullReq2(t *testing.T) {
 		t.Fail()
 	}
 
-	ok, next := q.GetNext()
+	ok, next := q.TakeNext()
 	if !ok {
 		t.Fail()
 	}
@@ -90,7 +90,9 @@ func Test_queuePullReq3(t *testing.T) {
 		PullRequest: number,
 		PrHead:      sha,
 	}
-	q.Push(old)
+	if ok := q.Push(old); !ok {
+		t.Fail()
+	}
 
 	ok, mutated := queuePullReq(q, item)
 	if !ok {
@@ -105,7 +107,7 @@ func Test_queuePullReq3(t *testing.T) {
 		t.Fail()
 	}
 
-	ok, next := q.GetNext()
+	ok, next := q.TakeNext()
 	if !ok {
 		t.Fail()
 	}
@@ -128,7 +130,9 @@ func Test_queuePullReq4(t *testing.T) {
 		PullRequest: number,
 		PrHead:      sha + "asdfg",
 	}
-	q.Push(old)
+	if ok := q.Push(old); !ok {
+		t.Fail()
+	}
 
 	ok, mutated := queuePullReq(q, item)
 	if !ok {
@@ -143,7 +147,7 @@ func Test_queuePullReq4(t *testing.T) {
 		t.Fail()
 	}
 
-	ok, next := q.GetNext()
+	ok, next := q.TakeNext()
 	if !ok {
 		t.Fail()
 	}

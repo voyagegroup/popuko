@@ -186,7 +186,7 @@ func commentStatus(client *github.Client, owner, name string, prNum int, comment
 func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQueue) (ok, hasNext bool) {
 	defer q.Save()
 
-	next, nextInfo := getNextAvailableItem(q, client.Issues, client.PullRequests, owner, name)
+	next, nextInfo := getNextAvailableItem(client, owner, name, q)
 	if next == nil {
 		log.Printf("info: there is no awating item in the queue of %v/%v\n", owner, name)
 		return true, false
@@ -207,20 +207,22 @@ func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQu
 	return true, true
 }
 
-func getNextAvailableItem(queue *queue.AutoMergeQueue,
-	issueSvc *github.IssuesService,
-	prSvc *github.PullRequestsService,
+func getNextAvailableItem(client *github.Client,
 	owner string,
-	name string) (item *queue.AutoMergeQueueItem, info *github.PullRequest) {
+	name string,
+	queue *queue.AutoMergeQueue) (*queue.AutoMergeQueueItem, *github.PullRequest) {
+
+	issueSvc := client.Issues
+	prSvc := client.PullRequests
 
 	log.Println("Start to find the next item")
 	defer log.Println("End to find the next item")
 
 	for {
-		ok, next := queue.GetNext()
+		ok, next := queue.TakeNext()
 		if !ok || next == nil {
 			log.Printf("debug: there is no awating item in the queue of %v/%v\n", owner, name)
-			return
+			return nil, nil
 		}
 
 		log.Println("debug: the next item has fetched from queue.")
@@ -237,12 +239,18 @@ func getNextAvailableItem(queue *queue.AutoMergeQueue,
 			continue
 		}
 
-		if *nextInfo.State != "open" {
-			log.Printf("debug: the pull request #%v has been resolved the state as `%v`\n", prNum, *nextInfo.State)
+		if state := *nextInfo.State; state != "open" {
+			log.Printf("debug: the pull request #%v has been resolved the state as `%v`\n", prNum, state)
 			continue
 		}
 
-		if nextInfo.Mergeable != nil && !(*nextInfo.Mergeable) {
+		ok, mergeable := operation.IsMergeable(prSvc, owner, name, prNum, nextInfo)
+		if !ok {
+			log.Println("info: We treat it as 'mergeable' to avoid miss detection because we could not fetch the pr info,")
+			continue
+		}
+
+		if !mergeable {
 			comment := ":lock: Merge conflict"
 			if ok := operation.AddComment(issueSvc, owner, name, prNum, comment); !ok {
 				log.Println("error: could not write the comment about the result of auto branch.")
