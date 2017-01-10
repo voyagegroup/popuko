@@ -10,6 +10,8 @@ import (
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 
+	"errors"
+
 	"github.com/karen-irc/popuko/epic"
 	"github.com/karen-irc/popuko/input"
 	"github.com/karen-irc/popuko/queue"
@@ -20,6 +22,7 @@ import (
 type AppServer struct {
 	githubClient  *github.Client
 	autoMergeRepo *queue.AutoMergeQRepo
+	setting       *setting.Settings
 }
 
 func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request) {
@@ -80,6 +83,13 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	log.Printf("Start: processCommitCommentEvent by %v\n", *ev.Comment.ID)
 	defer log.Printf("End: processCommitCommentEvent by %v\n", *ev.Comment.ID)
 
+	repoOwner := *ev.Repo.Owner.Login
+	repo := *ev.Repo.Name
+	if !srv.setting.AcceptRepo(repoOwner, repo) {
+		log.Printf("======= error: =======\n This event from an unaccepted repository: %v/%v\n==============", repoOwner, repo)
+		return false, errors.New("You're repository is not accepted")
+	}
+
 	body := *ev.Comment.Body
 	ok, cmd := input.ParseCommand(body)
 	if !ok {
@@ -89,11 +99,6 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	if cmd == nil {
 		return false, fmt.Errorf("error: unexpected result of parsing comment body")
 	}
-
-	repoOwner := *ev.Repo.Owner.Login
-	log.Printf("debug: repository owner is %v\n", repoOwner)
-	repo := *ev.Repo.Name
-	log.Printf("debug: repository name is %v\n", repo)
 
 	repoInfo := epic.GetRepositoryInfo(srv.githubClient.Repositories, repoOwner, repo)
 	if repoInfo == nil {
@@ -145,12 +150,32 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 func (srv *AppServer) processPushEvent(ev *github.PushEvent) {
 	log.Println("info: Start: processPushEvent by push id")
 	defer log.Println("info: End: processPushEvent by push id")
+
+	repoOwner := *ev.Repo.Owner.Name
+	log.Printf("debug: repository owner is %v\n", repoOwner)
+	repo := *ev.Repo.Name
+	log.Printf("debug: repository name is %v\n", repo)
+	if !srv.setting.AcceptRepo(repoOwner, repo) {
+		log.Printf("======= error: =======\n This event from an unaccepted repository: %v/%v\n==============", repoOwner, repo)
+		return
+	}
+
 	epic.DetectUnmergeablePR(srv.githubClient, ev)
 }
 
 func (srv *AppServer) processStatusEvent(ev *github.StatusEvent) {
 	log.Println("info: Start: processStatusEvent")
 	defer log.Println("info: End: processStatusEvent")
+
+	repoOwner := *ev.Repo.Owner.Login
+	log.Printf("debug: repository owner is %v\n", repoOwner)
+	repo := *ev.Repo.Name
+	log.Printf("debug: repository name is %v\n", repo)
+	if !srv.setting.AcceptRepo(repoOwner, repo) {
+		log.Printf("======= error: =======\n This event from an unaccepted repository: %v/%v\n==============", repoOwner, repo)
+		return
+	}
+
 	epic.CheckAutoBranch(srv.githubClient, srv.autoMergeRepo, ev)
 }
 

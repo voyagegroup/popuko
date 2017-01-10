@@ -39,6 +39,10 @@ func (s *Settings) WebHookSecret() []byte {
 	return []byte(s.Github.HookSecret)
 }
 
+func (s *Settings) AcceptRepo(owner, name string) bool {
+	return s.Github.accept(owner, name)
+}
+
 const RootConfigFile = "/config.toml"
 
 func LoadSettings(dir string) *Settings {
@@ -48,7 +52,13 @@ func LoadSettings(dir string) *Settings {
 		return nil
 	}
 
-	return decodeFile(path)
+	s := decodeFile(path)
+	if s == nil {
+		return nil
+	}
+
+	initGithubSetting(&s.Github)
+	return s
 }
 
 func decodeFile(path string) *Settings {

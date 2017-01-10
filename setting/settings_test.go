@@ -26,6 +26,10 @@ func TestLoadConfigToml(t *testing.T) {
 		t.Fatalf("cannot decode the file: %v\n", path)
 	}
 
+	if actual := result.Version; actual != 0 {
+		t.Fatalf("%v\n", actual)
+	}
+
 	if actual := result.BotName; actual != "popuko" {
 		t.Fatalf("%v\n", actual)
 	}
@@ -43,6 +47,10 @@ func TestLoadConfigToml(t *testing.T) {
 	}
 
 	if actual := result.Github.HookSecret; actual != "webhook_secret" {
+		t.Fatalf("%v\n", actual)
+	}
+
+	if actual := result.Github.acceptedRepos; actual != nil {
 		t.Fatalf("%v\n", actual)
 	}
 }
