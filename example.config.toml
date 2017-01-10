@@ -1,5 +1,8 @@
 ## The root configuration file for [popuko](https://github.com/karen-irc/popuko)
 
+# The version of this configuration format.
+config_version = 0
+
 # This bot name.
 botname = "popuko"
 
