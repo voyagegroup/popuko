@@ -179,6 +179,11 @@ Auto-Merging behaves like this:
 - GitHub Enterprise: [#173](https://github.com/karen-irc/popuko/issues/173).
 
 
+### Why didn't you fork homu?
+
+It was notion.
+
+
 ## License
 
 [The MIT License](./LICENSE.txt)
