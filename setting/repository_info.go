@@ -6,6 +6,7 @@ type RepositoryInfo struct {
 
 	EnableAutoMerge      bool
 	DeleteAfterAutoMerge bool
+	AutoBranchName       string
 }
 
 func (r *RepositoryInfo) IsReviewer(name string) bool {

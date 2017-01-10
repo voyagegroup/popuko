@@ -56,7 +56,7 @@ func CheckAutoBranch(client *github.Client, autoMergeRepo *queue.AutoMergeQRepo,
 	}
 	log.Println("info: got the active item.")
 
-	if !isRelatedToAutoBranch(active, ev) {
+	if !isRelatedToAutoBranch(active, ev, repoInfo.AutoBranchName) {
 		log.Printf("info: The event's tip sha does not equal to the one which is tesing actively in %v/%v\n", repoOwner, repoName)
 		return
 	}
@@ -67,13 +67,13 @@ func CheckAutoBranch(client *github.Client, autoMergeRepo *queue.AutoMergeQRepo,
 	q.RemoveActive()
 	q.Save()
 
-	tryNextItem(client, repoOwner, repoName, q)
+	tryNextItem(client, repoOwner, repoName, q, repoInfo.AutoBranchName)
 
 	log.Println("info: complete to start the next trying")
 }
 
-func isRelatedToAutoBranch(active *queue.AutoMergeQueueItem, ev *github.StatusEvent) bool {
-	if !operation.IsIncludeAutoBranch(ev.Branches) {
+func isRelatedToAutoBranch(active *queue.AutoMergeQueueItem, ev *github.StatusEvent, autoBranch string) bool {
+	if !operation.IsIncludeAutoBranch(ev.Branches, autoBranch) {
 		log.Printf("warn: this status event (%v) does not include the auto branch\n", *ev.ID)
 		return false
 	}
@@ -127,7 +127,7 @@ func mergeSucceedItem(client *github.Client,
 		log.Println("info: could not merge pull request")
 
 		comment := ":collision: The result of what tried to merge this pull request is `" + *ev.State + "`."
-		commentStatus(client, owner, name, prNum, comment)
+		commentStatus(client, owner, name, prNum, comment, repoInfo.AutoBranchName)
 
 		currentLabels := operation.GetLabelsByIssue(client.Issues, owner, name, prNum)
 		if currentLabels == nil {
@@ -144,7 +144,7 @@ func mergeSucceedItem(client *github.Client,
 	}
 
 	comment := ":tada: The result of what tried to merge this pull request is `" + *ev.State + "`."
-	commentStatus(client, owner, name, prNum, comment)
+	commentStatus(client, owner, name, prNum, comment, repoInfo.AutoBranchName)
 
 	if ok := operation.MergePullRequest(client, owner, name, prInfo, active.PrHead); !ok {
 		log.Printf("info: cannot merge pull request #%v\n", prNum)
@@ -159,8 +159,8 @@ func mergeSucceedItem(client *github.Client,
 	return true
 }
 
-func commentStatus(client *github.Client, owner, name string, prNum int, comment string) {
-	status, _, err := client.Repositories.GetCombinedStatus(owner, name, "auto", nil)
+func commentStatus(client *github.Client, owner, name string, prNum int, comment string, autoBranch string) {
+	status, _, err := client.Repositories.GetCombinedStatus(owner, name, autoBranch, nil)
 	if err != nil {
 		log.Println("error: could not get the status about the auto branch.")
 	}
@@ -183,7 +183,7 @@ func commentStatus(client *github.Client, owner, name string, prNum int, comment
 	}
 }
 
-func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQueue) (ok, hasNext bool) {
+func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQueue, autoBranch string) (ok, hasNext bool) {
 	defer q.Save()
 
 	next, nextInfo := getNextAvailableItem(client, owner, name, q)
@@ -194,10 +194,10 @@ func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQu
 
 	nextNum := next.PullRequest
 
-	ok, commit := operation.TryWithMaster(client, owner, name, nextInfo)
+	ok, commit := operation.TryWithMaster(client, owner, name, nextInfo, autoBranch)
 	if !ok {
 		log.Printf("info: we cannot try #%v with the latest `master`.", nextNum)
-		return tryNextItem(client, owner, name, q)
+		return tryNextItem(client, owner, name, q, autoBranch)
 	}
 
 	next.AutoBranchHead = &commit

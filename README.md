@@ -84,7 +84,7 @@ Auto-Merging behaves like this:
 
 1. Accept the pull request by the review's approved comment (e.g. `@<bot> r+`)
 2. This bot queues its pull request into the approved queue.
-3. If there is no active item, try to merge it into the latest upstream and run CI on the special "auto" branch.
+3. If there is no active item, try to merge it into the latest upstream and run CI on the special branch used for auto testing.
 4. If the result of step 3 is success, this bot merge its pull request into the upstream actually.
    Otherwise, this bot marks it as failed.
 5. This bot redo step 3 until the approved queue will be empty.
@@ -138,6 +138,7 @@ Auto-Merging behaves like this:
     - `S-fails-tests-with-upstream`
         - for a pull request which fails tests after try to merge into upstream (used by Auto-Merging feature).
 6. Enable to start the build on creating the branch named `auto` for your CI service (e.g. TravisCI).
+    - You can configure this branch's name by `OWNERS.json`.
 7. Done!
 
 
@@ -162,7 +163,6 @@ Auto-Merging behaves like this:
 
 - The upstream branch should be named as `master`.
 - This bot cannot handle the pull request which aims to merge into not `master` correctly.
-- This bot uses `auto` branch for the origin repository. You cannot configure the name.
 
 
 ### Can I reuse this package as a library?

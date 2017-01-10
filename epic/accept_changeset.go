@@ -109,7 +109,7 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 			commentAsPostponed(issueSvc, repoOwner, repoName, issue)
 		}
 
-		tryNextItem(client, repoOwner, repoName, q)
+		tryNextItem(client, repoOwner, repoName, q, c.Info.AutoBranchName)
 	}
 
 	log.Printf("info: complete merge the pull request %v\n", issue)

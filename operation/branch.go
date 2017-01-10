@@ -41,10 +41,10 @@ func createAutoBranch(svc *github.GitService, owner string, repo string, number 
 	return true, ref
 }
 
-func TryWithMaster(client *github.Client, owner string, name string, info *github.PullRequest) (bool, string) {
+func TryWithMaster(client *github.Client, owner string, name string, info *github.PullRequest, autoBranch string) (bool, string) {
 	number := *info.Number
 
-	ok, ref := createAutoBranch(client.Git, owner, name, number, "auto")
+	ok, ref := createAutoBranch(client.Git, owner, name, number, autoBranch)
 	if !ok {
 		log.Println("info: cannot create the auto branch")
 		return false, ""
@@ -110,7 +110,7 @@ func MergePullRequest(client *github.Client, owner string, name string, info *gi
 	return true
 }
 
-func IsIncludeAutoBranch(branches []*github.Branch) bool {
+func IsIncludeAutoBranch(branches []*github.Branch, auto string) bool {
 	for _, b := range branches {
 		if b == nil {
 			continue
@@ -120,7 +120,7 @@ func IsIncludeAutoBranch(branches []*github.Branch) bool {
 			continue
 		}
 
-		if *b.Name == "auto" {
+		if *b.Name == auto {
 			return true
 		}
 	}
