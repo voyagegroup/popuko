@@ -4,6 +4,8 @@ import (
 	"log"
 )
 
+const autoBranchName string = "auto"
+
 type OwnersFile struct {
 	Version      float64       `json:"version"`
 	RawReviewers []interface{} `json:"reviewers"`
@@ -28,6 +30,10 @@ type OwnersFile struct {
 	// restriction. This only clean up only the upstream repository
 	// managed by this bot.
 	DeleteAfterAutoMerge bool `json:"auto_merge.delete_branch,omitempty"`
+
+	// The name of the branch which is used for "Auto-Merging" to test changesets
+	// before merging it into upstream. The default value is defined as `autoBranchName`.
+	AutoBranchName string `json:"auto_branch.branch_name.auto",omitempty`
 }
 
 func (o *OwnersFile) reviewers() (ok bool, set *ReviewerSet) {
@@ -57,11 +63,17 @@ func (o *OwnersFile) ToRepoInfo() (bool, *RepositoryInfo) {
 		return false, nil
 	}
 
+	autoName := o.AutoBranchName
+	if autoName == "" {
+		autoName = autoBranchName
+	}
+
 	info := RepositoryInfo{
 		reviewers:            r,
 		regardAllAsReviewer:  o.RegardAllAsReviewer,
 		EnableAutoMerge:      o.EnableAutoMerge,
 		DeleteAfterAutoMerge: o.DeleteAfterAutoMerge,
+		AutoBranchName:       autoName,
 	}
 	return true, &info
 }
