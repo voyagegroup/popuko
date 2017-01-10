@@ -12,6 +12,7 @@ import (
 )
 
 type Settings struct {
+	Version int           `toml:"config_version"`
 	BotName string        `toml:"botname"`
 	Port    int           `toml:"port"`
 	Github  GithubSetting `toml:"github"`
