@@ -16,15 +16,18 @@ func Test_AutoMergeQueue_RemoveAwaiting1(t *testing.T) {
 	queue.SetActive(i1)
 
 	if ok := queue.RemoveAwaiting(number); !ok {
-		t.Fatalf("should be success to remove the awaiting")
+		t.Errorf("should be success to remove the awaiting")
+		return
 	}
 
 	if queue.HasActive() {
-		t.Fatalf("queue.HasActive() should be false")
+		t.Errorf("queue.HasActive() should be false")
+		return
 	}
 
 	if queue.GetActive() != nil {
-		t.Fatalf("queue.GetActive() should be nil")
+		t.Errorf("queue.GetActive() should be nil")
+		return
 	}
 }
 
@@ -51,16 +54,19 @@ func Test_AutoMergeQueue_RemoveAwaiting2(t *testing.T) {
 	}
 
 	if ok := queue.RemoveAwaiting(number + 1); !ok {
-		t.Fatalf("should be success to remove the awaiting")
+		t.Errorf("should be success to remove the awaiting")
+		return
 	}
 
 	ok, next := queue.TakeNext()
 	if !ok {
-		t.Fatalf("queue.TakeNext() should be ok=true")
+		t.Errorf("queue.TakeNext() should be ok=true")
+		return
 	}
 
 	if next != list[0] {
 		log.Printf("debug: queue is :%+v\n", queue)
-		t.Fatalf("queue.TakeNext() should return the front of list, but %v\n", next)
+		t.Errorf("queue.TakeNext() should return the front of list, but %v\n", next)
+		return
 	}
 }

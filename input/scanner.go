@@ -13,24 +13,24 @@ const eof = rune(0)
 
 const (
 	// Special tokens
-	tIllegal token = iota
-	tEOF
-	tWs // whitespace
+	Illegal token = iota
+	EOF
+	Ws // whitespace
 
 	// Literals
-	tIdent // fields, table_name
+	Ident
 
 	// Misc characters
-	tComma // ,
+	Comma // ,
 
 	// Keywords
-	tCommandReview // r
+	CommandReview // r
+	CommandReject // r-
 
-	tEqual    // =
-	tQuestion // ?
-	tAtmark   // @
-	tPlus     // +
-	tMinus    // -
+	Equal    // =
+	Question // ?
+	Atmark   // @
+	Plus     // +
 )
 
 type scanner struct {
@@ -49,7 +49,7 @@ func (s *scanner) Scan() (tok token, literal string) {
 	if isWhitespace(ch) {
 		s.unread()
 		return s.scanWhiteSpace()
-	} else if isLetter(ch) || isDigit(ch) {
+	} else if isPartOfIdentifier(ch) {
 		s.unread()
 		return s.scanIdentifier()
 	}
@@ -57,22 +57,20 @@ func (s *scanner) Scan() (tok token, literal string) {
 	literal = string(ch)
 	switch ch {
 	case eof:
-		return tEOF, ""
+		return EOF, ""
 	case ',':
-		return tComma, literal
+		return Comma, literal
 	case '=':
-		return tEqual, literal
+		return Equal, literal
 	case '?':
-		return tQuestion, literal
+		return Question, literal
 	case '@':
-		return tAtmark, literal
+		return Atmark, literal
 	case '+':
-		return tPlus, literal
-	case '-':
-		return tMinus, literal
+		return Plus, literal
 	}
 
-	return tIllegal, literal
+	return Illegal, literal
 }
 
 func (s *scanner) scanWhiteSpace() (tok token, literal string) {
@@ -90,7 +88,7 @@ func (s *scanner) scanWhiteSpace() (tok token, literal string) {
 		}
 	}
 
-	return tWs, buf.String()
+	return Ws, buf.String()
 }
 
 func (s *scanner) scanIdentifier() (tok token, literal string) {
@@ -100,7 +98,7 @@ func (s *scanner) scanIdentifier() (tok token, literal string) {
 	for {
 		if ch := s.read(); ch == eof {
 			break
-		} else if !isLetter(ch) && !isDigit(ch) {
+		} else if !isPartOfIdentifier(ch) {
 			s.unread()
 			break
 		} else {
@@ -111,10 +109,12 @@ func (s *scanner) scanIdentifier() (tok token, literal string) {
 	literal = buf.String()
 	switch literal {
 	case "r":
-		return tCommandReview, literal
+		return CommandReview, literal
+	case "r-":
+		return CommandReject, literal
 	}
 
-	return tIdent, literal
+	return Ident, literal
 }
 
 func (s *scanner) read() rune {
@@ -128,6 +128,10 @@ func (s *scanner) read() rune {
 
 func (s *scanner) unread() {
 	_ = s.reader.UnreadRune()
+}
+
+func isPartOfIdentifier(ch rune) bool {
+	return isLetter(ch) || isDigit(ch) || ch == '-'
 }
 
 func isWhitespace(ch rune) bool {

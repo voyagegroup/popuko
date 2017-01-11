@@ -23,12 +23,12 @@ func newParser(r io.Reader) *parser {
 func (p *parser) Parse() (interface{}, error) {
 	tok, lit := p.scanIgnoreWhitespace()
 	switch tok {
-	case tAtmark:
+	case Atmark:
 		return p.parseAskToUser()
-	case tCommandReview:
+	case CommandReview:
 		return p.parseAskReview()
 	default:
-		return nil, fmt.Errorf("found %q, expected tAtmark or tCommandReview", lit)
+		return nil, fmt.Errorf("found %q, expected Atmark or CommandReview", lit)
 	}
 }
 
@@ -37,35 +37,48 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 
 	person := make([]string, 0, 1)
 	for {
-		if tok, lit := p.scanIgnoreWhitespace(); tok != tAtmark {
-			return nil, fmt.Errorf("found %q, expected tAtmark", lit)
+		if tok, lit := p.scanIgnoreWhitespace(); tok != Atmark {
+			return nil, fmt.Errorf("found %q, expected Atmark", lit)
 		}
 
 		tok, lit := p.scanIgnoreWhitespace()
-		if tok != tIdent {
-			return nil, fmt.Errorf("found %q, expected tIdent", lit)
+		if tok != Ident {
+			return nil, fmt.Errorf("found %q, expected Ident", lit)
 		}
 		person = append(person, lit)
 
-		if tok, _ := p.scanIgnoreWhitespace(); tok == tCommandReview {
+		if tok, _ := p.scanIgnoreWhitespace(); isCommand(tok) {
 			p.unscan()
 			break
 		}
 	}
 
-	if tok, lit := p.scanIgnoreWhitespace(); tok != tCommandReview {
-		return nil, fmt.Errorf("found %q, expected tCommandReview", lit)
+	tok, lit := p.scanIgnoreWhitespace()
+	if tok == CommandReject {
+		if len(person) > 1 {
+			return nil, fmt.Errorf("found person is %v, person should be only 1", len(person))
+		}
+
+		result := &CancelApprovedByReviewerCommand{
+			botName: person[0],
+		}
+
+		return result, nil
+	}
+
+	if tok != CommandReview {
+		return nil, fmt.Errorf("found %q, expected CommandReview", lit)
 	}
 
 	var result interface{}
 
-	tok, lit := p.scanIgnoreWhitespace()
+	tok, lit = p.scanIgnoreWhitespace()
 	switch tok {
-	case tQuestion:
+	case Question:
 		result = &AssignReviewerCommand{
 			Reviewer: person[0],
 		}
-	case tPlus:
+	case Plus:
 		if len(person) > 1 {
 			return nil, fmt.Errorf("found person is %v, person should be only 1", len(person))
 		}
@@ -73,29 +86,21 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 		result = &AcceptChangeByReviewerCommand{
 			botName: person[0],
 		}
-	case tMinus:
-		if len(person) > 1 {
-			return nil, fmt.Errorf("found person is %v, person should be only 1", len(person))
-		}
-
-		result = &CancelApprovedByReviewerCommand{
-			botName: person[0],
-		}
-	case tEqual:
+	case Equal:
 		reviewer := make([]string, 0, 1)
 		for {
 			tok, lit := p.scanIgnoreWhitespace()
-			if tok != tIdent {
-				return nil, fmt.Errorf("found %q, expected tIdent", lit)
+			if tok != Ident {
+				return nil, fmt.Errorf("found %q, expected Ident", lit)
 			}
 			reviewer = append(reviewer, lit)
 
 			tok, lit = p.scanIgnoreWhitespace()
-			if tok == tEOF {
+			if tok == EOF {
 				p.unscan()
 				break
-			} else if tok != tComma {
-				return nil, fmt.Errorf("found %q, expected tComma", lit)
+			} else if tok != Comma {
+				return nil, fmt.Errorf("found %q, expected Comma", lit)
 			}
 		}
 
@@ -105,7 +110,7 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 		}
 	}
 
-	if tok, lit = p.scanIgnoreWhitespace(); tok != tEOF {
+	if tok, lit = p.scanIgnoreWhitespace(); tok != EOF {
 		return nil, fmt.Errorf("found %q, expected EOF", lit)
 	}
 
@@ -113,23 +118,23 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 }
 
 func (p *parser) parseAskReview() (interface{}, error) {
-	if tok, lit := p.scanIgnoreWhitespace(); tok != tQuestion {
-		return nil, fmt.Errorf("found %q, expected tQuestion", lit)
+	if tok, lit := p.scanIgnoreWhitespace(); tok != Question {
+		return nil, fmt.Errorf("found %q, expected Question", lit)
 	}
 
 	reviewers := []string{}
-	if tok, lit := p.scanIgnoreWhitespace(); tok != tAtmark {
-		return nil, fmt.Errorf("found %q, expected tAtmark", lit)
+	if tok, lit := p.scanIgnoreWhitespace(); tok != Atmark {
+		return nil, fmt.Errorf("found %q, expected Atmark", lit)
 	}
 
 	tok, lit := p.scanIgnoreWhitespace()
-	if tok != tIdent {
-		return nil, fmt.Errorf("found %q, expected tIdent", lit)
+	if tok != Ident {
+		return nil, fmt.Errorf("found %q, expected Ident", lit)
 	}
 	reviewers = append(reviewers, lit)
 
-	if tok, _ := p.scanIgnoreWhitespace(); tok != tEOF {
-		return nil, fmt.Errorf("found %q, expected tEOF", lit)
+	if tok, _ := p.scanIgnoreWhitespace(); tok != EOF {
+		return nil, fmt.Errorf("found %q, expected EOF", lit)
 	}
 
 	return &AssignReviewerCommand{
@@ -151,7 +156,7 @@ func (p *parser) scan() (token, string) {
 
 func (p *parser) scanIgnoreWhitespace() (token, string) {
 	tok, lit := p.scan()
-	if tok == tWs {
+	if tok == Ws {
 		tok, lit = p.scan()
 	}
 
@@ -160,4 +165,8 @@ func (p *parser) scanIgnoreWhitespace() (token, string) {
 
 func (p *parser) unscan() {
 	p.buf.size = 1
+}
+
+func isCommand(t token) bool {
+	return (t == CommandReview) || (t == CommandReject)
 }
