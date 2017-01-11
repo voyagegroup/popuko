@@ -37,15 +37,11 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 
 	person := make([]string, 0, 1)
 	for {
-		if tok, lit := p.scanIgnoreWhitespace(); tok != Atmark {
-			return nil, fmt.Errorf("found %q, expected Atmark", lit)
+		user, err := p.parseUserIDCall()
+		if err != nil {
+			return nil, err
 		}
-
-		tok, lit := p.scanIgnoreWhitespace()
-		if tok != Ident {
-			return nil, fmt.Errorf("found %q, expected Ident", lit)
-		}
-		person = append(person, lit)
+		person = append(person, user)
 
 		if tok, _ := p.scanIgnoreWhitespace(); isCommand(tok) {
 			p.unscan()
@@ -123,23 +119,32 @@ func (p *parser) parseAskReview() (interface{}, error) {
 	}
 
 	reviewers := []string{}
-	if tok, lit := p.scanIgnoreWhitespace(); tok != Atmark {
-		return nil, fmt.Errorf("found %q, expected Atmark", lit)
+	user, err := p.parseUserIDCall()
+	if err != nil {
+		return nil, err
 	}
+	reviewers = append(reviewers, user)
 
-	tok, lit := p.scanIgnoreWhitespace()
-	if tok != Ident {
-		return nil, fmt.Errorf("found %q, expected Ident", lit)
-	}
-	reviewers = append(reviewers, lit)
-
-	if tok, _ := p.scanIgnoreWhitespace(); tok != EOF {
+	if tok, lit := p.scanIgnoreWhitespace(); tok != EOF {
 		return nil, fmt.Errorf("found %q, expected EOF", lit)
 	}
 
 	return &AssignReviewerCommand{
 		Reviewer: reviewers[0],
 	}, nil
+}
+
+func (p *parser) parseUserIDCall() (string, error) {
+	if tok, lit := p.scanIgnoreWhitespace(); tok != Atmark {
+		return "", fmt.Errorf("found %q, expected Atmark", lit)
+	}
+
+	tok, lit := p.scan()
+	if tok != Ident {
+		return "", fmt.Errorf("found %q, expected Ident", lit)
+	}
+
+	return lit, nil
 }
 
 func (p *parser) scan() (token, string) {
