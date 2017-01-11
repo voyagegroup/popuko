@@ -60,6 +60,11 @@ func TestParseCommand3(t *testing.T) {
 		return
 	}
 
+	if len(v.Reviewer) == 0 {
+		t.Errorf("should have some reviewers")
+		return
+	}
+
 	if name := v.Reviewer[0]; name != "popuko" {
 		t.Errorf("should be the expected reviewer 1: %v\n", name)
 		return
@@ -235,6 +240,111 @@ func TestParseCommand16(t *testing.T) {
 
 	if name := v.BotName(); name != "bot" {
 		t.Errorf("should be the expected bot name: %v\n", name)
+		return
+	}
+}
+
+func TestParseCommand17(t *testing.T) {
+	ok, cmd := ParseCommand("@bot-bot r-")
+	if !ok {
+		t.Errorf("should be success to parse")
+		return
+	}
+
+	v, ok := cmd.(*CancelApprovedByReviewerCommand)
+	if !ok {
+		t.Errorf("should be CancelApprovedByReviewerCommand")
+		return
+	}
+
+	if name := v.BotName(); name != "bot-bot" {
+		t.Errorf("should be the expected bot name: %v\n", name)
+		return
+	}
+}
+
+func TestParseCommand18(t *testing.T) {
+	ok, cmd := ParseCommand("@bot-bot r+")
+	if !ok {
+		t.Errorf("should be ok")
+		return
+	}
+
+	v, ok := cmd.(*AcceptChangeByReviewerCommand)
+	if !ok {
+		t.Errorf("should be AcceptChangeByReviewerCommand")
+		return
+	}
+
+	if name := v.BotName(); name != "bot-bot" {
+		t.Errorf("should be the expected bot name: %v\n", name)
+		return
+	}
+}
+
+func TestParseCommand19(t *testing.T) {
+	ok, cmd := ParseCommand("r? @reviewer-a")
+	if !ok {
+		t.Errorf("should be ok")
+		return
+	}
+
+	v, ok := cmd.(*AssignReviewerCommand)
+	if !ok {
+		t.Errorf("should be AssignReviewerCommand")
+		return
+	}
+
+	if v.Reviewer != "reviewer-a" {
+		t.Errorf("should be the expected reviewer")
+		return
+	}
+}
+
+func TestParseCommand20(t *testing.T) {
+	ok, cmd := ParseCommand("@reviewer-a r?")
+	if !ok {
+		t.Errorf("should be ok")
+		return
+	}
+
+	v, ok := cmd.(*AssignReviewerCommand)
+	if !ok {
+		t.Errorf("should be AssignReviewerCommand")
+		return
+	}
+
+	if v.Reviewer != "reviewer-a" {
+		t.Errorf("should be the expected reviewer")
+		return
+	}
+}
+
+func TestParseCommand21(t *testing.T) {
+	ok, cmd := ParseCommand("@bot r=popuko-a,pipimi-b")
+	if !ok {
+		t.Errorf("should be ok")
+		return
+	}
+
+	v, ok := cmd.(*AcceptChangeByOthersCommand)
+	if !ok {
+		t.Errorf("should be AcceptChangeByOthersCommand")
+		return
+	}
+
+	if name := v.BotName(); name != "bot" {
+		t.Errorf("should be the expected bot name: %v\n", name)
+		return
+	}
+
+	if name := v.Reviewer[0]; name != "popuko-a" {
+		t.Errorf("should be the expected reviewer 1: %v\n", name)
+		return
+	}
+
+	if name := v.Reviewer[1]; name != "pipimi-b" {
+		t.Errorf("should be the expected reviewer 2: %v\n", name)
 		return
 	}
 }
