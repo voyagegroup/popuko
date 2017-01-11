@@ -19,6 +19,7 @@ func isMergeable(prSvc *github.PullRequestsService, owner, name string, issue in
 		if nest > 1 {
 			// We tried once.
 			// Conclude it is not mergeable heurístically
+			log.Printf("info: we cannot get the mergeable status of #%v again. We treat it is NOT MERGEABLE heurístically \n", issue)
 			return true, false
 		}
 
@@ -26,7 +27,7 @@ func isMergeable(prSvc *github.PullRequestsService, owner, name string, issue in
 		time.Sleep(5 * time.Second)
 		pr, _, err := prSvc.Get(owner, name, issue)
 		if err != nil || pr == nil {
-			log.Println("info: could not get the info for pull request")
+			log.Printf("info: could not get the info for #%v\n", issue)
 			log.Printf("debug: %v\n", err)
 			return false, false
 		}

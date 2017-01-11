@@ -95,31 +95,31 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 
 	// We don't have to warn to a pull request which have been marked as unmergeable.
 	if operation.HasLabelInList(currentLabels, operation.LABEL_NEEDS_REBASE) {
-		log.Println("info: The pull request has marked as 'shold rebase on the latest master'")
+		log.Printf("info: #%v has marked as 'should rebase on the latest master'.\n", number)
 		return
 	}
 
 	ok, mergeable := isMergeable(info.prSvc, repoOwner, repo, number)
 	if !ok {
-		log.Println("info: We treat it as 'mergeable' to avoid miss detection because we could not fetch the pr info,")
+		log.Printf("info: We treat #%v as 'mergeable' to avoid miss detection because we could not fetch the pr info,\n", number)
 		return
 	}
 
 	if mergeable {
-		log.Println("info: do not have to mark as 'unmergeable'")
+		log.Printf("info: do not have to mark %v as 'unmergeable'\n", number)
 		return
 	}
 
 	if ok := operation.AddComment(issueSvc, repoOwner, repo, number, info.Comment); !ok {
-		log.Println("info: could not create the comment to unmergeables")
+		log.Printf("info: could not create the comment about unmergeables to #%v\n", number)
 		return
 	}
 
 	labels := operation.AddNeedRebaseLabel(currentLabels)
-	log.Printf("debug: the changed labels: %v\n", labels)
+	log.Printf("debug: the changed labels: %v of #%v\n", labels, number)
 	_, _, err = issueSvc.ReplaceLabelsForIssue(repoOwner, repo, number, labels)
 	if err != nil {
-		log.Println("could not change labels of the issue")
+		log.Printf("could not change labels of #%v\n", number)
 		return
 	}
 }
