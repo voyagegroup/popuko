@@ -25,12 +25,12 @@ const (
 
 	// Keywords
 	CommandReview // r
+	CommandReject // r-
 
 	Equal    // =
 	Question // ?
 	Atmark   // @
 	Plus     // +
-	Minus    // -
 )
 
 type scanner struct {
@@ -49,7 +49,7 @@ func (s *scanner) Scan() (tok token, literal string) {
 	if isWhitespace(ch) {
 		s.unread()
 		return s.scanWhiteSpace()
-	} else if isLetter(ch) || isDigit(ch) {
+	} else if isPartOfIdentifier(ch) {
 		s.unread()
 		return s.scanIdentifier()
 	}
@@ -68,8 +68,6 @@ func (s *scanner) Scan() (tok token, literal string) {
 		return Atmark, literal
 	case '+':
 		return Plus, literal
-	case '-':
-		return Minus, literal
 	}
 
 	return Illegal, literal
@@ -100,7 +98,7 @@ func (s *scanner) scanIdentifier() (tok token, literal string) {
 	for {
 		if ch := s.read(); ch == eof {
 			break
-		} else if !isLetter(ch) && !isDigit(ch) {
+		} else if !isPartOfIdentifier(ch) {
 			s.unread()
 			break
 		} else {
@@ -112,6 +110,8 @@ func (s *scanner) scanIdentifier() (tok token, literal string) {
 	switch literal {
 	case "r":
 		return CommandReview, literal
+	case "r-":
+		return CommandReject, literal
 	}
 
 	return Ident, literal
@@ -128,6 +128,10 @@ func (s *scanner) read() rune {
 
 func (s *scanner) unread() {
 	_ = s.reader.UnreadRune()
+}
+
+func isPartOfIdentifier(ch rune) bool {
+	return isLetter(ch) || isDigit(ch) || ch == '-'
 }
 
 func isWhitespace(ch rune) bool {

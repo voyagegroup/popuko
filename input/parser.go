@@ -47,19 +47,32 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 		}
 		person = append(person, lit)
 
-		if tok, _ := p.scanIgnoreWhitespace(); tok == CommandReview {
+		if tok, _ := p.scanIgnoreWhitespace(); isCommand(tok) {
 			p.unscan()
 			break
 		}
 	}
 
-	if tok, lit := p.scanIgnoreWhitespace(); tok != CommandReview {
+	tok, lit := p.scanIgnoreWhitespace()
+	if tok == CommandReject {
+		if len(person) > 1 {
+			return nil, fmt.Errorf("found person is %v, person should be only 1", len(person))
+		}
+
+		result := &CancelApprovedByReviewerCommand{
+			botName: person[0],
+		}
+
+		return result, nil
+	}
+
+	if tok != CommandReview {
 		return nil, fmt.Errorf("found %q, expected CommandReview", lit)
 	}
 
 	var result interface{}
 
-	tok, lit := p.scanIgnoreWhitespace()
+	tok, lit = p.scanIgnoreWhitespace()
 	switch tok {
 	case Question:
 		result = &AssignReviewerCommand{
@@ -71,14 +84,6 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 		}
 
 		result = &AcceptChangeByReviewerCommand{
-			botName: person[0],
-		}
-	case Minus:
-		if len(person) > 1 {
-			return nil, fmt.Errorf("found person is %v, person should be only 1", len(person))
-		}
-
-		result = &CancelApprovedByReviewerCommand{
 			botName: person[0],
 		}
 	case Equal:
@@ -160,4 +165,8 @@ func (p *parser) scanIgnoreWhitespace() (token, string) {
 
 func (p *parser) unscan() {
 	p.buf.size = 1
+}
+
+func isCommand(t token) bool {
+	return (t == CommandReview) || (t == CommandReject)
 }
