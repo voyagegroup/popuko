@@ -59,10 +59,12 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 			botName: person[0],
 		}
 
-		return result, nil
-	}
+		if tok, lit = p.scanIgnoreWhitespace(); tok != EOF {
+			return nil, fmt.Errorf("found %q, expected EOF", lit)
+		}
 
-	if tok != CommandReview {
+		return result, nil
+	} else if tok != CommandReview {
 		return nil, fmt.Errorf("found %q, expected CommandReview", lit)
 	}
 
@@ -70,6 +72,8 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 
 	tok, lit = p.scanIgnoreWhitespace()
 	switch tok {
+	case CommandReject:
+		return nil, fmt.Errorf("found %q, expected CommandReject", lit)
 	case Question:
 		result = &AssignReviewerCommand{
 			Reviewer: person[0],

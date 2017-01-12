@@ -285,8 +285,8 @@ func TestParseCommandInvalidCase(t *testing.T) {
 
 		// r-
 		//FIXME: "@bot r -",
-		//FIXME: "@bot r r-",
-		//FIXME: "@bot r- r",
+		"@bot r r-",
+		"@bot r- r",
 		" @ bot r-",
 		" @ bot r -",
 		`
