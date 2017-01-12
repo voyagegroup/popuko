@@ -120,7 +120,7 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 }
 
 func (p *parser) parseAskReview() (interface{}, error) {
-	if tok, lit := p.scanIgnoreWhitespace(); tok != Question {
+	if tok, lit := p.scan(); tok != Question {
 		return nil, fmt.Errorf("found %q, expected Question", lit)
 	}
 

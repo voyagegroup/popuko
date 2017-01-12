@@ -339,7 +339,7 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		"r? r @bot",
 		"r? @bot r",
 		"r? @bot r @bot2",
-		// FIXME: "r ? @bot",
+		"r ? @bot",
 		" r? @ bot",
 		" r ? @ bot ",
 		`
