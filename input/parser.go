@@ -59,17 +59,21 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 			botName: person[0],
 		}
 
-		return result, nil
-	}
+		if tok, lit = p.scanIgnoreWhitespace(); tok != EOF {
+			return nil, fmt.Errorf("found %q, expected EOF", lit)
+		}
 
-	if tok != CommandReview {
+		return result, nil
+	} else if tok != CommandReview {
 		return nil, fmt.Errorf("found %q, expected CommandReview", lit)
 	}
 
 	var result interface{}
 
-	tok, lit = p.scanIgnoreWhitespace()
+	tok, lit = p.scan()
 	switch tok {
+	case CommandReject:
+		return nil, fmt.Errorf("found %q, expected CommandReject", lit)
 	case Question:
 		result = &AssignReviewerCommand{
 			Reviewer: person[0],
@@ -104,6 +108,8 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 			botName:  person[0],
 			Reviewer: reviewer,
 		}
+	default:
+		return nil, fmt.Errorf("found %q, should not come its token", lit)
 	}
 
 	if tok, lit = p.scanIgnoreWhitespace(); tok != EOF {
@@ -114,7 +120,7 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 }
 
 func (p *parser) parseAskReview() (interface{}, error) {
-	if tok, lit := p.scanIgnoreWhitespace(); tok != Question {
+	if tok, lit := p.scan(); tok != Question {
 		return nil, fmt.Errorf("found %q, expected Question", lit)
 	}
 

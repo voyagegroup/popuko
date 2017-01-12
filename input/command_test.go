@@ -99,6 +99,14 @@ func TestParseCommandValidCaseForAcceptChangeByOthersCommand(t *testing.T) {
 			input:    "  @bot r=popuko,  pipimi   ",
 			expected: []string{"popuko", "pipimi"},
 		},
+		TestCase{
+			input:    "  @bot r=popuko ,  pipimi   ",
+			expected: []string{"popuko", "pipimi"},
+		},
+		TestCase{
+			input:    "  @bot r= popuko ,  pipimi   ",
+			expected: []string{"popuko", "pipimi"},
+		},
 
 		TestCase{
 			input:    "@bot r=popuko-a,pipimi-b",
@@ -110,6 +118,14 @@ func TestParseCommandValidCaseForAcceptChangeByOthersCommand(t *testing.T) {
 		},
 		TestCase{
 			input:    "  @bot r=popuko-a,   pipimi-b   ",
+			expected: []string{"popuko-a", "pipimi-b"},
+		},
+		TestCase{
+			input:    "  @bot r=popuko-a  ,   pipimi-b   ",
+			expected: []string{"popuko-a", "pipimi-b"},
+		},
+		TestCase{
+			input:    "  @bot r= popuko-a  ,   pipimi-b   ",
 			expected: []string{"popuko-a", "pipimi-b"},
 		},
 	}
@@ -270,9 +286,12 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		"Hello, I'm john.",
 		"",
 		"bot r+",
-
 		"@bot",
 
+		// r+
+		"@bot r +",
+		"@bot r r+",
+		"@bot r+ r",
 		" @ bot r+",
 		" @ bot r +",
 		`
@@ -280,6 +299,10 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		`@bot
     r+`,
 
+		// r-
+		"@bot r -",
+		"@bot r r-",
+		"@bot r- r",
 		" @ bot r-",
 		" @ bot r -",
 		`
@@ -287,6 +310,11 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		`@bot
     r-`,
 
+		// r=reviewer
+		"@bot r =a",
+		"@bot r = a",
+		"@bot r r=a",
+		"@bot r=a r",
 		" @ bot r=a",
 		" @ bot r = a",
 		" @ bot r =a",
@@ -295,6 +323,11 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		`@bot
     r=a`,
 
+		// @reviewer r?
+		"@bot r r?",
+		"@bot r? r",
+		"@bot r? @bot2",
+		"@bot r ?",
 		" @ bot r?",
 		" @ bot r ? ",
 		`
@@ -302,6 +335,11 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		`@bot
     r?`,
 
+		// r? @reviewer
+		"r? r @bot",
+		"r? @bot r",
+		"r? @bot r @bot2",
+		"r ? @bot",
 		" r? @ bot",
 		" r ? @ bot ",
 		`
