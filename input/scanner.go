@@ -31,6 +31,7 @@ const (
 	Question // ?
 	Atmark   // @
 	Plus     // +
+	Minus    // -
 )
 
 type scanner struct {
@@ -68,6 +69,8 @@ func (s *scanner) Scan() (tok token, literal string) {
 		return Atmark, literal
 	case '+':
 		return Plus, literal
+	case '-':
+		return Minus, literal
 	}
 
 	return Illegal, literal

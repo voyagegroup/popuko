@@ -289,7 +289,7 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		"@bot",
 
 		// r+
-		// FIXME: "@bot r +",
+		"@bot r +",
 		"@bot r r+",
 		"@bot r+ r",
 		" @ bot r+",
@@ -300,7 +300,7 @@ func TestParseCommandInvalidCase(t *testing.T) {
     r+`,
 
 		// r-
-		//FIXME: "@bot r -",
+		"@bot r -",
 		"@bot r r-",
 		"@bot r- r",
 		" @ bot r-",
@@ -311,8 +311,8 @@ func TestParseCommandInvalidCase(t *testing.T) {
     r-`,
 
 		// r=reviewer
-		// FIXME: "@bot r =a",
-		// FIXME: "@bot r = a",
+		"@bot r =a",
+		"@bot r = a",
 		"@bot r r=a",
 		"@bot r=a r",
 		" @ bot r=a",
@@ -327,7 +327,7 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		"@bot r r?",
 		"@bot r? r",
 		"@bot r? @bot2",
-		// FIXME: "@bot r ?",
+		"@bot r ?",
 		" @ bot r?",
 		" @ bot r ? ",
 		`
@@ -339,7 +339,7 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		"r? r @bot",
 		"r? @bot r",
 		"r? @bot r @bot2",
-		// FIXME: "  r ? @bot",
+		// FIXME: "r ? @bot",
 		" r? @ bot",
 		" r ? @ bot ",
 		`

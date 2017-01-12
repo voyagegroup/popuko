@@ -70,7 +70,7 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 
 	var result interface{}
 
-	tok, lit = p.scanIgnoreWhitespace()
+	tok, lit = p.scan()
 	switch tok {
 	case CommandReject:
 		return nil, fmt.Errorf("found %q, expected CommandReject", lit)
@@ -108,6 +108,8 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 			botName:  person[0],
 			Reviewer: reviewer,
 		}
+	default:
+		return nil, fmt.Errorf("found %q, should not come its token", lit)
 	}
 
 	if tok, lit = p.scanIgnoreWhitespace(); tok != EOF {
