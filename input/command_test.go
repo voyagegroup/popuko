@@ -57,63 +57,6 @@ func TestParseCommand3(t *testing.T) {
 	}
 }
 
-func TestParseCommand12(t *testing.T) {
-	ok, cmd := ParseCommand("r? @reviewer")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
-
-	v, ok := cmd.(*AssignReviewerCommand)
-	if !ok {
-		t.Errorf("should be AssignReviewerCommand")
-		return
-	}
-
-	if v.Reviewer != "reviewer" {
-		t.Errorf("should be the expected reviewer")
-		return
-	}
-}
-
-func TestParseCommand19(t *testing.T) {
-	ok, cmd := ParseCommand("r? @reviewer-a")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
-
-	v, ok := cmd.(*AssignReviewerCommand)
-	if !ok {
-		t.Errorf("should be AssignReviewerCommand")
-		return
-	}
-
-	if v.Reviewer != "reviewer-a" {
-		t.Errorf("should be the expected reviewer")
-		return
-	}
-}
-
-func TestParseCommand20(t *testing.T) {
-	ok, cmd := ParseCommand("@reviewer-a r?")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
-
-	v, ok := cmd.(*AssignReviewerCommand)
-	if !ok {
-		t.Errorf("should be AssignReviewerCommand")
-		return
-	}
-
-	if v.Reviewer != "reviewer-a" {
-		t.Errorf("should be the expected reviewer")
-		return
-	}
-}
-
 func TestParseCommand21(t *testing.T) {
 	ok, cmd := ParseCommand("@bot r=popuko-a,pipimi-b")
 	if !ok {
@@ -196,6 +139,70 @@ func TestParseCommandValidCaseForAcceptChangeByReviewerCommand(t *testing.T) {
 		expected := testcase.expectedBotName
 		if actual := v.BotName(); actual != expected {
 			t.Errorf("input: `%v` should be the expected bot (`%v`) name but `%v`", input, expected, actual)
+			continue
+		}
+	}
+}
+
+func TestParseCommandValidCaseForAssignReviewerCommand(t *testing.T) {
+	type TestCase struct {
+		input    string
+		expected []string
+	}
+
+	list := []TestCase{
+		TestCase{
+			input:    "r? @reviewer",
+			expected: []string{"reviewer"},
+		},
+		TestCase{
+			input:    "r? @reviewer-a",
+			expected: []string{"reviewer-a"},
+		},
+		TestCase{
+			input:    "  r? @reviewer  ",
+			expected: []string{"reviewer"},
+		},
+		TestCase{
+			input:    "   r? @reviewer-a   ",
+			expected: []string{"reviewer-a"},
+		},
+
+		TestCase{
+			input:    "@reviewer r?",
+			expected: []string{"reviewer"},
+		},
+		TestCase{
+			input:    "@reviewer-a r?",
+			expected: []string{"reviewer-a"},
+		},
+		TestCase{
+			input:    "   @reviewer  r? ",
+			expected: []string{"reviewer"},
+		},
+		TestCase{
+			input:    "    @reviewer-a   r?",
+			expected: []string{"reviewer-a"},
+		},
+	}
+	for _, testcase := range list {
+		input := testcase.input
+
+		ok, cmd := ParseCommand(input)
+		if !ok {
+			t.Errorf("input: `%v` should be ok", input)
+			continue
+		}
+
+		v, ok := cmd.(*AssignReviewerCommand)
+		if !ok {
+			t.Errorf("input: `%v` should be AssignReviewerCommand", input)
+			continue
+		}
+
+		expected := testcase.expected[0]
+		if actual := v.Reviewer; actual != expected {
+			t.Errorf("input: `%v` should be the expected (`%v`) but `%v`", input, expected, actual)
 			continue
 		}
 	}
@@ -288,6 +295,20 @@ func TestParseCommandInvalidCase(t *testing.T) {
     @bot r=a`,
 		`@bot
     r=a`,
+
+		" @ bot r?",
+		" @ bot r ? ",
+		`
+    @bot r?`,
+		`@bot
+    r?`,
+
+		" r? @ bot",
+		" r ? @ bot ",
+		`
+    r? @bot`,
+		`r?
+    @bot`,
 	}
 	for _, item := range input {
 		if ok, _ := ParseCommand(item); ok {
