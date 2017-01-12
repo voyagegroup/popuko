@@ -76,39 +76,6 @@ func TestParseCommand12(t *testing.T) {
 	}
 }
 
-func TestParseCommand16(t *testing.T) {
-	ok, cmd := ParseCommand("@bot r-")
-	v, ok := cmd.(*CancelApprovedByReviewerCommand)
-	if !ok {
-		t.Errorf("should be CancelApprovedByReviewerCommand")
-		return
-	}
-
-	if name := v.BotName(); name != "bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
-}
-
-func TestParseCommand17(t *testing.T) {
-	ok, cmd := ParseCommand("@bot-bot r-")
-	if !ok {
-		t.Errorf("should be success to parse")
-		return
-	}
-
-	v, ok := cmd.(*CancelApprovedByReviewerCommand)
-	if !ok {
-		t.Errorf("should be CancelApprovedByReviewerCommand")
-		return
-	}
-
-	if name := v.BotName(); name != "bot-bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
-}
-
 func TestParseCommand19(t *testing.T) {
 	ok, cmd := ParseCommand("r? @reviewer-a")
 	if !ok {
@@ -223,6 +190,64 @@ func TestParseCommandValidCaseForAcceptChangeByReviewerCommand(t *testing.T) {
 		v, ok := cmd.(*AcceptChangeByReviewerCommand)
 		if !ok {
 			t.Errorf("input: `%v` should be AcceptChangeByReviewerCommand", input)
+			continue
+		}
+
+		expected := testcase.expectedBotName
+		if actual := v.BotName(); actual != expected {
+			t.Errorf("input: `%v` should be the expected bot (`%v`) name but `%v`", input, expected, actual)
+			continue
+		}
+	}
+}
+
+func TestParseCommandValidCaseForCancelApprovedByReviewerCommand(t *testing.T) {
+	type TestCase struct {
+		input           string
+		expectedBotName string
+	}
+
+	list := []TestCase{
+		TestCase{
+			input:           "@bot r-",
+			expectedBotName: "bot",
+		},
+		TestCase{
+			input:           "@bot-bot r-",
+			expectedBotName: "bot-bot",
+		},
+
+		TestCase{
+			input:           "    @bot r-",
+			expectedBotName: "bot",
+		},
+
+		TestCase{
+			input:           "@bot        r-",
+			expectedBotName: "bot",
+		},
+
+		TestCase{
+			input: `@bot        r-
+
+
+
+	`,
+			expectedBotName: "bot",
+		},
+	}
+	for _, testcase := range list {
+		input := testcase.input
+
+		ok, cmd := ParseCommand(input)
+		if !ok {
+			t.Errorf("input: `%v` should be ok", input)
+			continue
+		}
+
+		v, ok := cmd.(*CancelApprovedByReviewerCommand)
+		if !ok {
+			t.Errorf("input: `%v` should be CancelApprovedByReviewerCommand", input)
 			continue
 		}
 
