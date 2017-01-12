@@ -76,52 +76,6 @@ func TestParseCommand3(t *testing.T) {
 	}
 }
 
-func TestParseCommand5(t *testing.T) {
-	ok, cmd := ParseCommand("")
-	if ok {
-		t.Errorf("should be no result")
-		return
-	}
-
-	if cmd != nil {
-		t.Errorf("command should be nil")
-		return
-	}
-}
-
-func TestParseCommand6(t *testing.T) {
-	ok, _ := ParseCommand(`@bot
-    r+`)
-	if ok {
-		t.Errorf("should not be ok")
-		return
-	}
-}
-
-func TestParseCommand7(t *testing.T) {
-	ok, _ := ParseCommand("@bot")
-	if ok {
-		t.Errorf("should not be ok")
-		return
-	}
-}
-
-func TestParseCommand8(t *testing.T) {
-	ok, _ := ParseCommand("bot r+")
-	if ok {
-		t.Errorf("should not be ok")
-		return
-	}
-}
-
-func TestParseCommand9(t *testing.T) {
-	ok, _ := ParseCommand("Hello, I'm john.")
-	if ok {
-		t.Errorf("should not be ok")
-		return
-	}
-}
-
 func TestParseCommand10(t *testing.T) {
 	ok, cmd := ParseCommand("    @bot r+")
 	if !ok {
@@ -137,15 +91,6 @@ func TestParseCommand10(t *testing.T) {
 
 	if name := v.BotName(); name != "bot" {
 		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
-}
-
-func TestParseCommand11(t *testing.T) {
-	ok, _ := ParseCommand(`
-    @bot r+`)
-	if ok {
-		t.Errorf("should not be ok")
 		return
 	}
 }
@@ -346,5 +291,42 @@ func TestParseCommand21(t *testing.T) {
 	if name := v.Reviewer[1]; name != "pipimi-b" {
 		t.Errorf("should be the expected reviewer 2: %v\n", name)
 		return
+	}
+}
+
+func TestParseCommandInvalidCase(t *testing.T) {
+	input := []string{
+		"Hello, I'm john.",
+		"",
+		"bot r+",
+
+		"@bot",
+
+		" @ bot r+",
+		" @ bot r +",
+		`
+    @bot r+`,
+		`@bot
+    r+`,
+
+		" @ bot r-",
+		" @ bot r -",
+		`
+    @bot r-`,
+		`@bot
+    r-`,
+
+		" @ bot r=a",
+		" @ bot r = a",
+		" @ bot r =a",
+		`
+    @bot r=a`,
+		`@bot
+    r=a`,
+	}
+	for _, item := range input {
+		if ok, _ := ParseCommand(item); ok {
+			t.Errorf("%v should not be ok", item)
+		}
 	}
 }
