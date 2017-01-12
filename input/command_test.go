@@ -4,347 +4,314 @@ import (
 	"testing"
 )
 
-func TestParseCommand1(t *testing.T) {
-	ok, cmd := ParseCommand("@bot r+")
-	if !ok {
-		t.Errorf("should be ok")
-		return
+func TestParseCommandValidCaseForAcceptChangeByReviewerCommand(t *testing.T) {
+	type TestCase struct {
+		input           string
+		expectedBotName string
 	}
 
-	v, ok := cmd.(*AcceptChangeByReviewerCommand)
-	if !ok {
-		t.Errorf("should be AcceptChangeByReviewerCommand")
-		return
-	}
+	list := []TestCase{
+		TestCase{
+			input:           "@bot r+",
+			expectedBotName: "bot",
+		},
+		TestCase{
+			input:           "@bot-bot r+",
+			expectedBotName: "bot-bot",
+		},
 
-	if name := v.BotName(); name != "bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
-}
+		TestCase{
+			input:           "    @bot r+",
+			expectedBotName: "bot",
+		},
 
-func TestParseCommand2(t *testing.T) {
-	ok, cmd := ParseCommand("@reviewer r?")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
+		TestCase{
+			input:           "@bot        r+",
+			expectedBotName: "bot",
+		},
 
-	v, ok := cmd.(*AssignReviewerCommand)
-	if !ok {
-		t.Errorf("should be AssignReviewerCommand")
-		return
-	}
+		TestCase{
+			input: `@bot        r+
 
-	if v.Reviewer != "reviewer" {
-		t.Errorf("should be the expected reviewer")
-		return
-	}
-}
 
-func TestParseCommand3(t *testing.T) {
-	ok, cmd := ParseCommand("@bot r=popuko,pipimi")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
 
-	v, ok := cmd.(*AcceptChangeByOthersCommand)
-	if !ok {
-		t.Errorf("should be AcceptChangeByOthersCommand")
-		return
+	`,
+			expectedBotName: "bot",
+		},
 	}
+	for _, testcase := range list {
+		input := testcase.input
 
-	if name := v.BotName(); name != "bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
+		ok, cmd := ParseCommand(input)
+		if !ok {
+			t.Errorf("input: `%v` should be ok", input)
+			continue
+		}
 
-	if len(v.Reviewer) == 0 {
-		t.Errorf("should have some reviewers")
-		return
-	}
+		v, ok := cmd.(*AcceptChangeByReviewerCommand)
+		if !ok {
+			t.Errorf("input: `%v` should be AcceptChangeByReviewerCommand", input)
+			continue
+		}
 
-	if name := v.Reviewer[0]; name != "popuko" {
-		t.Errorf("should be the expected reviewer 1: %v\n", name)
-		return
-	}
-
-	if name := v.Reviewer[1]; name != "pipimi" {
-		t.Errorf("should be the expected reviewer 2: %v\n", name)
-		return
+		expected := testcase.expectedBotName
+		if actual := v.BotName(); actual != expected {
+			t.Errorf("input: `%v` should be the expected bot (`%v`) name but `%v`", input, expected, actual)
+			continue
+		}
 	}
 }
 
-func TestParseCommand5(t *testing.T) {
-	ok, cmd := ParseCommand("")
-	if ok {
-		t.Errorf("should be no result")
-		return
+func TestParseCommandValidCaseForAcceptChangeByOthersCommand(t *testing.T) {
+	type TestCase struct {
+		input    string
+		expected []string
 	}
 
-	if cmd != nil {
-		t.Errorf("command should be nil")
-		return
-	}
-}
+	list := []TestCase{
+		TestCase{
+			input:    "@bot r=popuko",
+			expected: []string{"popuko"},
+		},
+		TestCase{
+			input:    "  @bot    r=popuko  ",
+			expected: []string{"popuko"},
+		},
 
-func TestParseCommand6(t *testing.T) {
-	ok, _ := ParseCommand(`@bot
-    r+`)
-	if ok {
-		t.Errorf("should not be ok")
-		return
-	}
-}
+		TestCase{
+			input:    "@bot r=popuko-a",
+			expected: []string{"popuko-a"},
+		},
+		TestCase{
+			input:    "  @bot    r=popuko-a ",
+			expected: []string{"popuko-a"},
+		},
 
-func TestParseCommand7(t *testing.T) {
-	ok, _ := ParseCommand("@bot")
-	if ok {
-		t.Errorf("should not be ok")
-		return
-	}
-}
+		TestCase{
+			input:    "@bot r=popuko,pipimi",
+			expected: []string{"popuko", "pipimi"},
+		},
+		TestCase{
+			input:    "  @bot r=popuko,pipimi   ",
+			expected: []string{"popuko", "pipimi"},
+		},
+		TestCase{
+			input:    "  @bot r=popuko,  pipimi   ",
+			expected: []string{"popuko", "pipimi"},
+		},
 
-func TestParseCommand8(t *testing.T) {
-	ok, _ := ParseCommand("bot r+")
-	if ok {
-		t.Errorf("should not be ok")
-		return
+		TestCase{
+			input:    "@bot r=popuko-a,pipimi-b",
+			expected: []string{"popuko-a", "pipimi-b"},
+		},
+		TestCase{
+			input:    "  @bot r=popuko-a,pipimi-b   ",
+			expected: []string{"popuko-a", "pipimi-b"},
+		},
+		TestCase{
+			input:    "  @bot r=popuko-a,   pipimi-b   ",
+			expected: []string{"popuko-a", "pipimi-b"},
+		},
 	}
-}
+	for _, testcase := range list {
+		input := testcase.input
 
-func TestParseCommand9(t *testing.T) {
-	ok, _ := ParseCommand("Hello, I'm john.")
-	if ok {
-		t.Errorf("should not be ok")
-		return
-	}
-}
+		ok, cmd := ParseCommand(input)
+		if !ok {
+			t.Errorf("input: `%v` should be ok", input)
+			continue
+		}
 
-func TestParseCommand10(t *testing.T) {
-	ok, cmd := ParseCommand("    @bot r+")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
+		v, ok := cmd.(*AcceptChangeByOthersCommand)
+		if !ok {
+			t.Errorf("input: `%v` should be AcceptChangeByOthersCommand", input)
+			continue
+		}
 
-	v, ok := cmd.(*AcceptChangeByReviewerCommand)
-	if !ok {
-		t.Errorf("should be AcceptChangeByReviewerCommand")
-		return
-	}
+		if len(v.Reviewer) != len(testcase.expected) {
+			t.Errorf("input: `%v` should be the expected length (`%v`) but the acutual length is `%v`", input, len(testcase.expected), len(v.Reviewer))
+			continue
+		}
 
-	if name := v.BotName(); name != "bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
-}
-
-func TestParseCommand11(t *testing.T) {
-	ok, _ := ParseCommand(`
-    @bot r+`)
-	if ok {
-		t.Errorf("should not be ok")
-		return
-	}
-}
-
-func TestParseCommand12(t *testing.T) {
-	ok, cmd := ParseCommand("r? @reviewer")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
-
-	v, ok := cmd.(*AssignReviewerCommand)
-	if !ok {
-		t.Errorf("should be AssignReviewerCommand")
-		return
-	}
-
-	if v.Reviewer != "reviewer" {
-		t.Errorf("should be the expected reviewer")
-		return
+		for i, actual := range v.Reviewer {
+			expected := testcase.expected[i]
+			if actual != expected {
+				t.Errorf("input: `%v` should be the expected (`%v`) but `%v`", input, expected, actual)
+				continue
+			}
+		}
 	}
 }
 
-func TestParseCommand13(t *testing.T) {
-	ok, cmd := ParseCommand("@bot        r+")
-	if !ok {
-		t.Errorf("should be ok")
-		return
+func TestParseCommandValidCaseForAssignReviewerCommand(t *testing.T) {
+	type TestCase struct {
+		input    string
+		expected []string
 	}
 
-	v, ok := cmd.(*AcceptChangeByReviewerCommand)
-	if !ok {
-		t.Errorf("should be AcceptChangeByReviewerCommand")
-		return
+	list := []TestCase{
+		TestCase{
+			input:    "r? @reviewer",
+			expected: []string{"reviewer"},
+		},
+		TestCase{
+			input:    "r? @reviewer-a",
+			expected: []string{"reviewer-a"},
+		},
+		TestCase{
+			input:    "  r? @reviewer  ",
+			expected: []string{"reviewer"},
+		},
+		TestCase{
+			input:    "   r? @reviewer-a   ",
+			expected: []string{"reviewer-a"},
+		},
+
+		TestCase{
+			input:    "@reviewer r?",
+			expected: []string{"reviewer"},
+		},
+		TestCase{
+			input:    "@reviewer-a r?",
+			expected: []string{"reviewer-a"},
+		},
+		TestCase{
+			input:    "   @reviewer  r? ",
+			expected: []string{"reviewer"},
+		},
+		TestCase{
+			input:    "    @reviewer-a   r?",
+			expected: []string{"reviewer-a"},
+		},
 	}
+	for _, testcase := range list {
+		input := testcase.input
 
-	if name := v.BotName(); name != "bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
-}
+		ok, cmd := ParseCommand(input)
+		if !ok {
+			t.Errorf("input: `%v` should be ok", input)
+			continue
+		}
 
-func TestParseCommand14(t *testing.T) {
-	ok, cmd := ParseCommand(`@bot        r+
+		v, ok := cmd.(*AssignReviewerCommand)
+		if !ok {
+			t.Errorf("input: `%v` should be AssignReviewerCommand", input)
+			continue
+		}
 
-
-
-	`)
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
-
-	v, ok := cmd.(*AcceptChangeByReviewerCommand)
-	if !ok {
-		t.Errorf("should be AcceptChangeByReviewerCommand")
-		return
-	}
-
-	if name := v.BotName(); name != "bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
-}
-
-func TestParseCommand15(t *testing.T) {
-	ok, cmd := ParseCommand("@bot　　　  r+")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
-
-	v, ok := cmd.(*AcceptChangeByReviewerCommand)
-	if !ok {
-		t.Errorf("should be AcceptChangeByReviewerCommand")
-		return
-	}
-
-	if name := v.BotName(); name != "bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
-}
-
-func TestParseCommand16(t *testing.T) {
-	ok, cmd := ParseCommand("@bot r-")
-	v, ok := cmd.(*CancelApprovedByReviewerCommand)
-	if !ok {
-		t.Errorf("should be CancelApprovedByReviewerCommand")
-		return
-	}
-
-	if name := v.BotName(); name != "bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
+		expected := testcase.expected[0]
+		if actual := v.Reviewer; actual != expected {
+			t.Errorf("input: `%v` should be the expected (`%v`) but `%v`", input, expected, actual)
+			continue
+		}
 	}
 }
 
-func TestParseCommand17(t *testing.T) {
-	ok, cmd := ParseCommand("@bot-bot r-")
-	if !ok {
-		t.Errorf("should be success to parse")
-		return
+func TestParseCommandValidCaseForCancelApprovedByReviewerCommand(t *testing.T) {
+	type TestCase struct {
+		input           string
+		expectedBotName string
 	}
 
-	v, ok := cmd.(*CancelApprovedByReviewerCommand)
-	if !ok {
-		t.Errorf("should be CancelApprovedByReviewerCommand")
-		return
-	}
+	list := []TestCase{
+		TestCase{
+			input:           "@bot r-",
+			expectedBotName: "bot",
+		},
+		TestCase{
+			input:           "@bot-bot r-",
+			expectedBotName: "bot-bot",
+		},
 
-	if name := v.BotName(); name != "bot-bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
-}
+		TestCase{
+			input:           "    @bot r-",
+			expectedBotName: "bot",
+		},
 
-func TestParseCommand18(t *testing.T) {
-	ok, cmd := ParseCommand("@bot-bot r+")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
+		TestCase{
+			input:           "@bot        r-",
+			expectedBotName: "bot",
+		},
 
-	v, ok := cmd.(*AcceptChangeByReviewerCommand)
-	if !ok {
-		t.Errorf("should be AcceptChangeByReviewerCommand")
-		return
-	}
+		TestCase{
+			input: `@bot        r-
 
-	if name := v.BotName(); name != "bot-bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
-}
 
-func TestParseCommand19(t *testing.T) {
-	ok, cmd := ParseCommand("r? @reviewer-a")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
 
-	v, ok := cmd.(*AssignReviewerCommand)
-	if !ok {
-		t.Errorf("should be AssignReviewerCommand")
-		return
+	`,
+			expectedBotName: "bot",
+		},
 	}
+	for _, testcase := range list {
+		input := testcase.input
 
-	if v.Reviewer != "reviewer-a" {
-		t.Errorf("should be the expected reviewer")
-		return
-	}
-}
+		ok, cmd := ParseCommand(input)
+		if !ok {
+			t.Errorf("input: `%v` should be ok", input)
+			continue
+		}
 
-func TestParseCommand20(t *testing.T) {
-	ok, cmd := ParseCommand("@reviewer-a r?")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
+		v, ok := cmd.(*CancelApprovedByReviewerCommand)
+		if !ok {
+			t.Errorf("input: `%v` should be CancelApprovedByReviewerCommand", input)
+			continue
+		}
 
-	v, ok := cmd.(*AssignReviewerCommand)
-	if !ok {
-		t.Errorf("should be AssignReviewerCommand")
-		return
-	}
-
-	if v.Reviewer != "reviewer-a" {
-		t.Errorf("should be the expected reviewer")
-		return
+		expected := testcase.expectedBotName
+		if actual := v.BotName(); actual != expected {
+			t.Errorf("input: `%v` should be the expected bot (`%v`) name but `%v`", input, expected, actual)
+			continue
+		}
 	}
 }
 
-func TestParseCommand21(t *testing.T) {
-	ok, cmd := ParseCommand("@bot r=popuko-a,pipimi-b")
-	if !ok {
-		t.Errorf("should be ok")
-		return
-	}
+func TestParseCommandInvalidCase(t *testing.T) {
+	input := []string{
+		"Hello, I'm john.",
+		"",
+		"bot r+",
 
-	v, ok := cmd.(*AcceptChangeByOthersCommand)
-	if !ok {
-		t.Errorf("should be AcceptChangeByOthersCommand")
-		return
-	}
+		"@bot",
 
-	if name := v.BotName(); name != "bot" {
-		t.Errorf("should be the expected bot name: %v\n", name)
-		return
-	}
+		" @ bot r+",
+		" @ bot r +",
+		`
+    @bot r+`,
+		`@bot
+    r+`,
 
-	if name := v.Reviewer[0]; name != "popuko-a" {
-		t.Errorf("should be the expected reviewer 1: %v\n", name)
-		return
-	}
+		" @ bot r-",
+		" @ bot r -",
+		`
+    @bot r-`,
+		`@bot
+    r-`,
 
-	if name := v.Reviewer[1]; name != "pipimi-b" {
-		t.Errorf("should be the expected reviewer 2: %v\n", name)
-		return
+		" @ bot r=a",
+		" @ bot r = a",
+		" @ bot r =a",
+		`
+    @bot r=a`,
+		`@bot
+    r=a`,
+
+		" @ bot r?",
+		" @ bot r ? ",
+		`
+    @bot r?`,
+		`@bot
+    r?`,
+
+		" r? @ bot",
+		" r ? @ bot ",
+		`
+    r? @bot`,
+		`r?
+    @bot`,
+	}
+	for _, item := range input {
+		if ok, _ := ParseCommand(item); ok {
+			t.Errorf("%v should not be ok", item)
+		}
 	}
 }
