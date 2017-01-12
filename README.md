@@ -195,6 +195,9 @@ It was notion.
 ## How to Contribute
 
 - [TODO: Write CONTRUBUTING.md](https://github.com/karen-irc/popuko/issues/97)
+- If you have a problem, please find [existing issues](https://github.com/karen-irc/popuko/issues) at first.
+    - If there is no one which is similar to yours, please [file it as a new issue](https://github.com/karen-irc/popuko/issues/new).
+- We welcome your pull request. But we may not be able to accept your pull request if it is against to our project direction. Sorry.
 
 
 ## TODO
