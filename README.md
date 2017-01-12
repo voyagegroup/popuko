@@ -162,7 +162,7 @@ Auto-Merging behaves like this:
 ### The current limitations
 
 - The upstream branch should be named as `master`.
-- This bot cannot handle the pull request which aims to merge into not `master` correctly.
+- This cannot detect the unmergeable pull request which aims to be merged into non-`master`.
 
 
 ### Can I reuse this package as a library?
