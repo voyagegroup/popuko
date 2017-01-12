@@ -99,6 +99,14 @@ func TestParseCommandValidCaseForAcceptChangeByOthersCommand(t *testing.T) {
 			input:    "  @bot r=popuko,  pipimi   ",
 			expected: []string{"popuko", "pipimi"},
 		},
+		TestCase{
+			input:    "  @bot r=popuko ,  pipimi   ",
+			expected: []string{"popuko", "pipimi"},
+		},
+		TestCase{
+			input:    "  @bot r= popuko ,  pipimi   ",
+			expected: []string{"popuko", "pipimi"},
+		},
 
 		TestCase{
 			input:    "@bot r=popuko-a,pipimi-b",
@@ -110,6 +118,14 @@ func TestParseCommandValidCaseForAcceptChangeByOthersCommand(t *testing.T) {
 		},
 		TestCase{
 			input:    "  @bot r=popuko-a,   pipimi-b   ",
+			expected: []string{"popuko-a", "pipimi-b"},
+		},
+		TestCase{
+			input:    "  @bot r=popuko-a  ,   pipimi-b   ",
+			expected: []string{"popuko-a", "pipimi-b"},
+		},
+		TestCase{
+			input:    "  @bot r= popuko-a  ,   pipimi-b   ",
 			expected: []string{"popuko-a", "pipimi-b"},
 		},
 	}
