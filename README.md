@@ -161,8 +161,11 @@ Auto-Merging behaves like this:
 
 ### The current limitations
 
-- The upstream branch should be named as `master`.
-- This bot cannot handle the pull request which aims to merge into not `master` correctly.
+- The default branch of your repository should be named as `master`.
+    - [TODO: #196](https://github.com/karen-irc/popuko/issues/196).
+- If your pull request which try to be merged into non-default branch, this bot does not detect the conflict
+  even if the upstream has been changed.
+    - [TODO: #197](https://github.com/karen-irc/popuko/issues/197)
 
 
 ### Can I reuse this package as a library?
