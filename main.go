@@ -106,7 +106,11 @@ func main() {
 		return
 	}
 
-	server := AppServer{github, q}
+	server := AppServer{
+		githubClient:  github,
+		autoMergeRepo: q,
+		setting:       config,
+	}
 
 	http.HandleFunc("/github", server.handleGithubHook)
 

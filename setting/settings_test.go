@@ -29,6 +29,10 @@ func TestLoadConfigToml(t *testing.T) {
 		return
 	}
 
+	if actual := result.Version; actual != 0 {
+		t.Fatalf("%v\n", actual)
+	}
+
 	if actual := result.BotName; actual != "popuko" {
 		t.Errorf("%v\n", actual)
 		return
@@ -52,5 +56,9 @@ func TestLoadConfigToml(t *testing.T) {
 	if actual := result.Github.HookSecret; actual != "webhook_secret" {
 		t.Errorf("%v\n", actual)
 		return
+	}
+
+	if actual := result.Github.acceptedRepos; actual != nil {
+		t.Fatalf("%v\n", actual)
 	}
 }
