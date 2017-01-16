@@ -33,17 +33,12 @@ func TestLoadConfigToml(t *testing.T) {
 		t.Fatalf("%v\n", actual)
 	}
 
-	if actual := result.BotName; actual != "popuko" {
-		t.Errorf("%v\n", actual)
-		return
-	}
-
 	if actual := result.Port; actual != 3000 {
 		t.Errorf("%v\n", actual)
 		return
 	}
 
-	if actual := result.Github.BotName; actual != "" {
+	if actual := result.Github.BotName; actual != "popuko" {
 		t.Errorf("%v\n", actual)
 		return
 	}
