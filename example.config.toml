@@ -3,16 +3,12 @@
 # The version of this configuration format.
 config_version = 0
 
-# This bot name.
-botname = "popuko"
-
 # The port number which this application listening.
 port = 3000
 
 [github]
-# If your github bot name is different from global botname,
-# please specify this. Otherwise, you should set empty string.
-botname = ""
+# This bot name for GitHub.
+botname = "popuko"
 
 # GitHub API Token
 api_token = "api_token"

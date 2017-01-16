@@ -13,7 +13,6 @@ import (
 
 type Settings struct {
 	Version int           `toml:"config_version"`
-	BotName string        `toml:"botname"`
 	Port    int           `toml:"port"`
 	Github  GithubSetting `toml:"github"`
 }
@@ -23,12 +22,7 @@ func (s *Settings) PortStr() string {
 }
 
 func (s *Settings) BotNameForGithub() string {
-	github := s.Github.BotName
-	if github != "" {
-		return github
-	} else {
-		return s.BotName
-	}
+	return s.Github.BotName
 }
 
 func (s *Settings) GithubToken() string {
