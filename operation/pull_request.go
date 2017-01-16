@@ -19,9 +19,11 @@ func isMergeable(prSvc *github.PullRequestsService, owner, name string, issue in
 		// this state is still in checking if pr.Mergeable == nil.
 		if nest > 1 {
 			// We tried once.
-			// Conclude it is not mergeable heurístically
-			log.Printf("info: we cannot get the mergeable status of #%v again. We treat it is NOT MERGEABLE heurístically \n", issue)
-			return true, false
+			// We conclude that the pull request is mergeable.
+			// If we conclude it is not mergeable, it is too eager.
+			// Even if it's mergeable, we would conclude it's not mergeable. It's mis-detection.
+			log.Printf("info: we cannot get the mergeable status of #%v again. We treat it is MERGEABLE heurístically \n", issue)
+			return true, true
 		}
 
 		// sleep same time: https://github.com/barosl/homu/blob/2104e4b154d2fba15d515b478a5bd6105c1522f6/homu/main.py#L722
