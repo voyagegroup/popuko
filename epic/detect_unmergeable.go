@@ -9,9 +9,11 @@ import (
 	"github.com/karen-irc/popuko/operation"
 )
 
+const masterBranchName = "master"
+
 func DetectUnmergeablePR(client *github.Client, ev *github.PushEvent) {
 	// At this moment, we only care a pull request which are looking master branch.
-	if *ev.Ref != "refs/heads/master" {
+	if *ev.Ref != "refs/heads/"+masterBranchName {
 		log.Printf("info: pushed branch is not related to me: %v\n", *ev.Ref)
 		return
 	}
@@ -88,6 +90,18 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 	number := info.Number
 	log.Printf("debug: pull request number is %v\n", number)
 
+	pr, _, err := info.prSvc.Get(repoOwner, repo, number)
+	if err != nil || pr == nil {
+		log.Println("info: could not get the info for pull request")
+		log.Printf("debug: %v\n", err)
+		return
+	}
+
+	if !operation.IsRelatedToMaster(pr, repoOwner, masterBranchName) {
+		log.Printf("info: #%v is not related to `%v` branch", number, masterBranchName)
+		return
+	}
+
 	currentLabels := operation.GetLabelsByIssue(issueSvc, repoOwner, repo, number)
 	if currentLabels == nil {
 		return
@@ -99,7 +113,7 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 		return
 	}
 
-	ok, mergeable := isMergeable(info.prSvc, repoOwner, repo, number)
+	ok, mergeable := operation.IsMergeable(info.prSvc, repoOwner, repo, number, pr)
 	if !ok {
 		log.Printf("info: We treat #%v as 'mergeable' to avoid miss detection because we could not fetch the pr info,\n", number)
 		return
@@ -122,15 +136,4 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 		log.Printf("could not change labels of #%v\n", number)
 		return
 	}
-}
-
-func isMergeable(prSvc *github.PullRequestsService, owner string, name string, issue int) (bool, bool) {
-	pr, _, err := prSvc.Get(owner, name, issue)
-	if err != nil || pr == nil {
-		log.Println("info: could not get the info for pull request")
-		log.Printf("debug: %v\n", err)
-		return false, false
-	}
-
-	return operation.IsMergeable(prSvc, owner, name, issue, pr)
 }

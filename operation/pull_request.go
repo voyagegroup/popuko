@@ -2,6 +2,7 @@ package operation
 
 import (
 	"log"
+	"strings"
 	"time"
 
 	"github.com/google/go-github/github"
@@ -35,4 +36,49 @@ func isMergeable(prSvc *github.PullRequestsService, owner, name string, issue in
 	}
 
 	return true, *mergeable
+}
+
+func IsRelatedToMaster(pr *github.PullRequest, owner, master string) bool {
+	base := pr.Base
+	if base == nil {
+		log.Printf("info: #%v's Base is `nil`\n", *pr.Number)
+		return false
+	}
+
+	baseRef := base.Ref
+	if baseRef == nil {
+		log.Printf("info: #%v's Base.Ref is `nil`\n", *pr.Number)
+		return false
+	}
+
+	if *baseRef != master {
+		log.Printf("info: #%v's Base.Ref is not equals to `%v`\n", *pr.Number, master)
+		return false
+	}
+
+	baseLabel := base.Label
+	if baseLabel == nil {
+		log.Printf("info: #%v's Base.Label is `nil`\n", *pr.Number)
+		return false
+	}
+
+	// Check the pr is from the forked one.
+	if strings.Contains(*baseLabel, ":") {
+		if !strings.HasPrefix(*baseLabel, owner) {
+			log.Printf("info: #%v is come from the forked but `%v` is not related to us\n", *pr.Number, *baseLabel)
+			return false
+		}
+
+		if !strings.HasSuffix(*baseLabel, master) {
+			log.Printf("info: #%v is come from the forked but `%v` is not related to our default branch (%v)\n", *pr.Number, *baseLabel, master)
+			return false
+		}
+	} else {
+		if *baseLabel != master {
+			log.Printf("info: #%v's base is `%v` but our master is `%v`.", *pr.Number, *baseLabel, master)
+			return false
+		}
+	}
+
+	return true
 }
