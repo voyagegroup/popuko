@@ -1,6 +1,7 @@
 package epic
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/google/go-github/github"
@@ -169,11 +170,17 @@ func commentStatus(client *github.Client, owner, name string, prNum int, comment
 		comment += "\n\n"
 
 		for _, s := range status.Statuses {
-			if s.Description == nil || s.TargetURL == nil {
+			if s.TargetURL == nil {
 				continue
 			}
 
-			item := "* [" + *s.Description + "](" + *s.TargetURL + ")\n"
+			var item string
+			if s.Description == nil || *s.Description == "" {
+				item = fmt.Sprintf("* %v\n", *s.TargetURL)
+			} else {
+				item = fmt.Sprintf("* [%v](%v)\n", *s.Description, *s.TargetURL)
+			}
+
 			comment += item
 		}
 	}
