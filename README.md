@@ -60,7 +60,8 @@ You can use these command as the comment for pull request.
 #### `r? @<reviewer>`
 
 - Assign the reviewer to the pull request with labeling `S-awaiting-review`.
-- You can also call `@<reviewer> r?`.
+- You can call `r? @<reviewer1> @<reviewer2>` to assign multiple reviewers.
+- You can also call `@<reviewer> r?` (But this is deprecated syntax).
 - All user can call this command.
 
 #### `@<botname> r+` or `@<botname> r=<reviewer>`

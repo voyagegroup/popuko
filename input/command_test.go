@@ -199,6 +199,23 @@ func TestParseCommandValidCaseForAssignReviewerCommand(t *testing.T) {
 			input:    "    @reviewer-a   r?",
 			expected: []string{"reviewer-a"},
 		},
+
+		TestCase{
+			input:    "r? @reviewer @reviewer2",
+			expected: []string{"reviewer", "reviewer2"},
+		},
+		TestCase{
+			input:    "r? @reviewer-a @reviewer-b",
+			expected: []string{"reviewer-a", "reviewer-b"},
+		},
+		TestCase{
+			input:    "  r? @reviewer  @reviewer2",
+			expected: []string{"reviewer", "reviewer2"},
+		},
+		TestCase{
+			input:    "   r? @reviewer-a   @reviewer-b",
+			expected: []string{"reviewer-a", "reviewer-b"},
+		},
 	}
 	for _, testcase := range list {
 		input := testcase.input
@@ -215,10 +232,16 @@ func TestParseCommandValidCaseForAssignReviewerCommand(t *testing.T) {
 			continue
 		}
 
-		expected := testcase.expected[0]
-		if actual := v.Reviewer; actual != expected {
-			t.Errorf("input: `%v` should be the expected (`%v`) but `%v`", input, expected, actual)
+		if len(v.Reviewer) != len(testcase.expected) {
+			t.Errorf("input: `%v` should be the expected length (`%v`) but the acutual length is `%v`", input, len(testcase.expected), len(v.Reviewer))
 			continue
+		}
+
+		for i, expected := range testcase.expected {
+			if actual := v.Reviewer[i]; actual != expected {
+				t.Errorf("input: `%v` should be the expected (`%v`) but `%v`", input, expected, actual)
+				continue
+			}
 		}
 	}
 }

@@ -3,6 +3,7 @@ package input
 import (
 	"fmt"
 	"io"
+	"log"
 )
 
 type parser struct {
@@ -76,7 +77,7 @@ func (p *parser) parseAskToUser() (interface{}, error) {
 		return nil, fmt.Errorf("found %q, expected CommandReject", lit)
 	case Question:
 		result = &AssignReviewerCommand{
-			Reviewer: person[0],
+			Reviewer: person,
 		}
 	case Plus:
 		if len(person) > 1 {
@@ -125,28 +126,37 @@ func (p *parser) parseAskReview() (interface{}, error) {
 	}
 
 	reviewers := []string{}
-	user, err := p.parseUserIDCall()
-	if err != nil {
-		return nil, err
+	for {
+		user, err := p.parseUserIDCall()
+		if err != nil {
+			log.Printf("%v\n", err)
+			break
+		}
+		reviewers = append(reviewers, user)
 	}
-	reviewers = append(reviewers, user)
+
+	if len(reviewers) == 0 {
+		return nil, fmt.Errorf("not found any reviewers")
+	}
 
 	if tok, lit := p.scanIgnoreWhitespace(); tok != EOF {
 		return nil, fmt.Errorf("found %q, expected EOF", lit)
 	}
 
 	return &AssignReviewerCommand{
-		Reviewer: reviewers[0],
+		Reviewer: reviewers,
 	}, nil
 }
 
 func (p *parser) parseUserIDCall() (string, error) {
 	if tok, lit := p.scanIgnoreWhitespace(); tok != Atmark {
+		p.unscan()
 		return "", fmt.Errorf("found %q, expected Atmark", lit)
 	}
 
 	tok, lit := p.scan()
 	if tok != Ident {
+		p.unscan()
 		return "", fmt.Errorf("found %q, expected Ident", lit)
 	}
 
