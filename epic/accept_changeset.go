@@ -116,19 +116,6 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 	return true, nil
 }
 
-func (c *AcceptCommand) AcceptChangesetByOtherReviewer(ev *github.IssueCommentEvent, reviewer []string) (bool, error) {
-	log.Printf("info: Start: merge the pull request from other reviewer by %v\n", ev.Comment.ID)
-	defer log.Printf("info: End:merge the pull request from other reviewer by %v\n", ev.Comment.ID)
-
-	if !c.Info.HasReviewer(reviewer) {
-		log.Println("info: could not find the actual reviewer in reviewer list")
-		log.Printf("debug: specified actial reviewer %v\n", reviewer)
-		return false, nil
-	}
-
-	return c.AcceptChangesetByReviewer(ev)
-}
-
 func commentApprovedSha(cmd input.AcceptChangesetCommand,
 	issues *github.IssuesService,
 	owner,

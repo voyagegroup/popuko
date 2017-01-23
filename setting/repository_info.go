@@ -17,15 +17,6 @@ func (r *RepositoryInfo) IsReviewer(name string) bool {
 	return r.reviewers.Has(name)
 }
 
-func (r *RepositoryInfo) HasReviewer(list []string) bool {
-	for _, user := range list {
-		if r.IsReviewer(user) {
-			return true
-		}
-	}
-	return false
-}
-
 type ReviewerSet struct {
 	set map[string]*interface{}
 }

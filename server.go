@@ -128,7 +128,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			repoInfo,
 			srv.autoMergeRepo,
 		}
-		return commander.AcceptChangesetByOtherReviewer(ev, cmd.Reviewer)
+		return commander.AcceptChangesetByReviewer(ev)
 	case *input.CancelApprovedByReviewerCommand:
 		commander := epic.CancelApprovedCommand{
 			BotName:       config.BotNameForGithub(),
