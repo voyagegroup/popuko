@@ -53,7 +53,7 @@ func (s *AcceptChangeByOthersCommand) BotName() string {
 }
 
 type AssignReviewerCommand struct {
-	Reviewer string
+	Reviewer []string
 }
 
 type CancelApprovedByReviewerCommand struct {

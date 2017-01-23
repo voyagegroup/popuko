@@ -7,7 +7,7 @@ import (
 	"github.com/karen-irc/popuko/operation"
 )
 
-func AssignReviewer(client *github.Client, ev *github.IssueCommentEvent, target string) (bool, error) {
+func AssignReviewer(client *github.Client, ev *github.IssueCommentEvent, assignees []string) (bool, error) {
 	log.Printf("info: Start: assign the reviewer by %v\n", *ev.Comment.ID)
 	defer log.Printf("info: End: assign the reviewer by %v\n", *ev.Comment.ID)
 
@@ -25,7 +25,6 @@ func AssignReviewer(client *github.Client, ev *github.IssueCommentEvent, target 
 		return false, nil
 	}
 
-	assignees := []string{target}
 	log.Printf("debug: assignees is %v\n", assignees)
 
 	_, _, err := issueSvc.AddAssignees(repoOwner, repo, issue, assignees)
