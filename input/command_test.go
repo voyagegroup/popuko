@@ -334,6 +334,7 @@ func TestParseCommandInvalidCase(t *testing.T) {
     r-`,
 
 		// r=reviewer
+		"@bot r=",
 		"@bot r =a",
 		"@bot r = a",
 		"@bot r r=a",
