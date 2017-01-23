@@ -39,6 +39,9 @@ func CheckAutoBranch(client *github.Client, autoMergeRepo *queue.AutoMergeQRepo,
 	log.Println("info: Start to handle auto merging the branch.")
 
 	qHandle := autoMergeRepo.Get(repoOwner, repoName)
+	if qHandle == nil {
+		return
+	}
 
 	qHandle.Lock()
 	defer qHandle.Unlock()

@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -37,17 +39,28 @@ func newFileRepository(path string) *fileRepository {
 	}
 }
 
-func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) bool {
-	k := owner + "/" + name
-	mux, ok := s.dict[k]
-	if !ok {
-		v := new(sync.RWMutex)
-		s.dict[k] = v
-		mux = v
+func (s *fileRepository) validatePath(owner string, name string) bool {
+	_, err := createAbs(s.rootPath, owner)
+	if err != nil {
+		log.Printf("error: %v\n", err)
+		return false
 	}
 
-	mux.Lock()
-	defer mux.Unlock()
+	return true
+}
+
+func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) bool {
+	dir, err := createAbs(s.rootPath, owner)
+	if err != nil {
+		log.Printf("error: %v\n", err)
+		return false
+	}
+
+	path, err := createAbs(dir, name+".json")
+	if err != nil {
+		log.Printf("error: %v\n", err)
+		return false
+	}
 
 	c := autoMergeQFile{
 		Version: fileFmtVersion,
@@ -61,18 +74,22 @@ func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) 
 		return false
 	}
 
-	dir, err := filepath.Abs(s.rootPath + "/" + owner)
+	k := owner + "/" + name
+	mux, ok := s.dict[k]
+	if !ok {
+		v := new(sync.RWMutex)
+		s.dict[k] = v
+		mux = v
+	}
+
+	mux.Lock()
+	defer mux.Unlock()
+
 	if !exists(dir) {
 		if err := os.Mkdir(dir, 0775); err != nil {
 			log.Println("error: cannot create the config home dir.")
 			return false
 		}
-	}
-
-	path, err := filepath.Abs(dir + "/" + name + ".json")
-	if err != nil {
-		log.Printf("error: cannot get the path to %v/%v\n", owner, name)
-		return false
 	}
 
 	// If the file exists, rename the current file as `***.bak` file.
@@ -103,6 +120,22 @@ func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) 
 }
 
 func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue) {
+	ownerDir, err := createAbs(s.rootPath, owner)
+	if err != nil {
+		log.Printf("error: %v\n", err)
+		return false, nil
+	}
+
+	path, err := createAbs(ownerDir, name)
+	if err != nil {
+		log.Printf("error: %v\n", err)
+		return false, nil
+	}
+
+	if !exists(path) {
+		return false, nil
+	}
+
 	k := owner + "/" + name
 	mux, ok := s.dict[k]
 	if !ok {
@@ -113,16 +146,6 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 
 	mux.RLock()
 	defer mux.RUnlock()
-
-	path, err := filepath.Abs(s.rootPath + "/" + owner + "/" + name + ".json")
-	if err != nil {
-		log.Printf("error: cannot get the path to %v/%v\n", owner, name)
-		return false, nil
-	}
-
-	if !exists(path) {
-		return false, nil
-	}
 
 	b, err := ioutil.ReadFile(path)
 
@@ -145,6 +168,33 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 func exists(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil
+}
+
+func createAbs(root, subpath string) (path string, err error) {
+	if !validPathFragment(subpath) {
+		return "", fmt.Errorf("subpath `%v` is not valid input. It may cause directory traversal", subpath)
+	}
+
+	abs, err := filepath.Abs(root + "/" + subpath)
+	if err != nil {
+		return "", fmt.Errorf("error: cannot get the path to `%v` + `%v`", root, subpath)
+	}
+
+	if !strings.HasPrefix(abs, root) {
+		return "", fmt.Errorf("abs `%v` is not under `%v. It may cause directory traversal", abs, root)
+	}
+
+	return abs, nil
+}
+
+// Check `p` is insecure string as a path.
+// If `p` is `../`, it can access to security path (e.g. `~/.ssh/`).
+func validPathFragment(p string) bool {
+	if path.Base(p) == p {
+		return true
+	}
+
+	return false
 }
 
 // XXX: Update this field when change the data struct.
