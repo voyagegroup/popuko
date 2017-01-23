@@ -2,10 +2,13 @@ package epic
 
 import (
 	"log"
+	"strings"
 
 	"github.com/google/go-github/github"
 
 	"errors"
+
+	"fmt"
 
 	"github.com/karen-irc/popuko/input"
 	"github.com/karen-irc/popuko/operation"
@@ -72,12 +75,9 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 	}
 
 	headSha := *pr.Head.SHA
-	{
-		comment := ":pushpin: Commit " + headSha + " has been approved by `" + sender + "`"
-		if ok := operation.AddComment(issueSvc, repoOwner, repoName, issue, comment); !ok {
-			log.Println("info: could not create the comment to declare the head is approved.")
-			return false, nil
-		}
+	if ok := commentApprovedSha(c.Cmd, issueSvc, repoOwner, repoName, issue, headSha, sender); !ok {
+		log.Println("info: could not create the comment to declare the head is approved.")
+		return false, err
 	}
 
 	if c.Info.EnableAutoMerge {
@@ -116,17 +116,38 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 	return true, nil
 }
 
-func (c *AcceptCommand) AcceptChangesetByOtherReviewer(ev *github.IssueCommentEvent, reviewer string) (bool, error) {
-	log.Printf("info: Start: merge the pull request from other reviewer by %v\n", ev.Comment.ID)
-	defer log.Printf("info: End:merge the pull request from other reviewer by %v\n", ev.Comment.ID)
+func commentApprovedSha(cmd input.AcceptChangesetCommand,
+	issues *github.IssuesService,
+	owner,
+	name string,
+	number int,
+	sha string,
+	sender string) bool {
 
-	if !c.Info.IsReviewer(reviewer) {
-		log.Println("info: could not find the actual reviewer in reviewer list")
-		log.Printf("debug: specified actial reviewer %v\n", reviewer)
-		return false, nil
+	var reviewers string
+	switch cmd := cmd.(type) {
+	case *input.AcceptChangeByOthersCommand:
+		{
+			list := make([]string, 0, len(cmd.Reviewer))
+			for _, name := range cmd.Reviewer {
+				list = append(list, fmt.Sprintf("`%v`", name))
+			}
+			reviewers = strings.Join(list, ", ")
+		}
+	case *input.AcceptChangeByReviewerCommand:
+		reviewers = fmt.Sprintf("`%v`", sender)
+	default:
+		log.Printf("error: %+v is not handled.", cmd)
+		return false
 	}
 
-	return c.AcceptChangesetByReviewer(ev)
+	comment := fmt.Sprintf(":pushpin: Commit %v has been approved by %v", sha, reviewers)
+	if ok := operation.AddComment(issues, owner, name, number, comment); !ok {
+		log.Println("info: could not create the comment to declare the head is approved.")
+		return false
+	}
+
+	return true
 }
 
 func queuePullReq(queue *queue.AutoMergeQueue, item *queue.AutoMergeQueueItem) (ok bool, mutated bool) {
