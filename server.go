@@ -81,6 +81,10 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 	log.Printf("Start: processCommitCommentEvent by %v\n", *ev.Comment.ID)
 	defer log.Printf("End: processCommitCommentEvent by %v\n", *ev.Comment.ID)
 
+	if action := ev.Action; (action == nil) || (*action != "created") {
+		return false, fmt.Errorf("info: accept `action === \"created\"` only")
+	}
+
 	repoOwner := *ev.Repo.Owner.Login
 	repo := *ev.Repo.Name
 	if !srv.setting.AcceptRepo(repoOwner, repo) {
