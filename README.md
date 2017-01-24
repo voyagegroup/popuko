@@ -25,8 +25,11 @@ As a developer, we must automate them by creating some bots for GitHub.
 We should achieve hassle-free development.
 
 In the area of automating GitHub operation, [homu][homu] is the super great operation bot
-and it supports a lot of valuable features: merge pull request into the latest upstream, try to testing on TravisCI,
-and more. But its development is not in active now. And also Mozilla's servo team maintains
+and it supports a lot of valuable features: merge pull request into the latest upstream, try to testing on TravisCI, and more.
+It realizes the principle: _The Not Rocket Science Rule Of Software Engineering:
+automatically maintain a repository of code that always passes all the tests_ [by Graydon Hoare][graydon's-entry].
+Homu is used in [Rust language][github-rust-repo] and [Servo][github-servo]. It works well in there.
+But its development is not in active now. And also Mozilla's servo team maintains
 [their forked version of homu][servo-homu]. But it is developed for their specific usecase.
 Not for other projects.
 
@@ -223,3 +226,6 @@ It was notion.
 [servo-homu]: https://github.com/servo/homu
 [highfive]: https://github.com/servo/highfive
 [homu.io]: http://homu.io/
+[github-rust-repo]: https://github.com/rust-lang/
+[github-servo]: https://github.com/servo
+[graydon's-entry]: http://graydon.livejournal.com/186550.html
