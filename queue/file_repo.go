@@ -149,13 +149,13 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 		return false, nil
 	}
 
-	if !exists(path) {
-		return false, nil
-	}
-
 	mux := s.getPerFileLock(owner, name)
 	mux.RLock()
 	defer mux.RUnlock()
+
+	if !exists(path) {
+		return false, nil
+	}
 
 	b, err := ioutil.ReadFile(path)
 
