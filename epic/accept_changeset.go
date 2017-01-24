@@ -82,6 +82,10 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 
 	if c.Info.EnableAutoMerge {
 		qHandle := c.AutoMergeRepo.Get(repoOwner, repoName)
+		if qHandle == nil {
+			return false, errors.New("error: cannot get the queue handle")
+		}
+
 		qHandle.Lock()
 		defer qHandle.Unlock()
 

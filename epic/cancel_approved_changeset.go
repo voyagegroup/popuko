@@ -1,6 +1,7 @@
 package epic
 
 import (
+	"errors"
 	"log"
 
 	"github.com/google/go-github/github"
@@ -65,6 +66,10 @@ func (c *CancelApprovedCommand) CancelApprovedChangeSet(ev *github.IssueCommentE
 
 	if c.Info.EnableAutoMerge {
 		qHandle := c.AutoMergeRepo.Get(owner, name)
+		if qHandle == nil {
+			return false, errors.New("error: cannot get the queue handle")
+		}
+
 		qHandle.Lock()
 		defer qHandle.Unlock()
 

@@ -26,6 +26,10 @@ func NewAutoMergeQRepo(root string) *AutoMergeQRepo {
 }
 
 func (s *AutoMergeQRepo) Get(owner string, name string) *AutoMergeQueueHandle {
+	if ok := s.repo.validatePath(owner, name); !ok {
+		return nil
+	}
+
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
