@@ -129,6 +129,15 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 	return true, q
 }
 
+func (s *fileRepository) loadAsByte(owner string, name string) (bool, []byte) {
+	b := s.readMergeQueue(owner, name)
+	if b == nil {
+		return false, nil
+	}
+
+	return true, b
+}
+
 func (s *fileRepository) readMergeQueue(owner, name string) []byte {
 	ok, file := createQueueJSONPath(s.rootPath, owner, name)
 	if !ok {
