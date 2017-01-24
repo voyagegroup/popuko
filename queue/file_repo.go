@@ -40,7 +40,13 @@ func newFileRepository(path string) *fileRepository {
 }
 
 func (s *fileRepository) validatePath(owner string, name string) bool {
-	_, err := createAbs(s.rootPath, owner)
+	dir, err := createAbs(s.rootPath, owner)
+	if err != nil {
+		log.Printf("error: %v\n", err)
+		return false
+	}
+
+	_, err = createAbs(dir, name)
 	if err != nil {
 		log.Printf("error: %v\n", err)
 		return false
