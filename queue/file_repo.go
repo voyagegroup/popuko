@@ -143,7 +143,7 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 		return false, nil
 	}
 
-	path, err := createAbs(ownerDir, name)
+	path, err := createAbs(ownerDir, name+".json")
 	if err != nil {
 		log.Printf("error: %v\n", err)
 		return false, nil
