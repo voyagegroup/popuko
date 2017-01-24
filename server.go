@@ -23,6 +23,8 @@ type AppServer struct {
 	setting       *setting.Settings
 }
 
+const prefixWebHookPath = "/github"
+
 func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request) {
 	log.Println("info: Start: handle GitHub WebHook")
 	log.Printf("info: Path is %v\n", req.URL.Path)
