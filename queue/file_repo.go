@@ -14,7 +14,9 @@ import (
 
 type fileRepository struct {
 	rootPath string
-	dict     map[string]*sync.RWMutex
+
+	mux  sync.Mutex
+	dict map[string]*sync.RWMutex
 }
 
 const queueRepoDir = "/queue"
@@ -35,6 +37,7 @@ func newFileRepository(path string) *fileRepository {
 
 	return &fileRepository{
 		rootPath: root,
+		mux:      sync.Mutex{},
 		dict:     make(map[string]*sync.RWMutex),
 	}
 }
@@ -53,6 +56,21 @@ func (s *fileRepository) validatePath(owner string, name string) bool {
 	}
 
 	return true
+}
+
+func (s *fileRepository) getPerFileLock(owner, name string) *sync.RWMutex {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	k := owner + "/" + name
+	mux, ok := s.dict[k]
+	if !ok {
+		v := new(sync.RWMutex)
+		s.dict[k] = v
+		mux = v
+	}
+
+	return mux
 }
 
 func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) bool {
@@ -80,14 +98,7 @@ func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) 
 		return false
 	}
 
-	k := owner + "/" + name
-	mux, ok := s.dict[k]
-	if !ok {
-		v := new(sync.RWMutex)
-		s.dict[k] = v
-		mux = v
-	}
-
+	mux := s.getPerFileLock(owner, name)
 	mux.Lock()
 	defer mux.Unlock()
 
@@ -142,14 +153,7 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 		return false, nil
 	}
 
-	k := owner + "/" + name
-	mux, ok := s.dict[k]
-	if !ok {
-		v := new(sync.RWMutex)
-		s.dict[k] = v
-		mux = v
-	}
-
+	mux := s.getPerFileLock(owner, name)
 	mux.RLock()
 	defer mux.RUnlock()
 
