@@ -13,7 +13,18 @@
 
 ## Motivation
 
-[homu][homu] is the super great operation bot for development on GitHub
+A development on GitHub with many developers requires many operations for users.
+You need looking for who can review your pull request for the repository,
+assigning your pull request to some reviewers,
+checking why your pull request is not able to merge into the upstream branch,
+checking that it will not cause any failures before merging your pull request,
+merging your pull request actually, and etc.
+However, basically, we have to operate these actions by hand. It's stressful.
+
+As a developer, we must automate them by creating some bots for GitHub.
+We should achieve hassle-free development.
+
+In the area of automating GitHub operation, [homu][homu] is the super great operation bot
 and it supports a lot of valuable features: merge pull request into the latest upstream, try to testing on TravisCI,
 and more. But its development is not in active now. And also Mozilla's servo team maintains
 [their forked version of homu][servo-homu]. But it is developed for their specific usecase.
