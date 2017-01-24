@@ -67,6 +67,7 @@ func (c *CancelApprovedCommand) CancelApprovedChangeSet(ev *github.IssueCommentE
 	if c.Info.EnableAutoMerge {
 		qHandle := c.AutoMergeRepo.Get(owner, name)
 		if qHandle == nil {
+			log.Println("error: cannot get the queue handle")
 			return false, errors.New("error: cannot get the queue handle")
 		}
 

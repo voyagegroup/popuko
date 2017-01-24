@@ -54,11 +54,18 @@ func (s *AutoMergeQRepo) save(owner string, name string, v *AutoMergeQueue) {
 }
 
 type AutoMergeQueueHandle struct {
-	sync.Mutex
+	mux sync.Mutex
 
 	owner  string
 	name   string
 	parent *AutoMergeQRepo
+}
+
+func (s *AutoMergeQueueHandle) Lock() {
+	s.mux.Lock()
+}
+func (s *AutoMergeQueueHandle) Unlock() {
+	s.mux.Unlock()
 }
 
 func (s *AutoMergeQueueHandle) Load() *AutoMergeQueue {

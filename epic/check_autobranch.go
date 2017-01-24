@@ -40,6 +40,7 @@ func CheckAutoBranch(client *github.Client, autoMergeRepo *queue.AutoMergeQRepo,
 
 	qHandle := autoMergeRepo.Get(repoOwner, repoName)
 	if qHandle == nil {
+		log.Println("error: cannot get the queue handle")
 		return
 	}
 
