@@ -228,4 +228,4 @@ It was notion.
 [homu.io]: http://homu.io/
 [github-rust-repo]: https://github.com/rust-lang/
 [github-servo]: https://github.com/servo
-[graydon's-entry]: http://graydon.livejournal.com/186550.html
+[graydon's-entry]: http://graydon2.dreamwidth.org/1597.html
