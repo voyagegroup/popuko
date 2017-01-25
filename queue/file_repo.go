@@ -22,6 +22,11 @@ type fileRepository struct {
 const queueRepoDir = "/queue"
 
 func newFileRepository(path string) *fileRepository {
+	if path == "" {
+		log.Println("error: `path` must not be empty string")
+		return nil
+	}
+
 	root, err := filepath.Abs(path + queueRepoDir)
 	if err != nil {
 		log.Printf("error: cannot get the path to the queue storage: %v\n", err)
@@ -86,13 +91,7 @@ func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) 
 		return false
 	}
 
-	c := autoMergeQFile{
-		Version: fileFmtVersion,
-		Queue:   queue.q,
-		Current: queue.current,
-	}
-
-	b, err := json.MarshalIndent(c, "", "  ")
+	b := encodeAutoMergeQueueToByte(queue)
 	if err != nil {
 		fmt.Println("error: cannot marshal queue:", err)
 		return false
@@ -158,19 +157,12 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 	}
 
 	b, err := ioutil.ReadFile(path)
-
-	var result autoMergeQFile
-	if err := json.Unmarshal(b, &result); err != nil {
+	if err != nil {
 		fmt.Println("error:", err)
-		return true, nil
 	}
 
-	q := AutoMergeQueue{
-		q:       result.Queue,
-		current: result.Current,
-	}
-
-	return true, &q
+	q := decodeByteToAutoMergeQueue(b)
+	return true, q
 }
 
 func exists(filename string) bool {
@@ -209,7 +201,45 @@ func validPathFragment(p string) bool {
 const fileFmtVersion int32 = 0
 
 type autoMergeQFile struct {
-	Version int32                 `json:"version"`
-	Queue   []*AutoMergeQueueItem `json:"queue"`
-	Current *AutoMergeQueueItem   `json:"current_active"`
+	Version int32 `json:"version"`
+	Auto    struct {
+		Queue   []*AutoMergeQueueItem `json:"queue"`
+		Current *AutoMergeQueueItem   `json:"current_active"`
+	} `json:"auto_merge"`
+}
+
+func decodeByteToAutoMergeQueue(b []byte) *AutoMergeQueue {
+	var result autoMergeQFile
+	if err := json.Unmarshal(b, &result); err != nil {
+		fmt.Println("error:", err)
+		return nil
+	}
+
+	q := AutoMergeQueue{
+		q:       result.Auto.Queue,
+		current: result.Auto.Current,
+	}
+
+	return &q
+}
+
+func encodeAutoMergeQueueToByte(queue *AutoMergeQueue) []byte {
+	c := autoMergeQFile{
+		Version: fileFmtVersion,
+		Auto: struct {
+			Queue   []*AutoMergeQueueItem `json:"queue"`
+			Current *AutoMergeQueueItem   `json:"current_active"`
+		}{
+			Queue:   queue.q,
+			Current: queue.current,
+		},
+	}
+
+	b, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
+		fmt.Println("error: cannot marshal queue:", err)
+		return nil
+	}
+
+	return b
 }
