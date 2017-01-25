@@ -6,3 +6,6 @@ popuko
 
 # config file
 config.toml
+
+# https://github.com/golang/dep
+lock.json
