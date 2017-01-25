@@ -201,9 +201,11 @@ func validPathFragment(p string) bool {
 const fileFmtVersion int32 = 0
 
 type autoMergeQFile struct {
-	Version int32                 `json:"version"`
-	Queue   []*AutoMergeQueueItem `json:"queue"`
-	Current *AutoMergeQueueItem   `json:"current_active"`
+	Version int32 `json:"version"`
+	Auto    struct {
+		Queue   []*AutoMergeQueueItem `json:"queue"`
+		Current *AutoMergeQueueItem   `json:"current_active"`
+	} `json:"auto_merge"`
 }
 
 func decodeByteToAutoMergeQueue(b []byte) *AutoMergeQueue {
@@ -214,8 +216,8 @@ func decodeByteToAutoMergeQueue(b []byte) *AutoMergeQueue {
 	}
 
 	q := AutoMergeQueue{
-		q:       result.Queue,
-		current: result.Current,
+		q:       result.Auto.Queue,
+		current: result.Auto.Current,
 	}
 
 	return &q
@@ -224,8 +226,13 @@ func decodeByteToAutoMergeQueue(b []byte) *AutoMergeQueue {
 func encodeAutoMergeQueueToByte(queue *AutoMergeQueue) []byte {
 	c := autoMergeQFile{
 		Version: fileFmtVersion,
-		Queue:   queue.q,
-		Current: queue.current,
+		Auto: struct {
+			Queue   []*AutoMergeQueueItem `json:"queue"`
+			Current *AutoMergeQueueItem   `json:"current_active"`
+		}{
+			Queue:   queue.q,
+			Current: queue.current,
+		},
 	}
 
 	b, err := json.MarshalIndent(c, "", "  ")
