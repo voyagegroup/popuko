@@ -91,13 +91,7 @@ func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) 
 		return false
 	}
 
-	c := autoMergeQFile{
-		Version: fileFmtVersion,
-		Queue:   queue.q,
-		Current: queue.current,
-	}
-
-	b, err := json.MarshalIndent(c, "", "  ")
+	b := encodeAutoMergeQueueToByte(queue)
 	if err != nil {
 		fmt.Println("error: cannot marshal queue:", err)
 		return false
@@ -163,19 +157,12 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 	}
 
 	b, err := ioutil.ReadFile(path)
-
-	var result autoMergeQFile
-	if err := json.Unmarshal(b, &result); err != nil {
+	if err != nil {
 		fmt.Println("error:", err)
-		return true, nil
 	}
 
-	q := AutoMergeQueue{
-		q:       result.Queue,
-		current: result.Current,
-	}
-
-	return true, &q
+	q := decodeByteToAutoMergeQueue(b)
+	return true, q
 }
 
 func exists(filename string) bool {
@@ -217,4 +204,35 @@ type autoMergeQFile struct {
 	Version int32                 `json:"version"`
 	Queue   []*AutoMergeQueueItem `json:"queue"`
 	Current *AutoMergeQueueItem   `json:"current_active"`
+}
+
+func decodeByteToAutoMergeQueue(b []byte) *AutoMergeQueue {
+	var result autoMergeQFile
+	if err := json.Unmarshal(b, &result); err != nil {
+		fmt.Println("error:", err)
+		return nil
+	}
+
+	q := AutoMergeQueue{
+		q:       result.Queue,
+		current: result.Current,
+	}
+
+	return &q
+}
+
+func encodeAutoMergeQueueToByte(queue *AutoMergeQueue) []byte {
+	c := autoMergeQFile{
+		Version: fileFmtVersion,
+		Queue:   queue.q,
+		Current: queue.current,
+	}
+
+	b, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
+		fmt.Println("error: cannot marshal queue:", err)
+		return nil
+	}
+
+	return b
 }
