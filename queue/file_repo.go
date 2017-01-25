@@ -164,13 +164,11 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 		fmt.Println("error:", err)
 		return true, nil
 	}
-	fmt.Printf("debug: %+v\n", result)
 
 	q := AutoMergeQueue{
 		q:       result.Queue,
 		current: result.Current,
 	}
-	fmt.Printf("debug: %+v\n", q)
 
 	return true, &q
 }
