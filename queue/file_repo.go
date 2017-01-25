@@ -22,6 +22,11 @@ type fileRepository struct {
 const queueRepoDir = "/queue"
 
 func newFileRepository(path string) *fileRepository {
+	if path == "" {
+		log.Println("error: `path` must not be empty string")
+		return nil
+	}
+
 	root, err := filepath.Abs(path + queueRepoDir)
 	if err != nil {
 		log.Printf("error: cannot get the path to the queue storage: %v\n", err)
