@@ -48,19 +48,8 @@ func newFileRepository(path string) *fileRepository {
 }
 
 func (s *fileRepository) validatePath(owner string, name string) bool {
-	dir, err := createAbs(s.rootPath, owner)
-	if err != nil {
-		log.Printf("error: %v\n", err)
-		return false
-	}
-
-	_, err = createAbs(dir, name)
-	if err != nil {
-		log.Printf("error: %v\n", err)
-		return false
-	}
-
-	return true
+	ok, _ := createQueueJSONPath(s.rootPath, owner, name)
+	return ok
 }
 
 func (s *fileRepository) getPerFileLock(owner, name string) *sync.RWMutex {
@@ -79,21 +68,14 @@ func (s *fileRepository) getPerFileLock(owner, name string) *sync.RWMutex {
 }
 
 func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) bool {
-	dir, err := createAbs(s.rootPath, owner)
-	if err != nil {
-		log.Printf("error: %v\n", err)
-		return false
-	}
-
-	path, err := createAbs(dir, name+".json")
-	if err != nil {
-		log.Printf("error: %v\n", err)
+	ok, file := createQueueJSONPath(s.rootPath, owner, name)
+	if !ok {
 		return false
 	}
 
 	b := encodeAutoMergeQueueToByte(queue)
-	if err != nil {
-		fmt.Println("error: cannot marshal queue:", err)
+	if b == nil {
+		fmt.Println("error: cannot marshal queue")
 		return false
 	}
 
@@ -101,18 +83,21 @@ func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) 
 	mux.Lock()
 	defer mux.Unlock()
 
-	if !exists(dir) {
-		if err := os.Mkdir(dir, 0775); err != nil {
-			log.Println("error: cannot create the config home dir.")
-			return false
+	{
+		dir := path.Dir(file)
+		if !exists(dir) {
+			if err := os.Mkdir(dir, 0775); err != nil {
+				log.Println("error: cannot create the config home dir.")
+				return false
+			}
 		}
 	}
 
 	// If the file exists, rename the current file as `***.bak` file.
 	var back string
-	if exists(path) {
-		back = path + ".old"
-		if err := os.Rename(path, back); err != nil {
+	if exists(file) {
+		back = file + ".old"
+		if err := os.Rename(file, back); err != nil {
 			panic(err)
 		}
 	}
@@ -127,8 +112,8 @@ func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) 
 		}
 	})(back)
 
-	if err := ioutil.WriteFile(path, b, 0644); err != nil {
-		fmt.Printf("error: cannot write the data to %v: %v\n", path, err)
+	if err := ioutil.WriteFile(file, b, 0644); err != nil {
+		fmt.Printf("error: cannot write the data to %v: %v\n", file, err)
 		return false
 	}
 
@@ -136,15 +121,8 @@ func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) 
 }
 
 func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue) {
-	ownerDir, err := createAbs(s.rootPath, owner)
-	if err != nil {
-		log.Printf("error: %v\n", err)
-		return false, nil
-	}
-
-	path, err := createAbs(ownerDir, name+".json")
-	if err != nil {
-		log.Printf("error: %v\n", err)
+	ok, file := createQueueJSONPath(s.rootPath, owner, name)
+	if !ok {
 		return false, nil
 	}
 
@@ -152,11 +130,11 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 	mux.RLock()
 	defer mux.RUnlock()
 
-	if !exists(path) {
+	if !exists(file) {
 		return false, nil
 	}
 
-	b, err := ioutil.ReadFile(path)
+	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
@@ -168,6 +146,22 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 func exists(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil
+}
+
+func createQueueJSONPath(root, owner, name string) (ok bool, path string) {
+	dir, err := createAbs(root, owner)
+	if err != nil {
+		log.Printf("error: %v\n", err)
+		return false, ""
+	}
+
+	file, err := createAbs(dir, name+".json")
+	if err != nil {
+		log.Printf("error: %v\n", err)
+		return false, ""
+	}
+
+	return true, file
 }
 
 func createAbs(root, subpath string) (path string, err error) {
