@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 	"sync"
 )
 
@@ -149,36 +148,14 @@ func exists(filename string) bool {
 }
 
 func createQueueJSONPath(root, owner, name string) (ok bool, path string) {
-	dir, err := createAbs(root, owner)
-	if err != nil {
-		log.Printf("error: %v\n", err)
-		return false, ""
-	}
-
-	file, err := createAbs(dir, name+".json")
+	reponame := owner + "/" + name + ".json"
+	file, err := createAbs(root, reponame)
 	if err != nil {
 		log.Printf("error: %v\n", err)
 		return false, ""
 	}
 
 	return true, file
-}
-
-func createAbs(root, subpath string) (path string, err error) {
-	if !validPathFragment(subpath) {
-		return "", fmt.Errorf("subpath `%v` is not valid input. It may cause directory traversal", subpath)
-	}
-
-	abs, err := filepath.Abs(root + "/" + subpath)
-	if err != nil {
-		return "", fmt.Errorf("error: cannot get the path to `%v` + `%v`", root, subpath)
-	}
-
-	if !strings.HasPrefix(abs, root) {
-		return "", fmt.Errorf("abs `%v` is not under `%v. It may cause directory traversal", abs, root)
-	}
-
-	return abs, nil
 }
 
 // Check `p` is insecure string as a path.

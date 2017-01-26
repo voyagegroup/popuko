@@ -20,3 +20,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+------------------------------------------------
+
+Basically, we license our codes as applying the above license.
+But some codes are licensed by other licenses.
+
+* The base logic of `queue.createAbs()` is licensed as
+  [https://github.com/golang/go](https://github.com/golang/go/blob/98842cabb6133ab7b8f2b323754a48085eed82f3/LICENSE)
