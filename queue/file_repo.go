@@ -120,9 +120,19 @@ func (s *fileRepository) save(owner string, name string, queue *AutoMergeQueue) 
 }
 
 func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue) {
+	b := s.readMergeQueue(owner, name)
+	if b == nil {
+		return false, nil
+	}
+
+	q := decodeByteToAutoMergeQueue(b)
+	return true, q
+}
+
+func (s *fileRepository) readMergeQueue(owner, name string) []byte {
 	ok, file := createQueueJSONPath(s.rootPath, owner, name)
 	if !ok {
-		return false, nil
+		return nil
 	}
 
 	mux := s.getPerFileLock(owner, name)
@@ -130,16 +140,16 @@ func (s *fileRepository) load(owner string, name string) (bool, *AutoMergeQueue)
 	defer mux.RUnlock()
 
 	if !exists(file) {
-		return false, nil
+		return nil
 	}
 
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
-		fmt.Println("error:", err)
+		log.Println("error: cannot read the file")
+		return nil
 	}
 
-	q := decodeByteToAutoMergeQueue(b)
-	return true, q
+	return b
 }
 
 func exists(filename string) bool {
