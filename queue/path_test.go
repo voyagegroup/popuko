@@ -2,40 +2,6 @@ package queue
 
 import "testing"
 
-func Test_validPathValidCase(t *testing.T) {
-	list := []string{
-		"a",
-		".a",
-		"..a",
-		"a.",
-		"a..",
-	}
-
-	for _, testcase := range list {
-		if ok := validPathFragment(testcase); !ok {
-			t.Errorf("%+v should be valid", testcase)
-		}
-	}
-}
-
-func Test_validPathInValidCase(t *testing.T) {
-	list := []string{
-		"~/a",
-		"/a",
-		"./a",
-		"../a",
-		"a/",
-		"a/.",
-		"a/..",
-	}
-
-	for _, testcase := range list {
-		if ok := validPathFragment(testcase); ok {
-			t.Errorf("%+v should be invalid", testcase)
-		}
-	}
-}
-
 func Test_createAbs_ValidCase(t *testing.T) {
 	type Testcase struct {
 		root     string
@@ -50,8 +16,53 @@ func Test_createAbs_ValidCase(t *testing.T) {
 		},
 		Testcase{
 			root:     "/a",
+			path:     "/b",
+			expected: "/a/b",
+		},
+		Testcase{
+			root:     "/a",
 			path:     ".b",
 			expected: "/a/.b",
+		},
+		Testcase{
+			root:     "/a",
+			path:     "../~/b",
+			expected: "/a/~/b",
+		},
+		Testcase{
+			root:     "/a",
+			path:     "./b",
+			expected: "/a/b",
+		},
+		Testcase{
+			root:     "/a",
+			path:     "../../b",
+			expected: "/a/b",
+		},
+		Testcase{
+			root:     "/a",
+			path:     "..",
+			expected: "/a",
+		},
+		Testcase{
+			root:     "..",
+			path:     "/a",
+			expected: "/a",
+		},
+		Testcase{
+			root:     "a",
+			path:     "/b",
+			expected: "/a/b",
+		},
+		Testcase{
+			root:     "a",
+			path:     "../b",
+			expected: "/a/b",
+		},
+		Testcase{
+			root:     "a",
+			path:     "../~/b",
+			expected: "/a/~/b",
 		},
 	}
 
@@ -78,23 +89,35 @@ func Test_createAbs_InvalidCase(t *testing.T) {
 		},
 		Testcase{
 			root: "/a",
-			path: "/b",
+			path: "",
 		},
 		Testcase{
-			root: "/a",
-			path: "./b",
+			root: "/",
+			path: "",
 		},
 		Testcase{
-			root: "/a",
-			path: "../b",
+			root: "",
+			path: "/",
 		},
 		Testcase{
-			root: "/a",
-			path: "../~/b",
+			root: "/",
+			path: "/",
 		},
 		Testcase{
-			root: "/a",
-			path: "../../b",
+			root: ".",
+			path: ".",
+		},
+		Testcase{
+			root: ".",
+			path: "..",
+		},
+		Testcase{
+			root: "..",
+			path: ".",
+		},
+		Testcase{
+			root: "..",
+			path: "..",
 		},
 	}
 
