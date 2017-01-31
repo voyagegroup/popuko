@@ -197,6 +197,16 @@ Auto-Merging behaves like this:
 - GitHub Enterprise: [#173](https://github.com/karen-irc/popuko/issues/173).
 
 
+### Does this bot recommend [Trunk Based Development](https://trunkbaseddevelopment.com/) style?
+
+Yes. This bot is designed heavily for the development style which has "trunk" branch in a repository.
+
+Of course, you can create a some branch on your upstream repository
+and you can open your pull request which would be merged into their non-trunk branch.
+However, we don't support the feature to conflict detection for them at this time
+([#197](https://github.com/karen-irc/popuko/issues/197)), and its priority is very low for us.
+
+
 ### Why didn't you fork homu?
 
 It was notion.
