@@ -71,6 +71,10 @@ func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request
 		srv.processStatusEvent(event)
 		rw.WriteHeader(http.StatusOK)
 		return
+	case *github.PullRequestEvent:
+		srv.processPullRequestEvent(event)
+		rw.WriteHeader(http.StatusOK)
+		return
 	default:
 		rw.WriteHeader(http.StatusOK)
 		log.Println("warn: Unsupported type events")
@@ -185,6 +189,30 @@ func (srv *AppServer) processStatusEvent(ev *github.StatusEvent) {
 	}
 
 	epic.CheckAutoBranch(srv.githubClient, srv.autoMergeRepo, ev)
+}
+
+func (srv *AppServer) processPullRequestEvent(ev *github.PullRequestEvent) {
+	log.Println("info: Start: processPullRequestEvent")
+	defer log.Println("info: End: processPullRequestEvent")
+
+	if action := *ev.Action; action != "closed" {
+		log.Printf("info: action type is `%v` which is not handled by this bot\n", action)
+		return
+	}
+
+	repo := ev.Repo
+	if repo == nil {
+		log.Println("warn: ev.Repo is nil")
+		return
+	}
+
+	pr := ev.PullRequest
+	if pr == nil {
+		log.Println("warn: ev.PullRequest is nil")
+		return
+	}
+
+	epic.RemoveAllStatusLabel(srv.githubClient, repo, pr)
 }
 
 func createGithubClient(config *setting.Settings) *github.Client {

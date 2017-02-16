@@ -65,3 +65,14 @@ func HasLabelInList(list []*github.Label, target string) bool {
 	}
 	return false
 }
+
+func RemoveStatusLabelFromList(list []*github.Label) []string {
+	r := make([]string, 0)
+	for _, item := range list {
+		label := *item.Name
+		if !strings.HasPrefix(label, STATUS_LABEL_PREFIX) {
+			r = append(r, label)
+		}
+	}
+	return r
+}

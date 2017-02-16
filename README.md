@@ -143,6 +143,7 @@ Auto-Merging behaves like this:
     - `Issue comment`
     - `Push`
     - `Status` (required to use Auto-Merging feature).
+    - `Pull Request` (required to remove all status (`S-` prefixed) labels after a pull request is closed).
 4. Create these labels to make the status visible.
     - `S-awaiting-review`
         - for a pull request assigned to some reviewer.
