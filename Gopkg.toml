@@ -1,7 +1,7 @@
 
 [[dependencies]]
   name = "github.com/BurntSushi/toml"
-  revision = "99064174e013895bbd9b025c31100bd1d9b590ca"
+  revision = "b26d9c308763d68093482582cea63d69be07a0f0"
 
 [[dependencies]]
   name = "github.com/google/go-github"

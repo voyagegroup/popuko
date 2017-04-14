@@ -1,9 +1,9 @@
-memo = "c9f7064bd3fa8209343f7426ae7f17f36a5281bfabfc1da558e34fdab05e24ab"
+memo = "efd9b7bf19c16a35c4b6786972522054af2841a763d339f075fe745f1c2a2e42"
 
 [[projects]]
   name = "github.com/BurntSushi/toml"
   packages = ["."]
-  revision = "99064174e013895bbd9b025c31100bd1d9b590ca"
+  revision = "b26d9c308763d68093482582cea63d69be07a0f0"
 
 [[projects]]
   branch = "master"
