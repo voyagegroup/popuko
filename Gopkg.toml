@@ -1,0 +1,8 @@
+
+[[dependencies]]
+  name = "github.com/BurntSushi/toml"
+  revision = "99064174e013895bbd9b025c31100bd1d9b590ca"
+
+[[dependencies]]
+  name = "github.com/google/go-github"
+  revision = "c9c37fd6ce0247943d1aa34fc3813c62c5cb0225"
