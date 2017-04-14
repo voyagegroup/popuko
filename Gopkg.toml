@@ -5,4 +5,4 @@
 
 [[dependencies]]
   name = "github.com/google/go-github"
-  revision = "c9c37fd6ce0247943d1aa34fc3813c62c5cb0225"
+  revision = "de33c46a823d3f723514fc5333b75ef2e937b7df"

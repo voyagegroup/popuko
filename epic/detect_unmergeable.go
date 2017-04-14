@@ -1,6 +1,7 @@
 package epic
 
 import (
+	"context"
 	"log"
 	"sync"
 
@@ -11,7 +12,7 @@ import (
 
 const masterBranchName = "master"
 
-func DetectUnmergeablePR(client *github.Client, ev *github.PushEvent) {
+func DetectUnmergeablePR(ctx context.Context, client *github.Client, ev *github.PushEvent) {
 	// At this moment, we only care a pull request which are looking master branch.
 	if *ev.Ref != "refs/heads/"+masterBranchName {
 		log.Printf("info: pushed branch is not related to me: %v\n", *ev.Ref)
@@ -25,7 +26,7 @@ func DetectUnmergeablePR(client *github.Client, ev *github.PushEvent) {
 
 	prSvc := client.PullRequests
 
-	prList, _, err := prSvc.List(repoOwner, repo, &github.PullRequestListOptions{
+	prList, _, err := prSvc.List(ctx, repoOwner, repo, &github.PullRequestListOptions{
 		State: "open",
 	})
 	if err != nil {
@@ -45,7 +46,7 @@ func DetectUnmergeablePR(client *github.Client, ev *github.PushEvent) {
 	for _, item := range prList {
 		wg.Add(1)
 
-		go markUnmergeable(wg, &markUnmergeableInfo{
+		go markUnmergeable(ctx, wg, &markUnmergeableInfo{
 			client.Issues,
 			prSvc,
 			repoOwner,
@@ -68,7 +69,7 @@ type markUnmergeableInfo struct {
 	semaphore chan int
 }
 
-func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
+func markUnmergeable(ctx context.Context, wg *sync.WaitGroup, info *markUnmergeableInfo) {
 	info.semaphore <- 0 // wait until the internal buffer takes a space.
 
 	var err error
@@ -90,7 +91,7 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 	number := info.Number
 	log.Printf("debug: pull request number is %v\n", number)
 
-	pr, _, err := info.prSvc.Get(repoOwner, repo, number)
+	pr, _, err := info.prSvc.Get(ctx, repoOwner, repo, number)
 	if err != nil || pr == nil {
 		log.Println("info: could not get the info for pull request")
 		log.Printf("debug: %v\n", err)
@@ -102,7 +103,7 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 		return
 	}
 
-	currentLabels := operation.GetLabelsByIssue(issueSvc, repoOwner, repo, number)
+	currentLabels := operation.GetLabelsByIssue(ctx, issueSvc, repoOwner, repo, number)
 	if currentLabels == nil {
 		return
 	}
@@ -113,7 +114,7 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 		return
 	}
 
-	ok, mergeable := operation.IsMergeable(info.prSvc, repoOwner, repo, number, pr)
+	ok, mergeable := operation.IsMergeable(ctx, info.prSvc, repoOwner, repo, number, pr)
 	if !ok {
 		log.Printf("info: We treat #%v as 'mergeable' to avoid miss detection because we could not fetch the pr info,\n", number)
 		return
@@ -124,14 +125,14 @@ func markUnmergeable(wg *sync.WaitGroup, info *markUnmergeableInfo) {
 		return
 	}
 
-	if ok := operation.AddComment(issueSvc, repoOwner, repo, number, info.Comment); !ok {
+	if ok := operation.AddComment(ctx, issueSvc, repoOwner, repo, number, info.Comment); !ok {
 		log.Printf("info: could not create the comment about unmergeables to #%v\n", number)
 		return
 	}
 
 	labels := operation.AddNeedRebaseLabel(currentLabels)
 	log.Printf("debug: the changed labels: %v of #%v\n", labels, number)
-	_, _, err = issueSvc.ReplaceLabelsForIssue(repoOwner, repo, number, labels)
+	_, _, err = issueSvc.ReplaceLabelsForIssue(ctx, repoOwner, repo, number, labels)
 	if err != nil {
 		log.Printf("could not change labels of #%v\n", number)
 		return

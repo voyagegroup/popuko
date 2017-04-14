@@ -1,6 +1,7 @@
 package epic
 
 import (
+	"context"
 	"log"
 	"strings"
 
@@ -28,7 +29,7 @@ type AcceptCommand struct {
 	AutoMergeRepo *queue.AutoMergeQRepo
 }
 
-func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) (bool, error) {
+func (c *AcceptCommand) AcceptChangesetByReviewer(ctx context.Context, ev *github.IssueCommentEvent) (bool, error) {
 	log.Printf("info: Start: merge the pull request by %v\n", *ev.Comment.ID)
 	defer log.Printf("info: End: merge the pull request by %v\n", *ev.Comment.ID)
 
@@ -53,7 +54,7 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 	issue := *ev.Issue.Number
 	log.Printf("debug: issue number is %v\n", issue)
 
-	currentLabels := operation.GetLabelsByIssue(issueSvc, repoOwner, repoName, issue)
+	currentLabels := operation.GetLabelsByIssue(ctx, issueSvc, repoOwner, repoName, issue)
 	if currentLabels == nil {
 		return false, nil
 	}
@@ -61,21 +62,21 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 	labels := operation.AddAwaitingMergeLabel(currentLabels)
 
 	// https://github.com/nekoya/popuko/blob/master/web.py
-	_, _, err := issueSvc.ReplaceLabelsForIssue(repoOwner, repoName, issue, labels)
+	_, _, err := issueSvc.ReplaceLabelsForIssue(ctx, repoOwner, repoName, issue, labels)
 	if err != nil {
 		log.Println("info: could not change labels by the issue")
 		return false, err
 	}
 
 	prSvc := client.PullRequests
-	pr, _, err := prSvc.Get(repoOwner, repoName, issue)
+	pr, _, err := prSvc.Get(ctx, repoOwner, repoName, issue)
 	if err != nil {
 		log.Println("info: could not fetch the pull request information.")
 		return false, err
 	}
 
 	headSha := *pr.Head.SHA
-	if ok := commentApprovedSha(c.Cmd, issueSvc, repoOwner, repoName, issue, headSha, sender); !ok {
+	if ok := commentApprovedSha(ctx, c.Cmd, issueSvc, repoOwner, repoName, issue, headSha, sender); !ok {
 		log.Println("info: could not create the comment to declare the head is approved.")
 		return false, err
 	}
@@ -106,22 +107,24 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ev *github.IssueCommentEvent) 
 		}
 
 		if q.HasActive() {
-			commentAsPostponed(issueSvc, repoOwner, repoName, issue)
+			commentAsPostponed(ctx, issueSvc, repoOwner, repoName, issue)
 			return true, nil
 		}
 
 		if next := q.Front(); next != item {
-			commentAsPostponed(issueSvc, repoOwner, repoName, issue)
+			commentAsPostponed(ctx, issueSvc, repoOwner, repoName, issue)
 		}
 
-		tryNextItem(client, repoOwner, repoName, q, c.Info.AutoBranchName)
+		tryNextItem(ctx, client, repoOwner, repoName, q, c.Info.AutoBranchName)
 	}
 
 	log.Printf("info: complete merge the pull request %v\n", issue)
 	return true, nil
 }
 
-func commentApprovedSha(cmd input.AcceptChangesetCommand,
+func commentApprovedSha(
+	ctx context.Context,
+	cmd input.AcceptChangesetCommand,
 	issues *github.IssuesService,
 	owner,
 	name string,
@@ -147,7 +150,7 @@ func commentApprovedSha(cmd input.AcceptChangesetCommand,
 	}
 
 	comment := fmt.Sprintf(":pushpin: Commit %v has been approved by %v", sha, reviewers)
-	if ok := operation.AddComment(issues, owner, name, number, comment); !ok {
+	if ok := operation.AddComment(ctx, issues, owner, name, number, comment); !ok {
 		log.Println("info: could not create the comment to declare the head is approved.")
 		return false
 	}
@@ -194,11 +197,11 @@ func queuePullReq(queue *queue.AutoMergeQueue, item *queue.AutoMergeQueueItem) (
 	return true, true
 }
 
-func commentAsPostponed(issueSvc *github.IssuesService, owner, name string, issue int) {
+func commentAsPostponed(ctx context.Context, issueSvc *github.IssuesService, owner, name string, issue int) {
 	log.Printf("info: pull request (%v) has been queued but other is active.\n", issue)
 	{
 		comment := ":postbox: This pull request is queued. Please await the time."
-		if ok := operation.AddComment(issueSvc, owner, name, issue, comment); !ok {
+		if ok := operation.AddComment(ctx, issueSvc, owner, name, issue, comment); !ok {
 			log.Println("info: could not create the comment to declare to merge this.")
 		}
 	}

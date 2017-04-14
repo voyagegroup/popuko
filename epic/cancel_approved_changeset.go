@@ -1,6 +1,7 @@
 package epic
 
 import (
+	"context"
 	"errors"
 	"log"
 
@@ -23,7 +24,7 @@ type CancelApprovedCommand struct {
 	AutoMergeRepo *queue.AutoMergeQRepo
 }
 
-func (c *CancelApprovedCommand) CancelApprovedChangeSet(ev *github.IssueCommentEvent) (ok bool, err error) {
+func (c *CancelApprovedCommand) CancelApprovedChangeSet(ctx context.Context, ev *github.IssueCommentEvent) (ok bool, err error) {
 	id := *ev.Comment.ID
 	log.Printf("info: Start: merge the pull request by %v\n", id)
 	defer log.Printf("info: End: merge the pull request by %v\n", id)
@@ -46,12 +47,12 @@ func (c *CancelApprovedCommand) CancelApprovedChangeSet(ev *github.IssueCommentE
 	number := c.Number
 	log.Printf("debug: issue number is %v\n", number)
 
-	currentLabels := operation.GetLabelsByIssue(c.Client.Issues, owner, name, number)
+	currentLabels := operation.GetLabelsByIssue(ctx, c.Client.Issues, owner, name, number)
 	if currentLabels != nil {
 		labels := operation.AddAwaitingReviewLabel(currentLabels)
 
 		// https://github.com/nekoya/popuko/blob/master/web.py
-		_, _, err = c.Client.Issues.ReplaceLabelsForIssue(owner, name, number, labels)
+		_, _, err = c.Client.Issues.ReplaceLabelsForIssue(ctx, owner, name, number, labels)
 		if err != nil {
 			log.Printf("info: could not change labels by the issue: %v\n", err)
 		}
@@ -59,7 +60,7 @@ func (c *CancelApprovedCommand) CancelApprovedChangeSet(ev *github.IssueCommentE
 
 	{
 		comment := ":outbox_tray: This has been cancelled from the approved queue by `" + sender + "`"
-		if ok := operation.AddComment(c.Client.Issues, owner, name, number, comment); !ok {
+		if ok := operation.AddComment(ctx, c.Client.Issues, owner, name, number, comment); !ok {
 			log.Println("info: could not create the comment about what this pull request rejected.")
 		}
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -50,9 +51,11 @@ func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request
 		return
 	}
 
+	ctx := req.Context()
+
 	switch event := event.(type) {
 	case *github.IssueCommentEvent:
-		ok, err := srv.processIssueCommentEvent(event)
+		ok, err := srv.processIssueCommentEvent(ctx, event)
 		rw.WriteHeader(http.StatusOK)
 		if ok {
 			io.WriteString(rw, "result: \n")
@@ -64,15 +67,15 @@ func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request
 		}
 		return
 	case *github.PushEvent:
-		srv.processPushEvent(event)
+		srv.processPushEvent(ctx, event)
 		rw.WriteHeader(http.StatusOK)
 		return
 	case *github.StatusEvent:
-		srv.processStatusEvent(event)
+		srv.processStatusEvent(ctx, event)
 		rw.WriteHeader(http.StatusOK)
 		return
 	case *github.PullRequestEvent:
-		srv.processPullRequestEvent(event)
+		srv.processPullRequestEvent(ctx, event)
 		rw.WriteHeader(http.StatusOK)
 		return
 	default:
@@ -84,7 +87,7 @@ func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request
 	}
 }
 
-func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bool, error) {
+func (srv *AppServer) processIssueCommentEvent(ctx context.Context, ev *github.IssueCommentEvent) (bool, error) {
 	log.Printf("Start: processCommitCommentEvent by %v\n", *ev.Comment.ID)
 	defer log.Printf("End: processCommitCommentEvent by %v\n", *ev.Comment.ID)
 
@@ -110,14 +113,14 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 		return false, fmt.Errorf("error: unexpected result of parsing comment body")
 	}
 
-	repoInfo := epic.GetRepositoryInfo(srv.githubClient.Repositories, repoOwner, repo)
+	repoInfo := epic.GetRepositoryInfo(ctx, srv.githubClient.Repositories, repoOwner, repo)
 	if repoInfo == nil {
 		return false, fmt.Errorf("debug: cannot get repositoryInfo")
 	}
 
 	switch cmd := cmd.(type) {
 	case *input.AssignReviewerCommand:
-		return epic.AssignReviewer(srv.githubClient, ev, cmd.Reviewer)
+		return epic.AssignReviewer(ctx, srv.githubClient, ev, cmd.Reviewer)
 	case *input.AcceptChangeByReviewerCommand:
 		commander := epic.AcceptCommand{
 			repoOwner,
@@ -128,7 +131,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			repoInfo,
 			srv.autoMergeRepo,
 		}
-		return commander.AcceptChangesetByReviewer(ev)
+		return commander.AcceptChangesetByReviewer(ctx, ev)
 	case *input.AcceptChangeByOthersCommand:
 		commander := epic.AcceptCommand{
 			repoOwner,
@@ -139,7 +142,7 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			repoInfo,
 			srv.autoMergeRepo,
 		}
-		return commander.AcceptChangesetByReviewer(ev)
+		return commander.AcceptChangesetByReviewer(ctx, ev)
 	case *input.CancelApprovedByReviewerCommand:
 		commander := epic.CancelApprovedCommand{
 			BotName:       config.BotNameForGithub(),
@@ -151,13 +154,13 @@ func (srv *AppServer) processIssueCommentEvent(ev *github.IssueCommentEvent) (bo
 			Info:          repoInfo,
 			AutoMergeRepo: srv.autoMergeRepo,
 		}
-		return commander.CancelApprovedChangeSet(ev)
+		return commander.CancelApprovedChangeSet(ctx, ev)
 	default:
 		return false, fmt.Errorf("error: unreachable")
 	}
 }
 
-func (srv *AppServer) processPushEvent(ev *github.PushEvent) {
+func (srv *AppServer) processPushEvent(ctx context.Context, ev *github.PushEvent) {
 	log.Println("info: Start: processPushEvent by push id")
 	defer log.Println("info: End: processPushEvent by push id")
 
@@ -171,10 +174,10 @@ func (srv *AppServer) processPushEvent(ev *github.PushEvent) {
 		return
 	}
 
-	epic.DetectUnmergeablePR(srv.githubClient, ev)
+	epic.DetectUnmergeablePR(ctx, srv.githubClient, ev)
 }
 
-func (srv *AppServer) processStatusEvent(ev *github.StatusEvent) {
+func (srv *AppServer) processStatusEvent(ctx context.Context, ev *github.StatusEvent) {
 	log.Println("info: Start: processStatusEvent")
 	defer log.Println("info: End: processStatusEvent")
 
@@ -188,10 +191,10 @@ func (srv *AppServer) processStatusEvent(ev *github.StatusEvent) {
 		return
 	}
 
-	epic.CheckAutoBranch(srv.githubClient, srv.autoMergeRepo, ev)
+	epic.CheckAutoBranch(ctx, srv.githubClient, srv.autoMergeRepo, ev)
 }
 
-func (srv *AppServer) processPullRequestEvent(ev *github.PullRequestEvent) {
+func (srv *AppServer) processPullRequestEvent(ctx context.Context, ev *github.PullRequestEvent) {
 	log.Println("info: Start: processPullRequestEvent")
 	defer log.Println("info: End: processPullRequestEvent")
 
@@ -212,7 +215,7 @@ func (srv *AppServer) processPullRequestEvent(ev *github.PullRequestEvent) {
 		return
 	}
 
-	epic.RemoveAllStatusLabel(srv.githubClient, repo, pr)
+	epic.RemoveAllStatusLabel(ctx, srv.githubClient, repo, pr)
 }
 
 func createGithubClient(config *setting.Settings) *github.Client {

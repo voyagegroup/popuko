@@ -1,6 +1,7 @@
 package epic
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -9,10 +10,10 @@ import (
 	"github.com/karen-irc/popuko/setting"
 )
 
-func GetRepositoryInfo(repoSvc *github.RepositoriesService, owner, name string) *setting.RepositoryInfo {
+func GetRepositoryInfo(ctx context.Context, repoSvc *github.RepositoriesService, owner, name string) *setting.RepositoryInfo {
 	var repoinfo *setting.RepositoryInfo
 	log.Println("info: Use `OWNERS` file.")
-	ok, owners := fetchOwnersFile(repoSvc, owner, name)
+	ok, owners := fetchOwnersFile(ctx, repoSvc, owner, name)
 	if !ok {
 		log.Println("error: could not handle OWNERS file.")
 		return nil
@@ -27,8 +28,8 @@ func GetRepositoryInfo(repoSvc *github.RepositoriesService, owner, name string) 
 	return repoinfo
 }
 
-func fetchOwnersFile(svc *github.RepositoriesService, owner string, reponame string) (bool, *setting.OwnersFile) {
-	file, err := svc.DownloadContents(owner, reponame, "OWNERS.json", &github.RepositoryContentGetOptions{
+func fetchOwnersFile(ctx context.Context, svc *github.RepositoriesService, owner string, reponame string) (bool, *setting.OwnersFile) {
+	file, err := svc.DownloadContents(ctx, owner, reponame, "OWNERS.json", &github.RepositoryContentGetOptions{
 		// We always use the file in master which we regard as accepted to the project.
 		Ref: "master",
 	})

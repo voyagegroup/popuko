@@ -1,13 +1,14 @@
 package epic
 
 import (
+	"context"
 	"log"
 
 	"github.com/google/go-github/github"
 	"github.com/karen-irc/popuko/operation"
 )
 
-func RemoveAllStatusLabel(client *github.Client, repo *github.Repository, pr *github.PullRequest) {
+func RemoveAllStatusLabel(ctx context.Context, client *github.Client, repo *github.Repository, pr *github.PullRequest) {
 	owner := *repo.Owner.Login
 	name := *repo.Name
 	number := *pr.Number
@@ -18,14 +19,14 @@ func RemoveAllStatusLabel(client *github.Client, repo *github.Repository, pr *gi
 		return
 	}
 
-	currentLabels := operation.GetLabelsByIssue(client.Issues, owner, name, number)
+	currentLabels := operation.GetLabelsByIssue(ctx, client.Issues, owner, name, number)
 	if currentLabels == nil {
 		log.Printf("warn: could not get all labels of #%v\n", number)
 		return
 	}
 
 	labels := operation.RemoveStatusLabelFromList(currentLabels)
-	_, _, err := client.Issues.ReplaceLabelsForIssue(owner, name, number, labels)
+	_, _, err := client.Issues.ReplaceLabelsForIssue(ctx, owner, name, number, labels)
 	if err != nil {
 		log.Printf("warn: could not remove all `S-***` labels from #%v\n", number)
 		return
