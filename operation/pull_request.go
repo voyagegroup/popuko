@@ -1,6 +1,7 @@
 package operation
 
 import (
+	"context"
 	"log"
 	"strings"
 	"time"
@@ -8,11 +9,11 @@ import (
 	"github.com/google/go-github/github"
 )
 
-func IsMergeable(prSvc *github.PullRequestsService, owner, name string, issue int, pr *github.PullRequest) (bool, bool) {
-	return isMergeable(prSvc, owner, name, issue, pr, 0)
+func IsMergeable(ctx context.Context, prSvc *github.PullRequestsService, owner, name string, issue int, pr *github.PullRequest) (bool, bool) {
+	return isMergeable(ctx, prSvc, owner, name, issue, pr, 0)
 }
 
-func isMergeable(prSvc *github.PullRequestsService, owner, name string, issue int, pr *github.PullRequest, nest uint) (bool, bool) {
+func isMergeable(ctx context.Context, prSvc *github.PullRequestsService, owner, name string, issue int, pr *github.PullRequest, nest uint) (bool, bool) {
 	mergeable := pr.Mergeable
 	if mergeable == nil {
 		// By the document https://developer.github.com/v3/pulls/#get-a-single-pull-request
@@ -28,13 +29,14 @@ func isMergeable(prSvc *github.PullRequestsService, owner, name string, issue in
 
 		// sleep same time: https://github.com/barosl/homu/blob/2104e4b154d2fba15d515b478a5bd6105c1522f6/homu/main.py#L722
 		time.Sleep(5 * time.Second)
-		pr, _, err := prSvc.Get(owner, name, issue)
+
+		pr, _, err := prSvc.Get(ctx, owner, name, issue)
 		if err != nil || pr == nil {
 			log.Printf("info: could not get the info for #%v\n", issue)
 			log.Printf("debug: %v\n", err)
 			return false, false
 		}
-		return isMergeable(prSvc, owner, name, issue, pr, nest+1)
+		return isMergeable(ctx, prSvc, owner, name, issue, pr, nest+1)
 	}
 
 	return true, *mergeable

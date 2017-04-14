@@ -1,6 +1,7 @@
 package operation
 
 import (
+	"context"
 	"log"
 	"strings"
 
@@ -45,8 +46,8 @@ func changeStatusLabel(list []*github.Label, new string) []string {
 	return result
 }
 
-func GetLabelsByIssue(issueSvc *github.IssuesService, owner string, name string, issue int) []*github.Label {
-	currentLabels, _, err := issueSvc.ListLabelsByIssue(owner, name, issue, nil)
+func GetLabelsByIssue(ctx context.Context, issueSvc *github.IssuesService, owner string, name string, issue int) []*github.Label {
+	currentLabels, _, err := issueSvc.ListLabelsByIssue(ctx, owner, name, issue, nil)
 	if err != nil {
 		log.Println("info: could not get labels by the issue")
 		log.Printf("debug: %v\n", err)

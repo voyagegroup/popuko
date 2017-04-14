@@ -1,6 +1,7 @@
 package epic
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/karen-irc/popuko/setting"
 )
 
-func CheckAutoBranch(client *github.Client, autoMergeRepo *queue.AutoMergeQRepo, ev *github.StatusEvent) {
+func CheckAutoBranch(ctx context.Context, client *github.Client, autoMergeRepo *queue.AutoMergeQRepo, ev *github.StatusEvent) {
 	log.Println("info: Start: checkAutoBranch")
 	defer log.Println("info: End: checkAutoBranch")
 
@@ -24,7 +25,7 @@ func CheckAutoBranch(client *github.Client, autoMergeRepo *queue.AutoMergeQRepo,
 	repoName := *ev.Repo.Name
 	log.Printf("info: Target repository is %v/%v\n", repoOwner, repoName)
 
-	repoInfo := GetRepositoryInfo(client.Repositories, repoOwner, repoName)
+	repoInfo := GetRepositoryInfo(ctx, client.Repositories, repoOwner, repoName)
 	if repoInfo == nil {
 		log.Println("debug: cannot get repositoryInfo")
 		return
@@ -67,12 +68,12 @@ func CheckAutoBranch(client *github.Client, autoMergeRepo *queue.AutoMergeQRepo,
 	}
 	log.Println("info: the status event is related to auto branch.")
 
-	mergeSucceedItem(client, repoOwner, repoName, repoInfo, q, ev)
+	mergeSucceedItem(ctx, client, repoOwner, repoName, repoInfo, q, ev)
 
 	q.RemoveActive()
 	q.Save()
 
-	tryNextItem(client, repoOwner, repoName, q, repoInfo.AutoBranchName)
+	tryNextItem(ctx, client, repoOwner, repoName, q, repoInfo.AutoBranchName)
 
 	log.Println("info: complete to start the next trying")
 }
@@ -106,7 +107,9 @@ func checkCommitHashOnTrying(active *queue.AutoMergeQueueItem, ev *github.Status
 	return true
 }
 
-func mergeSucceedItem(client *github.Client,
+func mergeSucceedItem(
+	ctx context.Context,
+	client *github.Client,
 	owner string,
 	name string,
 	repoInfo *setting.RepositoryInfo,
@@ -117,7 +120,7 @@ func mergeSucceedItem(client *github.Client,
 
 	prNum := active.PullRequest
 
-	prInfo, _, err := client.PullRequests.Get(owner, name, prNum)
+	prInfo, _, err := client.PullRequests.Get(ctx, owner, name, prNum)
 	if err != nil {
 		log.Println("info: could not fetch the pull request information.")
 		return false
@@ -132,15 +135,15 @@ func mergeSucceedItem(client *github.Client,
 		log.Println("info: could not merge pull request")
 
 		comment := ":collision: The result of what tried to merge this pull request is `" + *ev.State + "`."
-		commentStatus(client, owner, name, prNum, comment, repoInfo.AutoBranchName)
+		commentStatus(ctx, client, owner, name, prNum, comment, repoInfo.AutoBranchName)
 
-		currentLabels := operation.GetLabelsByIssue(client.Issues, owner, name, prNum)
+		currentLabels := operation.GetLabelsByIssue(ctx, client.Issues, owner, name, prNum)
 		if currentLabels == nil {
 			return false
 		}
 
 		labels := operation.AddFailsTestsWithUpsreamLabel(currentLabels)
-		_, _, err = client.Issues.ReplaceLabelsForIssue(owner, name, prNum, labels)
+		_, _, err = client.Issues.ReplaceLabelsForIssue(ctx, owner, name, prNum, labels)
 		if err != nil {
 			log.Println("warn: could not change labels of the issue")
 		}
@@ -149,23 +152,23 @@ func mergeSucceedItem(client *github.Client,
 	}
 
 	comment := ":tada: The result of what tried to merge this pull request is `" + *ev.State + "`."
-	commentStatus(client, owner, name, prNum, comment, repoInfo.AutoBranchName)
+	commentStatus(ctx, client, owner, name, prNum, comment, repoInfo.AutoBranchName)
 
-	if ok := operation.MergePullRequest(client, owner, name, prInfo, active.PrHead); !ok {
+	if ok := operation.MergePullRequest(ctx, client, owner, name, prInfo, active.PrHead); !ok {
 		log.Printf("info: cannot merge pull request #%v\n", prNum)
 		return false
 	}
 
 	if repoInfo.DeleteAfterAutoMerge {
-		operation.DeleteBranchByPullRequest(client.Git, prInfo)
+		operation.DeleteBranchByPullRequest(ctx, client.Git, prInfo)
 	}
 
 	log.Printf("info: complete merging #%v into master\n", prNum)
 	return true
 }
 
-func commentStatus(client *github.Client, owner, name string, prNum int, comment string, autoBranch string) {
-	status, _, err := client.Repositories.GetCombinedStatus(owner, name, autoBranch, nil)
+func commentStatus(ctx context.Context, client *github.Client, owner, name string, prNum int, comment string, autoBranch string) {
+	status, _, err := client.Repositories.GetCombinedStatus(ctx, owner, name, autoBranch, nil)
 	if err != nil {
 		log.Println("error: could not get the status about the auto branch.")
 	}
@@ -189,15 +192,15 @@ func commentStatus(client *github.Client, owner, name string, prNum int, comment
 		}
 	}
 
-	if ok := operation.AddComment(client.Issues, owner, name, prNum, comment); !ok {
+	if ok := operation.AddComment(ctx, client.Issues, owner, name, prNum, comment); !ok {
 		log.Println("error: could not write the comment about the result of auto branch.")
 	}
 }
 
-func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQueue, autoBranch string) (ok, hasNext bool) {
+func tryNextItem(ctx context.Context, client *github.Client, owner, name string, q *queue.AutoMergeQueue, autoBranch string) (ok, hasNext bool) {
 	defer q.Save()
 
-	next, nextInfo := getNextAvailableItem(client, owner, name, q)
+	next, nextInfo := getNextAvailableItem(ctx, client, owner, name, q)
 	if next == nil {
 		log.Printf("info: there is no awating item in the queue of %v/%v\n", owner, name)
 		return true, false
@@ -205,10 +208,10 @@ func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQu
 
 	nextNum := next.PullRequest
 
-	ok, commit := operation.TryWithMaster(client, owner, name, nextInfo, autoBranch)
+	ok, commit := operation.TryWithMaster(ctx, client, owner, name, nextInfo, autoBranch)
 	if !ok {
 		log.Printf("info: we cannot try #%v with the latest `master`.", nextNum)
-		return tryNextItem(client, owner, name, q, autoBranch)
+		return tryNextItem(ctx, client, owner, name, q, autoBranch)
 	}
 
 	next.AutoBranchHead = &commit
@@ -218,7 +221,9 @@ func tryNextItem(client *github.Client, owner, name string, q *queue.AutoMergeQu
 	return true, true
 }
 
-func getNextAvailableItem(client *github.Client,
+func getNextAvailableItem(
+	ctx context.Context,
+	client *github.Client,
 	owner string,
 	name string,
 	queue *queue.AutoMergeQueue) (*queue.AutoMergeQueueItem, *github.PullRequest) {
@@ -239,14 +244,14 @@ func getNextAvailableItem(client *github.Client,
 		log.Println("debug: the next item has fetched from queue.")
 		prNum := next.PullRequest
 
-		nextInfo, _, err := prSvc.Get(owner, name, prNum)
+		nextInfo, _, err := prSvc.Get(ctx, owner, name, prNum)
 		if err != nil {
 			log.Println("debug: could not fetch the pull request information.")
 			continue
 		}
 
 		if next.PrHead != *nextInfo.Head.SHA {
-			operation.CommentHeadIsDifferentFromAccepted(issueSvc, owner, name, prNum)
+			operation.CommentHeadIsDifferentFromAccepted(ctx, issueSvc, owner, name, prNum)
 			continue
 		}
 
@@ -255,7 +260,7 @@ func getNextAvailableItem(client *github.Client,
 			continue
 		}
 
-		ok, mergeable := operation.IsMergeable(prSvc, owner, name, prNum, nextInfo)
+		ok, mergeable := operation.IsMergeable(ctx, prSvc, owner, name, prNum, nextInfo)
 		if !ok {
 			log.Println("info: We treat it as 'mergeable' to avoid miss detection because we could not fetch the pr info,")
 			continue
@@ -263,25 +268,25 @@ func getNextAvailableItem(client *github.Client,
 
 		if !mergeable {
 			comment := ":lock: Merge conflict"
-			if ok := operation.AddComment(issueSvc, owner, name, prNum, comment); !ok {
+			if ok := operation.AddComment(ctx, issueSvc, owner, name, prNum, comment); !ok {
 				log.Println("error: could not write the comment about the result of auto branch.")
 			}
 
-			currentLabels := operation.GetLabelsByIssue(issueSvc, owner, name, prNum)
+			currentLabels := operation.GetLabelsByIssue(ctx, issueSvc, owner, name, prNum)
 			if currentLabels == nil {
 				continue
 			}
 
 			labels := operation.AddNeedRebaseLabel(currentLabels)
 			log.Printf("debug: the changed labels: %v\n", labels)
-			_, _, err = issueSvc.ReplaceLabelsForIssue(owner, name, prNum, labels)
+			_, _, err = issueSvc.ReplaceLabelsForIssue(ctx, owner, name, prNum, labels)
 			if err != nil {
 				log.Println("warn: could not change labels of the issue")
 			}
 
 			continue
 		} else {
-			label := operation.GetLabelsByIssue(issueSvc, owner, name, prNum)
+			label := operation.GetLabelsByIssue(ctx, issueSvc, owner, name, prNum)
 			if label == nil {
 				continue
 			}
