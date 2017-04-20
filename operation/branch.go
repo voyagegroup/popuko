@@ -17,7 +17,7 @@ func createAutoBranch(ctx context.Context, svc *github.GitService, owner string,
 	}
 
 	// see:
-	// https://github.com/karen-irc/popuko/issues/93
+	// https://github.com/voyagegroup/popuko/issues/93
 	// https://help.github.com/articles/checking-out-pull-requests-locally/
 	base := fmt.Sprintf("refs/pull/%d/merge", number)
 	log.Printf("debug: `ref` is: %v\n", base)

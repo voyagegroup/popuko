@@ -1,4 +1,4 @@
-## The root configuration file for [popuko](https://github.com/karen-irc/popuko)
+## The root configuration file for [popuko](https://github.com/voyagegroup/popuko)
 
 # The version of this configuration format.
 config_version = 0
@@ -19,4 +19,4 @@ webhook_secret = "webhook_secret"
 # For security reasons, you can restrict a repository which this bot supports.
 #   - If this list is empty, this bot accepts all webhook incoming from any repositories.
 #   - Otherwise, this bot only accepts the webhook from repositories listed in this item.
-accepted_repositoies = [ "karen-irc/popuko" ]
+accepted_repositoies = [ "voyagegroup/popuko" ]

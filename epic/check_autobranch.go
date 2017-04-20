@@ -6,9 +6,9 @@ import (
 	"log"
 
 	"github.com/google/go-github/github"
-	"github.com/karen-irc/popuko/operation"
-	"github.com/karen-irc/popuko/queue"
-	"github.com/karen-irc/popuko/setting"
+	"github.com/voyagegroup/popuko/operation"
+	"github.com/voyagegroup/popuko/queue"
+	"github.com/voyagegroup/popuko/setting"
 )
 
 func CheckAutoBranch(ctx context.Context, client *github.Client, autoMergeRepo *queue.AutoMergeQRepo, ev *github.StatusEvent) {

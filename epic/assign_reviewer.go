@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/google/go-github/github"
-	"github.com/karen-irc/popuko/operation"
+	"github.com/voyagegroup/popuko/operation"
 )
 
 func AssignReviewer(ctx context.Context, client *github.Client, ev *github.IssueCommentEvent, assignees []string) (bool, error) {
