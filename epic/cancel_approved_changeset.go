@@ -7,10 +7,10 @@ import (
 
 	"github.com/google/go-github/github"
 
-	"github.com/karen-irc/popuko/input"
-	"github.com/karen-irc/popuko/operation"
-	"github.com/karen-irc/popuko/queue"
-	"github.com/karen-irc/popuko/setting"
+	"github.com/voyagegroup/popuko/input"
+	"github.com/voyagegroup/popuko/operation"
+	"github.com/voyagegroup/popuko/queue"
+	"github.com/voyagegroup/popuko/setting"
 )
 
 type CancelApprovedCommand struct {

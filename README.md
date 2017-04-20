@@ -1,6 +1,6 @@
 # popuko
 
-[![Build Status (master)](https://travis-ci.org/karen-irc/popuko.svg?branch=master)](https://travis-ci.org/karen-irc/popuko)
+[![Build Status (master)](https://travis-ci.org/voyagegroup/popuko.svg?branch=master)](https://travis-ci.org/voyagegroup/popuko)
 
 ## What is this?
 
@@ -178,10 +178,10 @@ Auto-Merging behaves like this:
 ### The current limitations
 
 - The default branch of your repository should be named as `master`.
-    - [TODO: #196](https://github.com/karen-irc/popuko/issues/196).
+    - [TODO: #196](https://github.com/voyagegroup/popuko/issues/196).
 - If your pull request which try to be merged into non-default branch, this bot does not detect the conflict
   even if the upstream has been changed.
-    - [TODO: #197](https://github.com/karen-irc/popuko/issues/197)
+    - [TODO: #197](https://github.com/voyagegroup/popuko/issues/197)
 
 
 ### Can I reuse this package as a library?
@@ -194,8 +194,8 @@ Auto-Merging behaves like this:
 
 ### Do you have any plan to support GitLab or GitHub Enterprise?
 
-- GitLab: see [#152](https://github.com/karen-irc/popuko/issues/152).
-- GitHub Enterprise: [#173](https://github.com/karen-irc/popuko/issues/173).
+- GitLab: see [#152](https://github.com/voyagegroup/popuko/issues/152).
+- GitHub Enterprise: [#173](https://github.com/voyagegroup/popuko/issues/173).
 
 
 ### Does this bot recommend [Trunk Based Development](https://trunkbaseddevelopment.com/) style?
@@ -205,7 +205,7 @@ Yes. This bot is designed heavily for the development style which has "trunk" br
 Of course, you can create a some branch on your upstream repository
 and you can open your pull request which would be merged into their non-trunk branch.
 However, we don't support the feature to conflict detection for them at this time
-([#197](https://github.com/karen-irc/popuko/issues/197)), and its priority is very low for us.
+([#197](https://github.com/voyagegroup/popuko/issues/197)), and its priority is very low for us.
 
 
 ### Why didn't you fork homu?
@@ -220,16 +220,16 @@ It was notion.
 
 ## How to Contribute
 
-- [TODO: Write CONTRUBUTING.md](https://github.com/karen-irc/popuko/issues/97)
-- If you have a problem, please find [existing issues](https://github.com/karen-irc/popuko/issues) at first.
-    - If there is no one which is similar to yours, please [file it as a new issue](https://github.com/karen-irc/popuko/issues/new).
+- [TODO: Write CONTRUBUTING.md](https://github.com/voyagegroup/popuko/issues/97)
+- If you have a problem, please find [existing issues](https://github.com/voyagegroup/popuko/issues) at first.
+    - If there is no one which is similar to yours, please [file it as a new issue](https://github.com/voyagegroup/popuko/issues/new).
 - We welcome your pull request. But we may not be able to accept your pull request if it is against to our project direction. Sorry.
 
 
 ## TODO
 
 - Intelligent cooperation with TravisCI.
-- [See more...](https://github.com/karen-irc/popuko/issues)
+- [See more...](https://github.com/voyagegroup/popuko/issues)
 
 
 

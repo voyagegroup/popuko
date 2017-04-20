@@ -3,7 +3,7 @@ package epic
 import (
 	"testing"
 
-	"github.com/karen-irc/popuko/queue"
+	"github.com/voyagegroup/popuko/queue"
 )
 
 func Test_queuePullReq1(t *testing.T) {
