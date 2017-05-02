@@ -106,7 +106,7 @@ func (srv *AppServer) processIssueCommentEvent(ctx context.Context, ev *github.I
 	body := *ev.Comment.Body
 	ok, cmd := input.ParseCommand(body)
 	if !ok {
-		return false, fmt.Errorf("No operations which this bot should handle.")
+		return false, fmt.Errorf("No operations which this bot should handle")
 	}
 
 	if cmd == nil {
@@ -123,24 +123,24 @@ func (srv *AppServer) processIssueCommentEvent(ctx context.Context, ev *github.I
 		return epic.AssignReviewer(ctx, srv.githubClient, ev, cmd.Reviewer)
 	case *input.AcceptChangeByReviewerCommand:
 		commander := epic.AcceptCommand{
-			repoOwner,
-			repo,
-			srv.githubClient,
-			config.BotNameForGithub(),
-			cmd,
-			repoInfo,
-			srv.autoMergeRepo,
+			Owner:         repoOwner,
+			Name:          repo,
+			Client:        srv.githubClient,
+			BotName:       config.BotNameForGithub(),
+			Cmd:           cmd,
+			Info:          repoInfo,
+			AutoMergeRepo: srv.autoMergeRepo,
 		}
 		return commander.AcceptChangesetByReviewer(ctx, ev)
 	case *input.AcceptChangeByOthersCommand:
 		commander := epic.AcceptCommand{
-			repoOwner,
-			repo,
-			srv.githubClient,
-			config.BotNameForGithub(),
-			cmd,
-			repoInfo,
-			srv.autoMergeRepo,
+			Owner:         repoOwner,
+			Name:          repo,
+			Client:        srv.githubClient,
+			BotName:       config.BotNameForGithub(),
+			Cmd:           cmd,
+			Info:          repoInfo,
+			AutoMergeRepo: srv.autoMergeRepo,
 		}
 		return commander.AcceptChangesetByReviewer(ctx, ev)
 	case *input.CancelApprovedByReviewerCommand:
