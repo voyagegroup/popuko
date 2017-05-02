@@ -23,17 +23,24 @@ type AcceptCommand struct {
 
 	Client  *github.Client
 	BotName string
-	Cmd     input.AcceptChangesetCommand
 	Info    *setting.RepositoryInfo
 
 	AutoMergeRepo *queue.AutoMergeQRepo
 }
 
-func (c *AcceptCommand) AcceptChangesetByReviewer(ctx context.Context, ev *github.IssueCommentEvent) (bool, error) {
+func (c *AcceptCommand) AcceptChangesetByOthers(ctx context.Context, ev *github.IssueCommentEvent, cmd *input.AcceptChangeByOthersCommand) (bool, error) {
+	return c.acceptChangeset(ctx, ev, cmd)
+}
+
+func (c *AcceptCommand) AcceptChangesetByReviewer(ctx context.Context, ev *github.IssueCommentEvent, cmd *input.AcceptChangeByReviewerCommand) (bool, error) {
+	return c.acceptChangeset(ctx, ev, cmd)
+}
+
+func (c *AcceptCommand) acceptChangeset(ctx context.Context, ev *github.IssueCommentEvent, cmd input.AcceptChangesetCommand) (bool, error) {
 	log.Printf("info: Start: merge the pull request by %v\n", *ev.Comment.ID)
 	defer log.Printf("info: End: merge the pull request by %v\n", *ev.Comment.ID)
 
-	if c.BotName != c.Cmd.BotName() {
+	if c.BotName != cmd.BotName() {
 		log.Printf("info: this command works only if target user is actual our bot.")
 		return false, nil
 	}
@@ -76,7 +83,7 @@ func (c *AcceptCommand) AcceptChangesetByReviewer(ctx context.Context, ev *githu
 	}
 
 	headSha := *pr.Head.SHA
-	if ok := commentApprovedSha(ctx, c.Cmd, issueSvc, repoOwner, repoName, issue, headSha, sender); !ok {
+	if ok := commentApprovedSha(ctx, cmd, issueSvc, repoOwner, repoName, issue, headSha, sender); !ok {
 		log.Println("info: could not create the comment to declare the head is approved.")
 		return false, err
 	}
