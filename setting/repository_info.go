@@ -3,6 +3,7 @@ package setting
 type RepositoryInfo struct {
 	reviewers           *ReviewerSet
 	regardAllAsReviewer bool
+	mergeables           *ReviewerSet
 
 	EnableAutoMerge      bool
 	DeleteAfterAutoMerge bool
@@ -15,6 +16,10 @@ func (r *RepositoryInfo) IsReviewer(name string) bool {
 	}
 
 	return r.reviewers.Has(name)
+}
+
+func (r *RepositoryInfo) IsInMergeableUserList(name string) bool {
+	return r.mergeables.Has(name)
 }
 
 type ReviewerSet struct {
