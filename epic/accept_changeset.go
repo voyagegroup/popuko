@@ -29,14 +29,6 @@ type AcceptCommand struct {
 }
 
 func (c *AcceptCommand) AcceptChangesetByOthers(ctx context.Context, ev *github.IssueCommentEvent, cmd *input.AcceptChangeByOthersCommand) (bool, error) {
-	return c.acceptChangeset(ctx, ev, cmd)
-}
-
-func (c *AcceptCommand) AcceptChangesetByReviewer(ctx context.Context, ev *github.IssueCommentEvent, cmd *input.AcceptChangeByReviewerCommand) (bool, error) {
-	return c.acceptChangeset(ctx, ev, cmd)
-}
-
-func (c *AcceptCommand) acceptChangeset(ctx context.Context, ev *github.IssueCommentEvent, cmd input.AcceptChangesetCommand) (bool, error) {
 	log.Printf("info: Start: merge the pull request by %v\n", *ev.Comment.ID)
 	defer log.Printf("info: End: merge the pull request by %v\n", *ev.Comment.ID)
 
@@ -52,6 +44,32 @@ func (c *AcceptCommand) acceptChangeset(ctx context.Context, ev *github.IssueCom
 		log.Printf("info: %v is not an reviewer registred to this bot.\n", sender)
 		return false, nil
 	}
+
+	return c.acceptChangeset(ctx, ev, cmd)
+}
+
+func (c *AcceptCommand) AcceptChangesetByReviewer(ctx context.Context, ev *github.IssueCommentEvent, cmd *input.AcceptChangeByReviewerCommand) (bool, error) {
+	log.Printf("info: Start: merge the pull request by %v\n", *ev.Comment.ID)
+	defer log.Printf("info: End: merge the pull request by %v\n", *ev.Comment.ID)
+
+	if c.BotName != cmd.BotName() {
+		log.Printf("info: this command works only if target user is actual our bot.")
+		return false, nil
+	}
+
+	sender := *ev.Sender.Login
+	log.Printf("debug: command is sent from %v\n", sender)
+
+	if !c.Info.IsReviewer(sender) {
+		log.Printf("info: %v is not an reviewer registred to this bot.\n", sender)
+		return false, nil
+	}
+
+	return c.acceptChangeset(ctx, ev, cmd)
+}
+
+func (c *AcceptCommand) acceptChangeset(ctx context.Context, ev *github.IssueCommentEvent, cmd input.AcceptChangesetCommand) (bool, error) {
+	sender := *ev.Sender.Login
 
 	client := c.Client
 	issueSvc := client.Issues
