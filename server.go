@@ -127,22 +127,20 @@ func (srv *AppServer) processIssueCommentEvent(ctx context.Context, ev *github.I
 			Name:          repo,
 			Client:        srv.githubClient,
 			BotName:       config.BotNameForGithub(),
-			Cmd:           cmd,
 			Info:          repoInfo,
 			AutoMergeRepo: srv.autoMergeRepo,
 		}
-		return commander.AcceptChangesetByReviewer(ctx, ev)
+		return commander.AcceptChangesetByReviewer(ctx, ev, cmd)
 	case *input.AcceptChangeByOthersCommand:
 		commander := epic.AcceptCommand{
 			Owner:         repoOwner,
 			Name:          repo,
 			Client:        srv.githubClient,
 			BotName:       config.BotNameForGithub(),
-			Cmd:           cmd,
 			Info:          repoInfo,
 			AutoMergeRepo: srv.autoMergeRepo,
 		}
-		return commander.AcceptChangesetByReviewer(ctx, ev)
+		return commander.AcceptChangesetByOthers(ctx, ev, cmd)
 	case *input.CancelApprovedByReviewerCommand:
 		commander := epic.CancelApprovedCommand{
 			BotName:       config.BotNameForGithub(),
