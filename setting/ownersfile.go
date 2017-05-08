@@ -10,6 +10,11 @@ type OwnersFile struct {
 	Version      float64       `json:"version"`
 	RawReviewers []interface{} `json:"reviewers"`
 
+	// Users in this list can merge only a pull request opened by themselves.
+	// They only can command `@<botname> r=<reviewer_name>` and `<reviewer_name>`
+	// must be different from their names.
+	RawMergeableUsers []interface{} `json:"mergeable_users,omitempty"`
+
 	// Provide a reviewer privilege for all users whoc can write some comment to
 	// pull request.
 	//
@@ -57,8 +62,30 @@ func (o *OwnersFile) reviewers() (ok bool, set *ReviewerSet) {
 	return true, set
 }
 
+func (o *OwnersFile) mergeables() (ok bool, set *ReviewerSet) {
+	var list []string
+
+	for _, v := range o.RawMergeableUsers {
+		n, ok := v.(string)
+		if !ok {
+			log.Printf("debug: %v\n", o.RawMergeableUsers)
+			return false, nil
+		}
+
+		list = append(list, n)
+	}
+
+	set = newReviewerSet(list)
+	return true, set
+}
+
 func (o *OwnersFile) ToRepoInfo() (bool, *RepositoryInfo) {
 	ok, r := o.reviewers()
+	if !ok {
+		return false, nil
+	}
+
+	ok, mergeables := o.mergeables()
 	if !ok {
 		return false, nil
 	}
@@ -70,6 +97,7 @@ func (o *OwnersFile) ToRepoInfo() (bool, *RepositoryInfo) {
 
 	info := RepositoryInfo{
 		reviewers:            r,
+		mergeables:           mergeables,
 		regardAllAsReviewer:  o.RegardAllAsReviewer,
 		EnableAutoMerge:      o.EnableAutoMerge,
 		DeleteAfterAutoMerge: o.DeleteAfterAutoMerge,
