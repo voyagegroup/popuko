@@ -33,7 +33,7 @@ But its development is not in active now. And also Mozilla's servo team maintain
 [their forked version of homu][servo-homu]. But it is developed for their specific usecase.
 Not for other projects.
 
-And, to use without host homu by yourself, you can use [homu.io][homu.io].
+And, to use without host homu by yourself, you can use `homu.io` or other similar service (e.g. [bors.tech][bors.tech]).
 But it's shared by other third repositories. It would not suite to use it for your internal repository.
 
 Some features (e.g. assigning reviewers to the pull request) are provided by [highfilve][highfive], not by homu.
@@ -172,7 +172,7 @@ Auto-Merging behaves like this:
 
 - Full-replace homu.
 - This project does not have any plan to re-implement all features of homu.
-- No plans to create any alternatives of [homu.io][homu.io].
+- No plans to create any alternatives of `homu.io` or [bors.tech][bors.tech].
 
 
 ### The current limitations
@@ -213,6 +213,12 @@ However, we don't support the feature to conflict detection for them at this tim
 It was notion.
 
 
+### Why didn't you fork [bors-ng][bors-ng]?
+
+When we had started this project, we could not find it.
+And then we thought it's more better as an internal toolchain to implement a merging operation bot which is fully customized for our purpose.
+
+
 ## License
 
 [The MIT License](./LICENSE.txt)
@@ -236,7 +242,8 @@ It was notion.
 [homu]: https://github.com/barosl/homu
 [servo-homu]: https://github.com/servo/homu
 [highfive]: https://github.com/servo/highfive
-[homu.io]: http://homu.io/
+[bors.tech]: https://bors.tech/
 [github-rust-repo]: https://github.com/rust-lang/
 [github-servo]: https://github.com/servo
 [graydon's-entry]: http://graydon2.dreamwidth.org/1597.html
+[bors-ng]: https://github.com/bors-ng/bors-ng
