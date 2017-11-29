@@ -1,8 +1,8 @@
 
-[[dependencies]]
+[[constraint]]
   name = "github.com/BurntSushi/toml"
   revision = "b26d9c308763d68093482582cea63d69be07a0f0"
 
-[[dependencies]]
+[[constraint]]
   name = "github.com/google/go-github"
   revision = "de33c46a823d3f723514fc5333b75ef2e937b7df"
