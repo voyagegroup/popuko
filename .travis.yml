@@ -8,6 +8,10 @@ matrix:
     allow_failures:
         - go: master
 
+before_install:
+    # https://github.com/golang/dep
+    - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
 script:
     - make travis -j 8
 

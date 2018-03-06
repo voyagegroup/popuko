@@ -14,7 +14,6 @@ clean: ## Remove the exec binary.
 
 bootstrap:
 	rm -rf vendor/
-	go get -u github.com/golang/dep/...
 	dep ensure
 
 build: $(DIST_NAME) ## Build the exec binary for youe machine.
