@@ -7,15 +7,15 @@
   revision = "a368813c5e648fee92e5f6c30e3944ff9d5e8895"
 
 [[projects]]
-  branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "17ce1425424ab154092bbb43af630bd647f3bb0d"
+  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/google/go-github"
   packages = ["github"]
-  revision = "de33c46a823d3f723514fc5333b75ef2e937b7df"
+  revision = "e7bb4b8ce29fb7beaf0765acda602bc516a56dd5"
 
 [[projects]]
   branch = "master"
@@ -30,7 +30,7 @@
     "context",
     "context/ctxhttp"
   ]
-  revision = "66aacef3dd8a676686c7ae3716979581e8b03c47"
+  revision = "d25186b37f34ebdbbea8f488ef055638dfab272d"
 
 [[projects]]
   branch = "master"
@@ -39,18 +39,15 @@
     ".",
     "internal"
   ]
-  revision = "d89af98d7c6bba047c5a2622f36bc14b8766df85"
+  revision = "2f32c3ac0fa4fb807a0fcefb0b6f2468a0d99bd0"
 
 [[projects]]
   name = "google.golang.org/appengine"
   packages = [
-    ".",
     "internal",
-    "internal/app_identity",
     "internal/base",
     "internal/datastore",
     "internal/log",
-    "internal/modules",
     "internal/remote_api",
     "internal/urlfetch",
     "urlfetch"
@@ -61,6 +58,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f39ef8cd4ad19853261a894e538031d4f7077c630e2d996a322a5fca77832f10"
+  inputs-digest = "123456dce07a173e1b0f7442e5ca2242a00212f89bf67dc27b07b842694828b5"
   solver-name = "gps-cdcl"
   solver-version = 1
