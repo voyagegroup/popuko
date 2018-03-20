@@ -10,20 +10,19 @@ help:
 	@exit 1
 
 clean: ## Remove the exec binary.
-	rm -rf ./$(DIST_NAME)
+	rm -rf $(CURDIR)/$(DIST_NAME)
 
 bootstrap:
 	rm -rf vendor/
-	go get -u github.com/golang/dep/...
 	dep ensure
 
 build: $(DIST_NAME) ## Build the exec binary for youe machine.
 
 build_linux_x64: ## Just an alias to build for some cloud instance.
-	env GOOS=linux GOARCH=amd64 make build -C .
+	env GOOS=linux GOARCH=amd64 make build -C $(CURDIR)
 
 run: $(DIST_NAME) ## Execute the binary for youe machine.
-	./$(DIST_NAME)
+	$(CURDIR)/$(DIST_NAME)
 
 $(DIST_NAME): clean
 	go build -o $(DIST_NAME) -ldflags "-X main.revision=$(GIT_REVISION) -X \"main.builddate=$(BUILD_DATE)\""
@@ -32,7 +31,7 @@ test: test_epic test_input test_operation test_queue test_setting
 	go test
 
 test_%:
-	make test -C ./$*
+	make test -C $(CURDIR)/$*
 
 travis:
 	make bootstrap
