@@ -1,0 +1,6 @@
+FROM golang:1.10
+WORKDIR /src/github.com/voyagegroup/popuko
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+ENV GOPATH=/
+ENV CGO_ENABLED=0
+CMD ["make", "bootstrap", "build"]

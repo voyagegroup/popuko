@@ -1,0 +1,7 @@
+FROM scratch
+
+COPY popuko /popuko.bin
+COPY ["LICENSE.MIT", "README.md", "/"]
+
+EXPOSE 3000
+CMD ["/popuko.bin", "--config-base-dir", "/config"]
