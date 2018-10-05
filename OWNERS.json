@@ -2,6 +2,7 @@
     "version": 0,
     "reviewers": [
         "nekoya",
+        "nishigori",
         "saneyuki"
     ],
     "auto_merge.enabled": true,
