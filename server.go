@@ -70,8 +70,8 @@ func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request
 		srv.processPushEvent(ctx, event)
 		rw.WriteHeader(http.StatusOK)
 		return
-	case *github.StatusEvent:
-		srv.processStatusEvent(ctx, event)
+	case *github.CheckRunEvent:
+		srv.processCheckRunEvent(ctx, event)
 		rw.WriteHeader(http.StatusOK)
 		return
 	case *github.PullRequestEvent:
@@ -175,9 +175,9 @@ func (srv *AppServer) processPushEvent(ctx context.Context, ev *github.PushEvent
 	epic.DetectUnmergeablePR(ctx, srv.githubClient, ev)
 }
 
-func (srv *AppServer) processStatusEvent(ctx context.Context, ev *github.StatusEvent) {
-	log.Println("info: Start: processStatusEvent")
-	defer log.Println("info: End: processStatusEvent")
+func (srv *AppServer) processCheckRunEvent(ctx context.Context, ev *github.CheckRunEvent) {
+	log.Println("info: Start: processCheckRunEvent")
+	defer log.Println("info: End: processCheckRunEvent")
 
 	repoOwner := *ev.Repo.Owner.Login
 	log.Printf("debug: repository owner is %v\n", repoOwner)
