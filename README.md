@@ -143,7 +143,7 @@ Auto-Merging behaves like this:
 3. Set `http://<your_server_with_port>/github` for the webhook to your repository with these events:
     - `Issue comment`
     - `Push`
-    - `Status` (required to use Auto-Merging feature).
+    - `CheckRun` (required to use Auto-Merging feature).
     - `Pull Request` (required to remove all status (`S-` prefixed) labels after a pull request is closed).
 4. Create these labels to make the status visible.
     - `S-awaiting-review`
