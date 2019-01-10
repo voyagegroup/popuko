@@ -74,6 +74,10 @@ func (srv *AppServer) handleGithubHook(rw http.ResponseWriter, req *http.Request
 		srv.processStatusEvent(ctx, event)
 		rw.WriteHeader(http.StatusOK)
 		return
+	case *github.CheckSuiteEvent:
+		srv.processCheckSuiteEvent(ctx, event)
+		rw.WriteHeader(http.StatusOK)
+		return
 	case *github.PullRequestEvent:
 		srv.processPullRequestEvent(ctx, event)
 		rw.WriteHeader(http.StatusOK)
@@ -189,7 +193,24 @@ func (srv *AppServer) processStatusEvent(ctx context.Context, ev *github.StatusE
 		return
 	}
 
-	epic.CheckAutoBranch(ctx, srv.githubClient, srv.autoMergeRepo, ev)
+	epic.CheckAutoBranchWithStatusEvent(ctx, srv.githubClient, srv.autoMergeRepo, ev)
+}
+
+func (srv *AppServer) processCheckSuiteEvent(ctx context.Context, ev *github.CheckSuiteEvent) {
+	log.Println("info: Start: processCheckSuiteEvent")
+	defer log.Println("info: End: processCheckSuiteEvent")
+
+	repoOwner := *ev.Repo.Owner.Login
+	log.Printf("debug: repository owner is %v\n", repoOwner)
+	repo := *ev.Repo.Name
+	log.Printf("debug: repository name is %v\n", repo)
+	if !srv.setting.AcceptRepo(repoOwner, repo) {
+		n := repoOwner + "/" + repo
+		log.Printf("======= error: =======\n This event is from an unaccepted repository: %v\n==============", n)
+		return
+	}
+
+	epic.CheckAutoBranchWithCheckSuiteEvent(ctx, srv.githubClient, srv.autoMergeRepo, ev)
 }
 
 func (srv *AppServer) processPullRequestEvent(ctx context.Context, ev *github.PullRequestEvent) {
