@@ -1,4 +1,4 @@
-DIST_NAME := popuko
+DIST_NAME := frau
 GIT_REVISION := $(shell git rev-parse --verify HEAD)
 BUILD_DATE := $(shell date '+%Y/%m/%d %H:%M:%S %z')
 

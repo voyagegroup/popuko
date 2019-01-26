@@ -2,7 +2,7 @@
 vendor/
 
 # Exec binary
-popuko
+frau
 
 # config file
 config.toml

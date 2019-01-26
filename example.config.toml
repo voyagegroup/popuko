@@ -1,4 +1,4 @@
-## The root configuration file for [popuko](https://github.com/JohnTitor/KoujiroFrau)
+## The root configuration file for [frau](https://github.com/JohnTitor/frau)
 
 # The version of this configuration format.
 config_version = 0
@@ -8,7 +8,7 @@ port = 3000
 
 [github]
 # This bot name for GitHub.
-botname = "KoujiroFrau"
+botname = "frau"
 
 # GitHub API Token
 api_token = "api_token"
@@ -19,4 +19,4 @@ webhook_secret = "webhook_secret"
 # For security reasons, you can restrict a repository which this bot supports.
 #   - If this list is empty, this bot accepts all webhook incoming from any repositories.
 #   - Otherwise, this bot only accepts the webhook from repositories listed in this item.
-accepted_repositoies = [ "JohnTitor/KoujiroFrau" ]
+accepted_repositoies = [ "JohnTitor/frau" ]
