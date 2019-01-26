@@ -10,8 +10,8 @@ import (
 
 	"errors"
 
-	"github.com/voyagegroup/popuko/queue"
-	"github.com/voyagegroup/popuko/setting"
+	"github.com/JohnTitor/KoujiroFrau/queue"
+	"github.com/JohnTitor/KoujiroFrau/setting"
 )
 
 var config *setting.Settings
