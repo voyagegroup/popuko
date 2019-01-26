@@ -10,8 +10,8 @@ import (
 
 	"errors"
 
-	"github.com/JohnTitor/KoujiroFrau/queue"
-	"github.com/JohnTitor/KoujiroFrau/setting"
+	"github.com/JohnTitor/frau/queue"
+	"github.com/JohnTitor/frau/setting"
 )
 
 var config *setting.Settings
@@ -77,11 +77,11 @@ func main() {
 
 	config = setting.LoadSettings(root)
 	if config == nil {
-		log.Println("Cannot find $XDG_CONFIG_HOME/popuko" + setting.RootConfigFile)
+		log.Println("Cannot find $XDG_CONFIG_HOME/frau" + setting.RootConfigFile)
 		return
 	}
 
-	log.Println("===== popuko =====")
+	log.Println("===== frau =====")
 	log.Printf("version (git revision): %s\n", revision)
 	log.Printf("builddate: %s\n", builddate)
 	log.Printf("use TLS: %v\n", useTLS)

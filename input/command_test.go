@@ -70,63 +70,63 @@ func TestParseCommandValidCaseForAcceptChangeByOthersCommand(t *testing.T) {
 
 	list := []TestCase{
 		TestCase{
-			input:    "@bot r=popuko",
-			expected: []string{"popuko"},
+			input:    "@bot r=KoujiroFrau",
+			expected: []string{"KoujiroFrau"},
 		},
 		TestCase{
-			input:    "  @bot    r=popuko  ",
-			expected: []string{"popuko"},
-		},
-
-		TestCase{
-			input:    "@bot r=popuko-a",
-			expected: []string{"popuko-a"},
-		},
-		TestCase{
-			input:    "  @bot    r=popuko-a ",
-			expected: []string{"popuko-a"},
+			input:    "  @bot    r=KoujiroFrau  ",
+			expected: []string{"KoujiroFrau"},
 		},
 
 		TestCase{
-			input:    "@bot r=popuko,pipimi",
-			expected: []string{"popuko", "pipimi"},
+			input:    "@bot r=KoujiroFrau-a",
+			expected: []string{"KoujiroFrau-a"},
 		},
 		TestCase{
-			input:    "  @bot r=popuko,pipimi   ",
-			expected: []string{"popuko", "pipimi"},
-		},
-		TestCase{
-			input:    "  @bot r=popuko,  pipimi   ",
-			expected: []string{"popuko", "pipimi"},
-		},
-		TestCase{
-			input:    "  @bot r=popuko ,  pipimi   ",
-			expected: []string{"popuko", "pipimi"},
-		},
-		TestCase{
-			input:    "  @bot r= popuko ,  pipimi   ",
-			expected: []string{"popuko", "pipimi"},
+			input:    "  @bot    r=KoujiroFrau-a ",
+			expected: []string{"KoujiroFrau-a"},
 		},
 
 		TestCase{
-			input:    "@bot r=popuko-a,pipimi-b",
-			expected: []string{"popuko-a", "pipimi-b"},
+			input:    "@bot r=KoujiroFrau,pipimi",
+			expected: []string{"KoujiroFrau", "pipimi"},
 		},
 		TestCase{
-			input:    "  @bot r=popuko-a,pipimi-b   ",
-			expected: []string{"popuko-a", "pipimi-b"},
+			input:    "  @bot r=KoujiroFrau,pipimi   ",
+			expected: []string{"KoujiroFrau", "pipimi"},
 		},
 		TestCase{
-			input:    "  @bot r=popuko-a,   pipimi-b   ",
-			expected: []string{"popuko-a", "pipimi-b"},
+			input:    "  @bot r=KoujiroFrau,  pipimi   ",
+			expected: []string{"KoujiroFrau", "pipimi"},
 		},
 		TestCase{
-			input:    "  @bot r=popuko-a  ,   pipimi-b   ",
-			expected: []string{"popuko-a", "pipimi-b"},
+			input:    "  @bot r=KoujiroFrau ,  pipimi   ",
+			expected: []string{"KoujiroFrau", "pipimi"},
 		},
 		TestCase{
-			input:    "  @bot r= popuko-a  ,   pipimi-b   ",
-			expected: []string{"popuko-a", "pipimi-b"},
+			input:    "  @bot r= KoujiroFrau ,  pipimi   ",
+			expected: []string{"KoujiroFrau", "pipimi"},
+		},
+
+		TestCase{
+			input:    "@bot r=KoujiroFrau-a,pipimi-b",
+			expected: []string{"KoujiroFrau-a", "pipimi-b"},
+		},
+		TestCase{
+			input:    "  @bot r=KoujiroFrau-a,pipimi-b   ",
+			expected: []string{"KoujiroFrau-a", "pipimi-b"},
+		},
+		TestCase{
+			input:    "  @bot r=KoujiroFrau-a,   pipimi-b   ",
+			expected: []string{"KoujiroFrau-a", "pipimi-b"},
+		},
+		TestCase{
+			input:    "  @bot r=KoujiroFrau-a  ,   pipimi-b   ",
+			expected: []string{"KoujiroFrau-a", "pipimi-b"},
+		},
+		TestCase{
+			input:    "  @bot r= KoujiroFrau-a  ,   pipimi-b   ",
+			expected: []string{"KoujiroFrau-a", "pipimi-b"},
 		},
 	}
 	for _, testcase := range list {

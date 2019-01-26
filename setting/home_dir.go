@@ -9,7 +9,7 @@ import (
 )
 
 const XdgConfigHomeEnvKey = "XDG_CONFIG_HOME"
-const HomeDirName = "popuko"
+const HomeDirName = "frau"
 
 func HomeDir(base string) (bool, string) {
 	var dir string

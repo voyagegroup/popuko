@@ -17,9 +17,3 @@ script:
 
 notifications:
     email: false
-    webhooks:
-        urls:
-            - https://lism.in/travis
-        on_success: always
-        on_failure: always
-        on_start: always

@@ -38,7 +38,7 @@ func TestLoadConfigToml(t *testing.T) {
 		return
 	}
 
-	if actual := result.Github.BotName; actual != "popuko" {
+	if actual := result.Github.BotName; actual != "frau" {
 		t.Errorf("%v\n", actual)
 		return
 	}
