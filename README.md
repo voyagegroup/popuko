@@ -1,6 +1,6 @@
 # popuko
 
-[![Build Status (master)](https://travis-ci.org/voyagegroup/popuko.svg?branch=master)](https://travis-ci.org/voyagegroup/popuko)
+[![Build Status (master)](https://travis-ci.org/JohnTitor/frau.svg?branch=master)](https://travis-ci.org/JohnTitor/frau)
 
 ## What is this?
 
