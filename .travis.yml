@@ -4,6 +4,11 @@ go:
     - "1.11"
     - master
 
+branches:
+    only:
+        - auto
+        - master
+
 matrix:
     allow_failures:
         - go: master
