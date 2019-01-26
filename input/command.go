@@ -17,18 +17,23 @@ func ParseCommand(raw string) (ok bool, cmd interface{}) {
 		return false, nil
 	}
 
-	body := tmp[0]
-	log.Printf("debug: body: %v\n", body)
+	for index := range tmp {
+		if strings.Index(tmp[index], "@") != -1 {
+			body := tmp[index]
+			log.Printf("debug: body: %v\n", body)
 
-	r := strings.NewReader(body)
-	p := newParser(r)
-	cmd, err := p.Parse()
-	if err != nil {
-		log.Printf("debug: parse error: %v\n", err)
-		return false, nil
+			r := strings.NewReader(body)
+			p := newParser(r)
+			cmd, err := p.Parse()
+			if err != nil {
+				log.Printf("debug: parse error: %v\n", err)
+				return false, nil
+			}
+			return true, cmd
+		}
 	}
 
-	return true, cmd
+	return false, nil
 }
 
 type AcceptChangesetCommand interface {
