@@ -7,10 +7,10 @@ import (
 
 	"github.com/google/go-github/github"
 
-	"github.com/JohnTitor/KoujiroFrau/input"
-	"github.com/JohnTitor/KoujiroFrau/operation"
-	"github.com/JohnTitor/KoujiroFrau/queue"
-	"github.com/JohnTitor/KoujiroFrau/setting"
+	"github.com/JohnTitor/frau/input"
+	"github.com/JohnTitor/frau/operation"
+	"github.com/JohnTitor/frau/queue"
+	"github.com/JohnTitor/frau/setting"
 )
 
 type CancelApprovedCommand struct {

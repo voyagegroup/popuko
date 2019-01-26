@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/JohnTitor/frau/operation"
+	"github.com/JohnTitor/frau/queue"
+	"github.com/JohnTitor/frau/setting"
 	"github.com/google/go-github/github"
-	"github.com/JohnTitor/KoujiroFrau/operation"
-	"github.com/JohnTitor/KoujiroFrau/queue"
-	"github.com/JohnTitor/KoujiroFrau/setting"
 )
 
 type StateChangeInfo struct {

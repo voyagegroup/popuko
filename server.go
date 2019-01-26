@@ -12,10 +12,10 @@ import (
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 
-	"github.com/JohnTitor/KoujiroFrau/epic"
-	"github.com/JohnTitor/KoujiroFrau/input"
-	"github.com/JohnTitor/KoujiroFrau/queue"
-	"github.com/JohnTitor/KoujiroFrau/setting"
+	"github.com/JohnTitor/frau/epic"
+	"github.com/JohnTitor/frau/input"
+	"github.com/JohnTitor/frau/queue"
+	"github.com/JohnTitor/frau/setting"
 )
 
 // AppServer is just an this application.
