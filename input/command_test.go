@@ -317,8 +317,6 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		"@bot r+ r",
 		" @ bot r+",
 		" @ bot r +",
-		`
-    @bot r+`,
 		`@bot
     r+`,
 
@@ -328,8 +326,6 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		"@bot r- r",
 		" @ bot r-",
 		" @ bot r -",
-		`
-    @bot r-`,
 		`@bot
     r-`,
 
@@ -342,8 +338,6 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		" @ bot r=a",
 		" @ bot r = a",
 		" @ bot r =a",
-		`
-    @bot r=a`,
 		`@bot
     r=a`,
 
@@ -354,8 +348,6 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		"@bot r ?",
 		" @ bot r?",
 		" @ bot r ? ",
-		`
-    @bot r?`,
 		`@bot
     r?`,
 
@@ -366,8 +358,6 @@ func TestParseCommandInvalidCase(t *testing.T) {
 		"r ? @bot",
 		" r? @ bot",
 		" r ? @ bot ",
-		`
-    r? @bot`,
 		`r?
     @bot`,
 	}
