@@ -256,3 +256,12 @@ func commentAsPostponed(ctx context.Context, issueSvc *github.IssuesService, own
 		}
 	}
 }
+
+func contains(s []string, e string) (bool, int) {
+	for i, v := range s {
+		if e == v {
+			return true, i
+		}
+	}
+	return false, -1
+}
