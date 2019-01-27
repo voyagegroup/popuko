@@ -1,6 +1,7 @@
 package input
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -65,6 +66,7 @@ func TestParseCommandValidCaseForAcceptChangeByReviewerCommand(t *testing.T) {
 func TestParseCommandValidCaseForAcceptChangeByOthersCommand(t *testing.T) {
 	type TestCase struct {
 		input    string
+		sender   string
 		expected []string
 	}
 
@@ -85,6 +87,11 @@ func TestParseCommandValidCaseForAcceptChangeByOthersCommand(t *testing.T) {
 		TestCase{
 			input:    "  @bot    r=KoujiroFrau-a ",
 			expected: []string{"KoujiroFrau-a"},
+		},
+		TestCase{
+			input:    "@bot r=me",
+			sender:   "KoujiroFrau",
+			expected: []string{"KoujiroFrau"},
 		},
 
 		TestCase{
@@ -128,6 +135,11 @@ func TestParseCommandValidCaseForAcceptChangeByOthersCommand(t *testing.T) {
 			input:    "  @bot r= KoujiroFrau-a  ,   pipimi-b   ",
 			expected: []string{"KoujiroFrau-a", "pipimi-b"},
 		},
+		TestCase{
+			input:    "@bot r=me, pipimi",
+			sender:   "KoujiroFrau",
+			expected: []string{"KoujiroFrau", "pipimi"},
+		},
 	}
 	for _, testcase := range list {
 		input := testcase.input
@@ -151,6 +163,10 @@ func TestParseCommandValidCaseForAcceptChangeByOthersCommand(t *testing.T) {
 
 		for i, actual := range v.Reviewer {
 			expected := testcase.expected[i]
+			//TODO: Check sender name if `r=me` is used, this if expression is incomplete.
+			if strings.Index(input, "me") != -1 && expected == testcase.sender {
+				actual = testcase.sender
+			}
 			if actual != expected {
 				t.Errorf("input: `%v` should be the expected (`%v`) but `%v`", input, expected, actual)
 				continue

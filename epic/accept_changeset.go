@@ -190,6 +190,9 @@ func commentApprovedSha(
 			for _, name := range cmd.Reviewer {
 				list = append(list, fmt.Sprintf("`%v`", name))
 			}
+			if containsMe, index := contains(list, "me"); containsMe {
+				list[index] = sender
+			}
 			reviewers = strings.Join(list, ", ")
 		}
 	case *input.AcceptChangeByReviewerCommand:
@@ -255,4 +258,13 @@ func commentAsPostponed(ctx context.Context, issueSvc *github.IssuesService, own
 			log.Println("info: could not create the comment to declare to merge this.")
 		}
 	}
+}
+
+func contains(s []string, e string) (bool, int) {
+	for i, v := range s {
+		if e == v {
+			return true, i
+		}
+	}
+	return false, -1
 }
