@@ -54,3 +54,42 @@ func AssignReviewer(ctx context.Context, client *github.Client, ev *github.Issue
 
 	return true, nil
 }
+
+func AssignReviewerFromPR(ctx context.Context, client *github.Client, ev *github.PullRequestEvent, assignees []string) (bool, error) {
+	log.Printf("info: Start: assign the reviewer by %v\n", *ev.Number)
+	defer log.Printf("info: End: assign the reviewer by %v\n", *ev.Number)
+
+	issueSvc := client.Issues
+
+	repoOwner := *ev.Repo.Owner.Login
+	log.Printf("debug: repository owner is %v\n", repoOwner)
+	repo := *ev.Repo.Name
+	log.Printf("debug: repository name is %v\n", repo)
+
+	pullReqNum := *ev.Number
+	log.Printf("debug: pull request number is %v\n", pullReqNum)
+
+	currentLabels := operation.GetLabelsByIssue(ctx, issueSvc, repoOwner, repo, pullReqNum)
+	if currentLabels == nil {
+		return false, nil
+	}
+
+	log.Printf("debug: assignees is %v\n", assignees)
+
+	_, _, err := issueSvc.AddAssignees(ctx, repoOwner, repo, pullReqNum, assignees)
+	if err != nil {
+		log.Println("info: could not change assignees.")
+		return false, err
+	}
+
+	labels := operation.AddAwaitingReviewLabel(currentLabels)
+	_, _, err = issueSvc.ReplaceLabelsForIssue(ctx, repoOwner, repo, pullReqNum, labels)
+	if err != nil {
+		log.Println("info: could not change labels.")
+		return false, err
+	}
+
+	log.Println("info: Complete assign the reviewer with no errors.")
+
+	return true, nil
+}
