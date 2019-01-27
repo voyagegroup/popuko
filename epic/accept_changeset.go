@@ -190,7 +190,7 @@ func commentApprovedSha(
 			for _, name := range cmd.Reviewer {
 				list = append(list, fmt.Sprintf("`%v`", name))
 			}
-			if containsMe, index := contains(list, "me"); containsMe {
+			if containsMe, index := contains(list, "`me`"); containsMe {
 				list[index] = sender
 			}
 			reviewers = strings.Join(list, ", ")
