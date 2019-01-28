@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/go-github/github"
 
-	"github.com/JohnTitor/frau/operation"
+	"github.com/student-kyushu/frau/operation"
 )
 
 const masterBranchName = "master"

@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/JohnTitor/frau/setting"
 	"github.com/google/go-github/github"
+	"github.com/student-kyushu/frau/setting"
 )
 
 func GetRepositoryInfo(ctx context.Context, repoSvc *github.RepositoriesService, owner, name string) *setting.RepositoryInfo {
