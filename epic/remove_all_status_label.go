@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/JohnTitor/frau/operation"
 	"github.com/google/go-github/github"
+	"github.com/student-kyushu/frau/operation"
 )
 
 func RemoveAllStatusLabel(ctx context.Context, client *github.Client, repo *github.Repository, pr *github.PullRequest) {
