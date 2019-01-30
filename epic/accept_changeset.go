@@ -116,12 +116,12 @@ func (c *AcceptCommand) acceptChangeset(ctx context.Context, ev *github.IssueCom
 	}
 
 	if containsDoNotMerge := containsLabel(currentLabels, doNotMergeLabel); containsDoNotMerge {
-		log.Println("info: forbid to merge by label `S-do-not-merge`")
 		comment := fmt.Sprint(":warning: Forbid to merge by label `S-do-not-merge`")
 		if ok := operation.AddComment(ctx, issueSvc, repoOwner, repoName, issue, comment); !ok {
 			log.Println("info: could not create the comment to declare the head is approved.")
 			return false, nil
 		}
+		log.Println("info: forbid to merge by label `S-do-not-merge`")
 		return false, nil
 	}
 
