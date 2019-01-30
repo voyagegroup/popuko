@@ -109,10 +109,26 @@ func (c *AcceptCommand) acceptChangeset(ctx context.Context, ev *github.IssueCom
 		return false, nil
 	}
 
+	doNotMergeLabel, _, err := issueSvc.GetLabel(ctx, repoOwner, repoName, "S-do-not-merge")
+	if err != nil {
+		log.Println("info: could not find label `S-do-not-merge`")
+		return false, err
+	}
+
+	if containsDoNotMerge := containsLabel(currentLabels, doNotMergeLabel); containsDoNotMerge {
+		log.Println("info: forbid to merge by label `S-do-not-merge`")
+		comment := fmt.Sprint(":warning: Forbid to merge by label `S-do-not-merge`")
+		if ok := operation.AddComment(ctx, issueSvc, repoOwner, repoName, issue, comment); !ok {
+			log.Println("info: could not create the comment to declare the head is approved.")
+			return false, nil
+		}
+		return false, nil
+	}
+
 	labels := operation.AddAwaitingMergeLabel(currentLabels)
 
 	// https://github.com/nekoya/popuko/blob/master/web.py
-	_, _, err := issueSvc.ReplaceLabelsForIssue(ctx, repoOwner, repoName, issue, labels)
+	_, _, err = issueSvc.ReplaceLabelsForIssue(ctx, repoOwner, repoName, issue, labels)
 	if err != nil {
 		log.Println("info: could not change labels by the issue")
 		return false, err
@@ -267,4 +283,13 @@ func contains(s []string, e string) (bool, int) {
 		}
 	}
 	return false, -1
+}
+
+func containsLabel(s []*github.Label, e *github.Label) bool {
+	for _, v := range s {
+		if e == v {
+			return true
+		}
+	}
+	return false
 }
