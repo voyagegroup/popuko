@@ -3,6 +3,7 @@ package epic
 import (
 	"context"
 	"log"
+	"reflect"
 	"strings"
 
 	"github.com/google/go-github/github"
@@ -287,7 +288,7 @@ func contains(s []string, e string) (bool, int) {
 
 func containsLabel(s []*github.Label, e *github.Label) bool {
 	for _, v := range s {
-		if e == v {
+		if reflect.DeepEqual(e, v) {
 			return true
 		}
 	}
