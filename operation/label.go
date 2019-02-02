@@ -14,6 +14,7 @@ const (
 	LABEL_AWAITING_MERGE            string = "S-awaiting-merge"
 	LABEL_NEEDS_REBASE              string = "S-needs-rebase"
 	LABEL_FAILS_TESTS_WITH_UPSTREAM string = "S-fails-tests-with-upstream"
+	LABEL_DO_NOT_MERGE              string = "S-do-not-merge"
 )
 
 func AddAwaitingReviewLabel(list []*github.Label) []string {
