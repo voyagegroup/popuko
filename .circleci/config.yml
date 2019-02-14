@@ -32,7 +32,9 @@ jobs:
           command: |
             gox -os="linux darwin windows" -arch="amd64" -output="dist/frau_{{.OS}}_{{.Arch}}"
             cd dist/ && gzip *
-      - add_ssh_keys
+      - add_ssh_keys:
+          fingerprints:
+            - "3a:c9:b6:74:f1:00:90:63:ef:d3:83:1c:be:72:54:14"
       - run:
           name: create release
           command: |
