@@ -94,8 +94,13 @@ func main() {
 	log.Printf("config dir: %v\n", root)
 	log.Println("==================")
 
-	github := createGithubClient(config)
-	if github == nil {
+	github, err := createGithubClient(config)
+	if err != nil {
+		log.Printf("error: %s\n", err.Error())
+		return
+	}
+
+	if err == nil && github == nil {
 		log.Println("error: Cannot create the github client")
 		return
 	}

@@ -5,6 +5,8 @@ type GithubSetting struct {
 	Token        string   `toml:"api_token"`
 	HookSecret   string   `toml:"webhook_secret"`
 	Repositories []string `toml:"accepted_repositoies"`
+	BaseURL      string   `toml:"base_url"`
+	UploadURL    string   `toml:"upload_url"`
 
 	acceptedRepos map[string]bool
 }
