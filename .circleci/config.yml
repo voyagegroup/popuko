@@ -1,0 +1,73 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.11.5
+    working_directory: /go/src/github.com/student-kyushu/frau
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - vendor-{{ checksum "Gopkg.lock" }}
+            - dep
+      - run:
+          name: run build
+          command: |
+            if [ ! -d vendor ]; then
+              if ! type dep >/dev/null 2>&1; then
+                go get github.com/golang/dep/cmd/dep
+              fi
+              dep ensure
+            fi
+            go build -v
+      - run:
+          name: run tests
+          command: |
+            go fmt ./...
+            # go vet ./...
+            go test -v ./...
+      - save_cache:
+          key: vendor-{{ checksum "Gopkg.lock" }}
+          paths:
+            - vendor
+      - save_cache:
+          key: dep
+          paths:
+            - /go/bin/dep
+  deploy:
+    docker:
+      - image: circleci/golang:1.11.5
+    working_directory: /go/src/github.com/student-kyushu/frau
+    steps:
+      - checkout
+      - run: go get -u github.com/mitchellh/gox
+      - run: go get -u github.com/tcnksm/ghr
+      - run: go get -u github.com/stevenmatthewt/semantics
+      - run:
+          name: cross compile
+          command: |
+            gox -os="linux darwin windows" -arch="amd64" -output="dist/frau_{{.OS}}_{{.Arch}}"
+            cd dist/ && gzip *
+      - add_ssh_keys:
+          fingerprints:
+            - "3a:c9:b6:74:f1:00:90:63:ef:d3:83:1c:be:72:54:14"
+      - run:
+          name: create release
+          command: |
+            tag=$(semantics --output-tag)
+            if [ "$tag" ]; then
+              ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME --replace $tag dist/
+            else
+              echo "The commit message(s) did not indicate a major/minor/patch version."
+            fi
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
