@@ -6,10 +6,10 @@ jobs:
     working_directory: /go/src/github.com/student-kyushu/frau
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - vendor-{{ checksum "Gopkg.lock" }}
-            - dep
+      # - restore_cache:
+      #     keys:
+      #       - vendor-{{ checksum "Gopkg.lock" }}
+      #       - dep
       - run:
           name: run build
           command: |
@@ -26,14 +26,14 @@ jobs:
             go fmt ./...
             # go vet ./...
             go test -v ./...
-      - save_cache:
-          key: vendor-{{ checksum "Gopkg.lock" }}
-          paths:
-            - vendor
-      - save_cache:
-          key: dep
-          paths:
-            - /go/bin/dep
+      # - save_cache:
+      #     key: vendor-{{ checksum "Gopkg.lock" }}
+      #     paths:
+      #       - vendor
+      # - save_cache:
+      #     key: dep
+      #     paths:
+      #       - /go/bin/dep
   deploy:
     docker:
       - image: circleci/golang:1.11.5
@@ -70,4 +70,4 @@ workflows:
             - build
           filters:
             branches:
-              only: master
+              only: fix-deploy
