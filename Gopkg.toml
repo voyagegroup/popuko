@@ -5,4 +5,4 @@
 
 [[constraint]]
   name = "github.com/google/go-github"
-  revision = "a5cb647b1fac8ba77e1cf25af2f9526658ab63e3"
+  revision = "1c3f0aaee1ce742b655f1ba8f33740103e904c5c"
