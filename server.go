@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -237,15 +238,23 @@ func (srv *AppServer) processPullRequestEvent(ctx context.Context, ev *github.Pu
 	epic.RemoveAllStatusLabel(ctx, srv.githubClient, repo, pr)
 }
 
-func createGithubClient(config *setting.Settings) *github.Client {
+func createGithubClient(config *setting.Settings) (*github.Client, error) {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{
 			AccessToken: config.GithubToken(),
 		},
 	)
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
-	client := github.NewClient(tc)
-	return client
+
+	if config.Github.BaseURL == "" {
+		client := github.NewClient(tc)
+		return client, nil
+	} else {
+		if config.Github.UploadURL == "" {
+			return nil, errors.New("upload_url is blank. If use enterprise, set config base_url and upload_url.")
+		}
+		return github.NewEnterpriseClient(config.Github.BaseURL, config.Github.UploadURL, tc)
+	}
 }
 
 const prefixRestAPI = "/api/v0"

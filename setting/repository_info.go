@@ -3,7 +3,7 @@ package setting
 type RepositoryInfo struct {
 	reviewers           *ReviewerSet
 	regardAllAsReviewer bool
-	mergeables           *ReviewerSet
+	mergeables          *ReviewerSet
 
 	EnableAutoMerge      bool
 	DeleteAfterAutoMerge bool

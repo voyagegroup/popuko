@@ -16,6 +16,11 @@ api_token = "api_token"
 # GitHub Webhook secret
 webhook_secret = "webhook_secret"
 
+# url for enterprise. When not set, use github.com.
+# base_url = https://example.com/api/v3
+# upload_url = https://example.com/api/v3/upload
+
+
 # For security reasons, you can restrict a repository which this bot supports.
 #   - If this list is empty, this bot accepts all webhook incoming from any repositories.
 #   - Otherwise, this bot only accepts the webhook from repositories listed in this item.
