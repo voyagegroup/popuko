@@ -36,7 +36,7 @@ Not for other projects.
 And, to use without host homu by yourself, you can use `homu.io` or other similar service (e.g. [bors.tech][bors.tech]).
 But it's shared by other third repositories. It would not suite to use it for your internal repository.
 
-Some features (e.g. assigning reviewers to the pull request) are provided by [highfilve][highfive], not by homu.
+Some features (e.g. assigning reviewers to the pull request) are provided by [highfive][highfive], not by homu.
 Thus you also have to setup it to use their features which are used in code review frequently.
 
 And furthermore, homu's reviewer configuration need to configure the central configuration file.
@@ -223,7 +223,7 @@ And then we thought it's more better as an internal toolchain to implement a mer
 
 ## License
 
-[The MIT License](./LICENSE.txt)
+[The MIT License](./LICENSE.MIT)
 
 
 ## How to Contribute
