@@ -116,7 +116,6 @@ Auto-Merging behaves like this:
 
 ### Build & Launch the Application
 
-0. This requires that [`github.com/golang/dep`](https://github.com/golang/dep) has been installed.
 1. Build from the source.
     - Run these steps:
         1. `make bootstrap`.
