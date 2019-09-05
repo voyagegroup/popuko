@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v28/github"
 )
 
 func IsMergeable(ctx context.Context, prSvc *github.PullRequestsService, owner, name string, issue int, pr *github.PullRequest) (bool, bool) {

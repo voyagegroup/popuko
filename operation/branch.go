@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v28/github"
 )
 
 func createAutoBranch(ctx context.Context, svc *github.GitService, owner string, repo string, number int, branchName string) (ok bool, ref *github.Reference) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v28/github"
 	"github.com/voyagegroup/popuko/operation"
 	"github.com/voyagegroup/popuko/queue"
 	"github.com/voyagegroup/popuko/setting"
