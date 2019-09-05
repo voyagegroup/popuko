@@ -12,10 +12,6 @@ help:
 clean: ## Remove the exec binary.
 	rm -rf $(CURDIR)/$(DIST_NAME)
 
-bootstrap:
-	rm -rf vendor/
-	go mod vendor
-
 build: $(DIST_NAME) ## Build the exec binary for youe machine.
 
 build_linux_x64: ## Just an alias to build for some cloud instance.
@@ -34,6 +30,5 @@ test_%:
 	make test -C $(CURDIR)/$*
 
 travis:
-	make bootstrap
 	make build -j 8
 	make test -j 8

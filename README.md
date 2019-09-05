@@ -118,8 +118,7 @@ Auto-Merging behaves like this:
 
 1. Build from the source.
     - Run these steps:
-        1. `make bootstrap`.
-        2. `make build` or `make build_linux_x64`.
+        1. `make build` or `make build_linux_x64`.
     - Run `make help` to see more details.
     - You also can do `go get`.
 2. Create the config directory.
