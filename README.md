@@ -120,7 +120,6 @@ Auto-Merging behaves like this:
     - Run these steps:
         1. `make build` or `make build_linux_x64`.
     - Run `make help` to see more details.
-    - You also can do `go get`.
 2. Create the config directory.
     - By default, this app uses `$XDG_CONFIG_HOME/popuko/` as the config dir.
       (If you don't set `$XDG_CONFIG_HOME` environment variable, this use `~/.config/popuko/`.)
