@@ -14,7 +14,7 @@ clean: ## Remove the exec binary.
 
 bootstrap:
 	rm -rf vendor/
-	dep ensure
+	go mod vendor
 
 build: $(DIST_NAME) ## Build the exec binary for youe machine.
 
