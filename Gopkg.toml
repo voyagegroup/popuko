@@ -1,8 +1,0 @@
-
-[[constraint]]
-  name = "github.com/BurntSushi/toml"
-  revision = "a368813c5e648fee92e5f6c30e3944ff9d5e8895"
-
-[[constraint]]
-  name = "github.com/google/go-github"
-  revision = "a5cb647b1fac8ba77e1cf25af2f9526658ab63e3"
