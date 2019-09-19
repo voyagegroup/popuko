@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v28/github"
 	"golang.org/x/oauth2"
 
 	"github.com/voyagegroup/popuko/epic"

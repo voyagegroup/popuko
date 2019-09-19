@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v28/github"
 )
 
 func AddComment(ctx context.Context, issueSvc *github.IssuesService, owner string, name string, issue int, body string) bool {
