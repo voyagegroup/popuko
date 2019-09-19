@@ -2,11 +2,6 @@ language: go
 
 go:
     - "1.14"
-    - master
-
-matrix:
-    allow_failures:
-        - go: master
 
 script:
     - make travis -j 8
