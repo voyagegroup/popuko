@@ -61,7 +61,7 @@ These features are inspired by [homu][homu] and [highfive][highfive].
 - __Patrol pull requests which cannot merge into it after the upstream has been updated__
     - This bot patrols automatically by hooking GitHub's push events.
     - Change the label for the unmergeable pull request and comment about it.
-- __Try the pull request with the latest `master` branch, and merge into it automatically__
+- __Try the pull request with the latest default branch, and merge into it automatically__
     - We call this feature as "Auto-Merging".
 - __Specify a reviewer by a file committed to the repository__
     - This feature is not implemented by homu.
@@ -176,8 +176,6 @@ Auto-Merging behaves like this:
 
 ### The current limitations
 
-- The default branch of your repository should be named as `master`.
-    - [TODO: #196](https://github.com/voyagegroup/popuko/issues/196).
 - If your pull request which try to be merged into non-default branch, this bot does not detect the conflict
   even if the upstream has been changed.
     - [TODO: #197](https://github.com/voyagegroup/popuko/issues/197)

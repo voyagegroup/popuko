@@ -15,6 +15,7 @@ type StateChangeInfo struct {
 	Status                    string
 	Owner                     string
 	Name                      string
+	DefaultBranch             string
 	NotHandle                 bool
 	ID                        int64
 	SHA                       string
@@ -26,6 +27,7 @@ func CheckAutoBranchWithStatusEvent(ctx context.Context, client *github.Client, 
 		Status:                    *ev.State,
 		Owner:                     *ev.Repo.Owner.Login,
 		Name:                      *ev.Repo.Name,
+		DefaultBranch:             ev.Repo.GetDefaultBranch(),
 		NotHandle:                 *ev.State == "pending",
 		ID:                        *ev.ID,
 		SHA:                       *ev.SHA,
@@ -39,6 +41,7 @@ func CheckAutoBranchWithCheckSuiteEvent(ctx context.Context, client *github.Clie
 		Status:                    *ev.CheckSuite.Conclusion,
 		Owner:                     *ev.Repo.Owner.Login,
 		Name:                      *ev.Repo.Name,
+		DefaultBranch:             ev.Repo.GetDefaultBranch(),
 		NotHandle:                 *ev.CheckSuite.Status != "completed",
 		ID:                        *ev.CheckSuite.ID,
 		SHA:                       *ev.CheckSuite.HeadSHA,
@@ -59,7 +62,7 @@ func checkAutoBranch(ctx context.Context, client *github.Client, autoMergeRepo *
 
 	log.Printf("info: Target repository is %v/%v\n", info.Owner, info.Name)
 
-	repoInfo := GetRepositoryInfo(ctx, client.Repositories, info.Owner, info.Name)
+	repoInfo := GetRepositoryInfo(ctx, client.Repositories, info.Owner, info.Name, info.DefaultBranch)
 	if repoInfo == nil {
 		log.Println("debug: cannot get repositoryInfo")
 		return
