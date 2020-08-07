@@ -257,7 +257,7 @@ func tryNextItem(ctx context.Context, client *github.Client, owner, name string,
 
 	nextNum := next.PullRequest
 
-	ok, commit := operation.TryWithMaster(ctx, client, owner, name, nextInfo, autoBranch)
+	ok, commit := operation.TryWithDefaultBranch(ctx, client, owner, name, nextInfo, autoBranch)
 	if !ok {
 		log.Printf("info: we cannot try #%v with the latest `master`.", nextNum)
 		return tryNextItem(ctx, client, owner, name, q, autoBranch)

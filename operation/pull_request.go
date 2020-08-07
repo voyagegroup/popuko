@@ -42,7 +42,7 @@ func isMergeable(ctx context.Context, prSvc *github.PullRequestsService, owner, 
 	return true, *mergeable
 }
 
-func IsRelatedToMaster(pr *github.PullRequest, owner, master string) bool {
+func IsRelatedToDefaultBranch(pr *github.PullRequest, owner, master string) bool {
 	base := pr.Base
 	if base == nil {
 		log.Printf("info: #%v's Base is `nil`\n", *pr.Number)
