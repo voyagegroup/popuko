@@ -42,7 +42,7 @@ func createAutoBranch(ctx context.Context, svc *github.GitService, owner string,
 	return true, ref
 }
 
-func TryWithMaster(ctx context.Context, client *github.Client, owner string, name string, info *github.PullRequest, autoBranch string) (bool, string) {
+func TryWithDefaultBranch(ctx context.Context, client *github.Client, owner string, name string, info *github.PullRequest, autoBranch string) (bool, string) {
 	number := *info.Number
 
 	ok, ref := createAutoBranch(ctx, client.Git, owner, name, number, autoBranch)

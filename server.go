@@ -118,7 +118,8 @@ func (srv *AppServer) processIssueCommentEvent(ctx context.Context, ev *github.I
 		return false, fmt.Errorf("error: unexpected result of parsing comment body")
 	}
 
-	repoInfo := epic.GetRepositoryInfo(ctx, srv.githubClient.Repositories, repoOwner, repo)
+	defaultBranchName := ev.Repo.GetDefaultBranch()
+	repoInfo := epic.GetRepositoryInfo(ctx, srv.githubClient.Repositories, repoOwner, repo, defaultBranchName)
 	if repoInfo == nil {
 		return false, fmt.Errorf("debug: cannot get repositoryInfo")
 	}

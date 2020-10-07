@@ -10,23 +10,36 @@ import (
 	"github.com/voyagegroup/popuko/operation"
 )
 
-const masterBranchName = "master"
-
 func DetectUnmergeablePR(ctx context.Context, client *github.Client, ev *github.PushEvent) {
+	owner := *ev.Repo.Owner.Name
+	log.Printf("debug: repository owner is %v\n", owner)
+	repo := *ev.Repo.Name
+	log.Printf("debug: repository name is %v\n", repo)
+
+	fullRepositoryName := owner + "/" + repo
+	defaultBranch := ev.Repo.GetDefaultBranch()
+	if defaultBranch == "" {
+		// I seem we may not require this fallback path. But GitHub API example is not reliable.
+		log.Printf("debug: could not get default branch name from pushed event for %v\n", fullRepositoryName)
+		repoInfo, _, err := client.Repositories.Get(ctx, owner, repo)
+		if err != nil {
+			log.Printf("warn: could not fetch the repository infor for %v by %v\n", fullRepositoryName, err)
+			return
+		}
+
+		defaultBranch = repoInfo.GetDefaultBranch()
+	}
+	log.Printf("info: the default branch name is `%v` for %v\n", defaultBranch, fullRepositoryName)
+
 	// At this moment, we only care a pull request which are looking master branch.
-	if *ev.Ref != "refs/heads/"+masterBranchName {
+	if *ev.Ref != "refs/heads/"+defaultBranch {
 		log.Printf("info: pushed branch is not related to me: %v\n", *ev.Ref)
 		return
 	}
 
-	repoOwner := *ev.Repo.Owner.Name
-	log.Printf("debug: repository owner is %v\n", repoOwner)
-	repo := *ev.Repo.Name
-	log.Printf("debug: repository name is %v\n", repo)
-
 	prSvc := client.PullRequests
 
-	prList, _, err := prSvc.List(ctx, repoOwner, repo, &github.PullRequestListOptions{
+	prList, _, err := prSvc.List(ctx, owner, repo, &github.PullRequestListOptions{
 		State: "open",
 	})
 	if err != nil {
@@ -47,26 +60,28 @@ func DetectUnmergeablePR(ctx context.Context, client *github.Client, ev *github.
 		wg.Add(1)
 
 		go markUnmergeable(ctx, wg, &markUnmergeableInfo{
-			client.Issues,
-			prSvc,
-			repoOwner,
-			repo,
-			*item.Number,
-			comment,
-			semaphore,
+			issueSvc:          client.Issues,
+			prSvc:             prSvc,
+			RepoOwner:         owner,
+			Repo:              repo,
+			DefaultBranchName: defaultBranch,
+			Number:            *item.Number,
+			Comment:           comment,
+			semaphore:         semaphore,
 		})
 	}
 	wg.Wait()
 }
 
 type markUnmergeableInfo struct {
-	issueSvc  *github.IssuesService
-	prSvc     *github.PullRequestsService
-	RepoOwner string
-	Repo      string
-	Number    int
-	Comment   string
-	semaphore chan int
+	issueSvc          *github.IssuesService
+	prSvc             *github.PullRequestsService
+	RepoOwner         string
+	Repo              string
+	DefaultBranchName string
+	Number            int
+	Comment           string
+	semaphore         chan int
 }
 
 func markUnmergeable(ctx context.Context, wg *sync.WaitGroup, info *markUnmergeableInfo) {
@@ -90,6 +105,8 @@ func markUnmergeable(ctx context.Context, wg *sync.WaitGroup, info *markUnmergea
 	log.Printf("debug: repository name is %v\n", repo)
 	number := info.Number
 	log.Printf("debug: pull request number is %v\n", number)
+	defaultBranchName := info.DefaultBranchName
+	log.Printf("debug: the default branch name is %v\n", defaultBranchName)
 
 	pr, _, err := info.prSvc.Get(ctx, repoOwner, repo, number)
 	if err != nil || pr == nil {
@@ -98,8 +115,8 @@ func markUnmergeable(ctx context.Context, wg *sync.WaitGroup, info *markUnmergea
 		return
 	}
 
-	if !operation.IsRelatedToMaster(pr, repoOwner, masterBranchName) {
-		log.Printf("info: #%v is not related to `%v` branch", number, masterBranchName)
+	if !operation.IsRelatedToDefaultBranch(pr, repoOwner, defaultBranchName) {
+		log.Printf("info: #%v is not related to `%v` branch", number, defaultBranchName)
 		return
 	}
 
