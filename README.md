@@ -1,6 +1,6 @@
 # popuko
 
-[![Build Status (master)](https://travis-ci.org/voyagegroup/popuko.svg?branch=master)](https://travis-ci.org/voyagegroup/popuko)
+[![CI Status](https://github.com/voyagegroup/popuko/workflows/CI/badge.svg)](https://github.com/voyagegroup/popuko/actions?query=workflow%3ACI)
 
 ## What is this?
 

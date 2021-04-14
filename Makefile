@@ -28,7 +28,3 @@ test: test_epic test_input test_operation test_queue test_setting
 
 test_%:
 	make test -C $(CURDIR)/$*
-
-travis:
-	make build -j 8
-	make test -j 8
