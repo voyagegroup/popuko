@@ -183,6 +183,11 @@ func mergeSucceedItem(
 		return true
 	}
 
+	if info.Status == "neutral" {
+		log.Println("info: natural event received. could not determine test succeeded or not")
+		return true
+	}
+
 	if info.Status != "success" {
 		log.Println("info: could not merge pull request")
 
