@@ -20,6 +20,7 @@ type StateChangeInfo struct {
 	ID                        int64
 	SHA                       string
 	IsRelatedToAutoBranchBody func(string) bool
+	IsInProgress              func() bool
 }
 
 func CheckAutoBranchWithStatusEvent(ctx context.Context, client *github.Client, autoMergeRepo *queue.AutoMergeQRepo, ev *github.StatusEvent) {
@@ -32,6 +33,7 @@ func CheckAutoBranchWithStatusEvent(ctx context.Context, client *github.Client, 
 		ID:                        *ev.ID,
 		SHA:                       *ev.SHA,
 		IsRelatedToAutoBranchBody: isRelatedToAutoBranchBodyWithStatusEvent(ev),
+		IsInProgress:              inProgressWithStatusEvent(ev),
 	}
 	checkAutoBranch(ctx, client, autoMergeRepo, info)
 }
@@ -46,6 +48,7 @@ func CheckAutoBranchWithCheckSuiteEvent(ctx context.Context, client *github.Clie
 		ID:                        *ev.CheckSuite.ID,
 		SHA:                       *ev.CheckSuite.HeadSHA,
 		IsRelatedToAutoBranchBody: isRelatedToAutoBranchBodyWithCheckSuiteEvent(ev),
+		IsInProgress:              inProgressWithCheckSuiteEvent(ev),
 	}
 	checkAutoBranch(ctx, client, autoMergeRepo, info)
 }
@@ -130,6 +133,18 @@ func isRelatedToAutoBranchBodyWithCheckSuiteEvent(ev *github.CheckSuiteEvent) fu
 	}
 }
 
+func inProgressWithStatusEvent(ev *github.StatusEvent) func() bool {
+	return func() bool {
+		return *ev.State == "pending"
+	}
+}
+
+func inProgressWithCheckSuiteEvent(ev *github.CheckSuiteEvent) func() bool {
+	return func() bool {
+		return *ev.CheckSuite.Status != "completed" || *ev.CheckSuite.Conclusion == "neutral"
+	}
+}
+
 func isRelatedToAutoBranch(active *queue.AutoMergeQueueItem, info StateChangeInfo, autoBranch string) bool {
 	if !info.IsRelatedToAutoBranchBody(autoBranch) {
 		log.Printf("warn: this event (%v) is not the auto branch\n", info.ID)
@@ -183,8 +198,8 @@ func mergeSucceedItem(
 		return true
 	}
 
-	if info.Status == "neutral" {
-		log.Println("info: natural event received. could not determine test succeeded or not")
+	if info.IsInProgress() {
+		log.Printf("info: Check is in progres\n")
 		return true
 	}
 
