@@ -46,7 +46,7 @@ func CheckAutoBranchWithStatusEvent(ctx context.Context, client *github.Client, 
 			IsRelatedToAutoBranchBody: isRelatedToAutoBranchBodyWithStatusEvent(ev),
 		},
 	}
-	checkAutoBranch(ctx, client, autoMergeRepo, info)
+	checkAutoBranchWithStatusEvent(ctx, client, autoMergeRepo, info)
 }
 
 func CheckAutoBranchWithCheckSuiteEvent(ctx context.Context, client *github.Client, autoMergeRepo *queue.AutoMergeQRepo, ev *github.CheckSuiteEvent) {
@@ -63,10 +63,75 @@ func CheckAutoBranchWithCheckSuiteEvent(ctx context.Context, client *github.Clie
 			IsRelatedToAutoBranchBody: isRelatedToAutoBranchBodyWithCheckSuiteEvent(ev),
 		},
 	}
-	checkAutoBranch(ctx, client, autoMergeRepo, info)
+	checkAutoBranchWithCheckSuiteEvent(ctx, client, autoMergeRepo, info)
 }
 
-func checkAutoBranch(ctx context.Context, client *github.Client, autoMergeRepo *queue.AutoMergeQRepo, info StateChangeInfo) {
+func checkAutoBranchWithStatusEvent(ctx context.Context, client *github.Client, autoMergeRepo *queue.AutoMergeQRepo, info StatusEventInfo) {
+	log.Println("info: Start: checkAutoBranch")
+	defer log.Println("info: End: checkAutoBranch")
+
+	if info.NotHandle {
+		log.Printf("info: Not handle %v in this event\n", info.State)
+		return
+	}
+	log.Printf("info: Start to handle in this event: %v\n", info.State)
+
+	log.Printf("info: Target repository is %v/%v\n", info.Owner, info.Name)
+
+	repoInfo := GetRepositoryInfo(ctx, client.Repositories, info.Owner, info.Name, info.DefaultBranch)
+	if repoInfo == nil {
+		log.Println("debug: cannot get repositoryInfo")
+		return
+	}
+
+	log.Println("info: success to load the configure.")
+
+	if !repoInfo.EnableAutoMerge {
+		log.Println("info: this repository does not enable merging into master automatically.")
+		return
+	}
+	log.Println("info: Start to handle auto merging the branch.")
+
+	qHandle := autoMergeRepo.Get(info.Owner, info.Name)
+	if qHandle == nil {
+		log.Println("error: cannot get the queue handle")
+		return
+	}
+
+	qHandle.Lock()
+	defer qHandle.Unlock()
+
+	q := qHandle.Load()
+
+	if !q.HasActive() {
+		log.Println("info: there is no testing item")
+		return
+	}
+
+	active := q.GetActive()
+	if active == nil {
+		log.Println("error: `active` should not be null")
+		return
+	}
+	log.Println("info: got the active item.")
+
+	if !isRelatedToAutoBranch(active, info.StateChangeInfo, repoInfo.AutoBranchName) {
+		log.Printf("info: The event's tip sha does not equal to the one which is tesing actively in %v/%v\n", info.Owner, info.Name)
+		return
+	}
+	log.Println("info: the status event is related to auto branch.")
+
+	mergeSucceedItemWithStatusEvent(ctx, client, info.Owner, info.Name, repoInfo, q, info)
+
+	q.RemoveActive()
+	q.Save()
+
+	tryNextItem(ctx, client, info.Owner, info.Name, q, repoInfo.AutoBranchName)
+
+	log.Println("info: complete to start the next trying")
+}
+
+func checkAutoBranchWithCheckSuiteEvent(ctx context.Context, client *github.Client, autoMergeRepo *queue.AutoMergeQRepo, info CheckSuiteEventInfo) {
 	log.Println("info: Start: checkAutoBranch")
 	defer log.Println("info: End: checkAutoBranch")
 
@@ -115,13 +180,13 @@ func checkAutoBranch(ctx context.Context, client *github.Client, autoMergeRepo *
 	}
 	log.Println("info: got the active item.")
 
-	if !isRelatedToAutoBranch(active, info, repoInfo.AutoBranchName) {
+	if !isRelatedToAutoBranch(active, info.StateChangeInfo, repoInfo.AutoBranchName) {
 		log.Printf("info: The event's tip sha does not equal to the one which is tesing actively in %v/%v\n", info.Owner, info.Name)
 		return
 	}
 	log.Println("info: the status event is related to auto branch.")
 
-	mergeSucceedItem(ctx, client, info.Owner, info.Name, repoInfo, q, info)
+	mergeSucceedItemWithCheckSuiteEvent(ctx, client, info.Owner, info.Name, repoInfo, q, info)
 
 	q.RemoveActive()
 	q.Save()
@@ -175,14 +240,14 @@ func checkCommitHashOnTrying(active *queue.AutoMergeQueueItem, info StateChangeI
 	return true
 }
 
-func mergeSucceedItem(
+func mergeSucceedItemWithStatusEvent(
 	ctx context.Context,
 	client *github.Client,
 	owner string,
 	name string,
 	repoInfo *setting.RepositoryInfo,
 	q *queue.AutoMergeQueue,
-	info StateChangeInfo) bool {
+	info StatusEventInfo) bool {
 
 	active := q.GetActive()
 
@@ -199,15 +264,10 @@ func mergeSucceedItem(
 		return true
 	}
 
-	if info.IsInProgress() {
-		log.Printf("info: Check is in progres\n")
-		return true
-	}
-
-	if info.Status != "success" {
+	if info.State != "success" {
 		log.Println("info: could not merge pull request")
 
-		comment := ":collision: The result of what tried to merge this pull request is `" + info.Status + "`."
+		comment := ":collision: The result of what tried to merge this pull request is `" + info.State + "`."
 		commentStatus(ctx, client, owner, name, prNum, comment, repoInfo.AutoBranchName)
 
 		currentLabels := operation.GetLabelsByIssue(ctx, client.Issues, owner, name, prNum)
@@ -224,7 +284,67 @@ func mergeSucceedItem(
 		return false
 	}
 
-	comment := ":tada: The result of what tried to merge this pull request is `" + info.Status + "`."
+	comment := ":tada: The result of what tried to merge this pull request is `" + info.State + "`."
+	commentStatus(ctx, client, owner, name, prNum, comment, repoInfo.AutoBranchName)
+
+	if ok := operation.MergePullRequest(ctx, client, owner, name, prInfo, active.PrHead); !ok {
+		log.Printf("info: cannot merge pull request #%v\n", prNum)
+		return false
+	}
+
+	if repoInfo.DeleteAfterAutoMerge {
+		operation.DeleteBranchByPullRequest(ctx, client.Git, prInfo)
+	}
+
+	log.Printf("info: complete merging #%v into master\n", prNum)
+	return true
+}
+
+func mergeSucceedItemWithCheckSuiteEvent(
+	ctx context.Context,
+	client *github.Client,
+	owner string,
+	name string,
+	repoInfo *setting.RepositoryInfo,
+	q *queue.AutoMergeQueue,
+	info CheckSuiteEventInfo) bool {
+
+	active := q.GetActive()
+
+	prNum := active.PullRequest
+
+	prInfo, _, err := client.PullRequests.Get(ctx, owner, name, prNum)
+	if err != nil {
+		log.Println("info: could not fetch the pull request information.")
+		return false
+	}
+
+	if *prInfo.State != "open" {
+		log.Printf("info: the pull request #%v has been resolved the state\n", prNum)
+		return true
+	}
+
+	if info.Conclusion != "success" {
+		log.Println("info: could not merge pull request")
+
+		comment := ":collision: The result of what tried to merge this pull request is `" + info.Conclusion + "`."
+		commentStatus(ctx, client, owner, name, prNum, comment, repoInfo.AutoBranchName)
+
+		currentLabels := operation.GetLabelsByIssue(ctx, client.Issues, owner, name, prNum)
+		if currentLabels == nil {
+			return false
+		}
+
+		labels := operation.AddFailsTestsWithUpsreamLabel(currentLabels)
+		_, _, err = client.Issues.ReplaceLabelsForIssue(ctx, owner, name, prNum, labels)
+		if err != nil {
+			log.Println("warn: could not change labels of the issue")
+		}
+
+		return false
+	}
+
+	comment := ":tada: The result of what tried to merge this pull request is `" + info.Conclusion + "`."
 	commentStatus(ctx, client, owner, name, prNum, comment, repoInfo.AutoBranchName)
 
 	if ok := operation.MergePullRequest(ctx, client, owner, name, prInfo, active.PrHead); !ok {
