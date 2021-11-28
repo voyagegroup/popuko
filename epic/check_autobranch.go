@@ -324,6 +324,11 @@ func mergeSucceedItemWithCheckSuiteEvent(
 		return true
 	}
 
+	if info.Conclusion == "neutral" {
+		log.Printf("info: Check Status is not determined\n")
+		return true
+	}
+
 	if info.Conclusion != "success" {
 		log.Println("info: could not merge pull request")
 
