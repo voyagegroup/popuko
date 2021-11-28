@@ -11,8 +11,8 @@ import (
 	"github.com/voyagegroup/popuko/setting"
 )
 
+// FIXME: Name
 type StateChangeInfo struct {
-	Status                    string
 	Owner                     string
 	Name                      string
 	DefaultBranch             string
@@ -20,35 +20,48 @@ type StateChangeInfo struct {
 	ID                        int64
 	SHA                       string
 	IsRelatedToAutoBranchBody func(string) bool
-	IsInProgress              func() bool
+}
+
+type StatusEventInfo struct {
+	State string
+	StateChangeInfo
+}
+
+type CheckSuiteEventInfo struct {
+	Status     string
+	Conclusion string
+	StateChangeInfo
 }
 
 func CheckAutoBranchWithStatusEvent(ctx context.Context, client *github.Client, autoMergeRepo *queue.AutoMergeQRepo, ev *github.StatusEvent) {
-	info := StateChangeInfo{
-		Status:                    *ev.State,
-		Owner:                     *ev.Repo.Owner.Login,
-		Name:                      *ev.Repo.Name,
-		DefaultBranch:             ev.Repo.GetDefaultBranch(),
-		NotHandle:                 *ev.State == "pending",
-		ID:                        *ev.ID,
-		SHA:                       *ev.SHA,
-		IsRelatedToAutoBranchBody: isRelatedToAutoBranchBodyWithStatusEvent(ev),
-		IsInProgress:              inProgressWithStatusEvent(ev),
+	info := StatusEventInfo{
+		State: *ev.State,
+		StateChangeInfo: StateChangeInfo{
+			Owner:                     *ev.Repo.Owner.Login,
+			Name:                      *ev.Repo.Name,
+			DefaultBranch:             ev.Repo.GetDefaultBranch(),
+			NotHandle:                 *ev.State == "pending",
+			ID:                        *ev.ID,
+			SHA:                       *ev.SHA,
+			IsRelatedToAutoBranchBody: isRelatedToAutoBranchBodyWithStatusEvent(ev),
+		},
 	}
 	checkAutoBranch(ctx, client, autoMergeRepo, info)
 }
 
 func CheckAutoBranchWithCheckSuiteEvent(ctx context.Context, client *github.Client, autoMergeRepo *queue.AutoMergeQRepo, ev *github.CheckSuiteEvent) {
-	info := StateChangeInfo{
-		Status:                    *ev.CheckSuite.Conclusion,
-		Owner:                     *ev.Repo.Owner.Login,
-		Name:                      *ev.Repo.Name,
-		DefaultBranch:             ev.Repo.GetDefaultBranch(),
-		NotHandle:                 *ev.CheckSuite.Status != "completed",
-		ID:                        *ev.CheckSuite.ID,
-		SHA:                       *ev.CheckSuite.HeadSHA,
-		IsRelatedToAutoBranchBody: isRelatedToAutoBranchBodyWithCheckSuiteEvent(ev),
-		IsInProgress:              inProgressWithCheckSuiteEvent(ev),
+	info := CheckSuiteEventInfo{
+		Status:     *ev.CheckSuite.Status,
+		Conclusion: *ev.CheckSuite.Conclusion,
+		StateChangeInfo: StateChangeInfo{
+			Owner:                     *ev.Repo.Owner.Login,
+			Name:                      *ev.Repo.Name,
+			DefaultBranch:             ev.Repo.GetDefaultBranch(),
+			NotHandle:                 *ev.CheckSuite.Status != "completed",
+			ID:                        *ev.CheckSuite.ID,
+			SHA:                       *ev.CheckSuite.HeadSHA,
+			IsRelatedToAutoBranchBody: isRelatedToAutoBranchBodyWithCheckSuiteEvent(ev),
+		},
 	}
 	checkAutoBranch(ctx, client, autoMergeRepo, info)
 }
