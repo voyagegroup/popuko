@@ -146,18 +146,6 @@ func isRelatedToAutoBranchBodyWithCheckSuiteEvent(ev *github.CheckSuiteEvent) fu
 	}
 }
 
-func inProgressWithStatusEvent(ev *github.StatusEvent) func() bool {
-	return func() bool {
-		return *ev.State == "pending"
-	}
-}
-
-func inProgressWithCheckSuiteEvent(ev *github.CheckSuiteEvent) func() bool {
-	return func() bool {
-		return *ev.CheckSuite.Status != "completed" || *ev.CheckSuite.Conclusion == "neutral"
-	}
-}
-
 func isRelatedToAutoBranch(active *queue.AutoMergeQueueItem, info StateChangeInfo, autoBranch string) bool {
 	if !info.IsRelatedToAutoBranchBody(autoBranch) {
 		log.Printf("warn: this event (%v) is not the auto branch\n", info.ID)
